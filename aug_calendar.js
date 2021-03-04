@@ -1,3 +1,4 @@
+console.log("Test 1");
 BX.ready(
     // Add filtering feature
     (function () {
@@ -58,7 +59,7 @@ BX.ready(
                         // events: {
                         //     click: function () { hideCalendarEvent("rgb(246, 234, 104)") }
                         // },
-                        text: 'Hide Event'
+                        text: 'Hide Event 1'
                     }
                 ),
                 BX.findChildByClassName(document, 'calendar-counter', true)
@@ -80,8 +81,8 @@ BX.ready(
             //         }
             //     ),
             //     BX.findChildByClassName(document, 'calendar-counter', true)
-                // document.getElementsByClassName('calendar-counter')[0]
-                // NOTE: Old code using vannila javascript to select element
+            // document.getElementsByClassName('calendar-counter')[0]
+            // NOTE: Old code using vannila javascript to select element
             // );
 
             /* Adding drop box to choose event category */
@@ -112,42 +113,127 @@ BX.ready(
     }())
 );
 
-// BX.ready(
-//     (function () {
-        
-//         /** @function augSetTimerLoop */
-//         /**
-//          * @param {integer} delayTimer - the timer for the await (Example: 1000ms = 1 second)
-//          * @param {integer} loop - the number of loop (Example: 10)
-//          * @param {object} augTimerObject - an object with run function
-//          */
-//         async function augSetTimerLoop(delayTimer, loop, augTimerObject) {
-//             try {
-//                 var tmp_loop = 1;
-//                 var input = null;
-//                 console.log("Start do while loop");
-//                 do {
-//                     try {
-//                         input = document.querySelector(augTimerObject.className).getElementsByClassName("ui-entity-editor-content-block")[0].getElementsByTagName("input")[0];
-//                         console.log(input);
-//                         console.log("Timer in try: " + tmp_loop);
-//                     } catch (error) {
-//                         input = null;
-//                     }
-//                     await new Promise(r => setTimeout(r, delayTimer));
-//                     console.log("Await");
-//                     tmp_loop += 1;
-//                 }
-//                 while ((input === null || typeof input === "undefined") && tmp_loop <= loop)
 
-//                 if (typeof input !== "undefined") {
-//                     augTimerObject.run();
-//                 }
-//             } catch (error) {
-//                 console.log(error);
-//                 return;
-//             }
-//         }
+// Test running using document.readyState
+console.log("Test 2");
+BX.ready(
+    (function () {
+        try {
+            if (document.readyState !== "complete") { // Testing if document is ready 
+                console.log("Document is not ready");
+                console.log('Stop execution');
+                return;
+            }
 
-//     }())
-// );
+            // Creating and inserting button
+            (function createButton() {
+                let insertAfterElement = document.querySelector('.calendar-counter');
+                if (!insertAfterElement) { // Testing if element exist
+                    console.log("No '.calendar-counter'");
+                    console.log('Stop execution');
+                    return;
+                }
+                console.log("Element .calendar-counter seleceted");
+
+                let insertElement = BX.create('button', // Creating new element
+                    {
+                        'attrs': {
+                            'id': 'aug-select-calendar-event-button'
+                        },
+                        text: 'Hide Event 2'
+                    });
+                if (!insertElement) { // Testing if new element created
+                    console.log('insertElement not created');
+                    console.log('Stop execution');
+                    return;
+                }
+                console.log("New element created");
+
+                BX.insertAfter(insertElement, insertAfterElement); // Insert new element
+                let testElement = document.getElementById('aug-select-calendar-event-button');
+                if (!testElement) {
+                    console.log('testElement is null, no new element inserted');
+                    console.log('Stop execution');
+                    return;
+                }
+                console.log("New element inserted");
+            })();
+
+        } catch (error) {
+            console.log(error);
+            return;
+        }
+    }())
+);
+
+// Test running scrit using timeout
+console.log("Test 3");
+BX.ready(
+    (function () {
+        async function augSetTimerLoop(delayTimer, loop, augTimerObject) {
+            try {
+                var tmp_loop = 1;
+                var input = null;
+                console.log("Start do while loop");
+                do {
+                    try {
+                        input = document.querySelector(augTimerObject.className);
+                        console.log(input);
+                        console.log("Timer in try: " + tmp_loop);
+                    } catch (error) {
+                        input = null;
+                    }
+                    await new Promise(r => setTimeout(r, delayTimer));
+                    console.log("Await");
+                    tmp_loop += 1;
+                }
+                while ((input === null || typeof input === "undefined") && tmp_loop <= loop)
+
+                if (typeof input !== "undefined") {
+                    console.log(input);
+                    augTimerObject.run();
+                }
+            } catch (error) {
+                return;
+            }
+        }
+
+        let augTimerObject = {
+            'className': '.calendar-counter',
+            'run': function () {
+                console.log("Element selected");
+                (function createButton() {
+                    let insertAfterElement = document.querySelector('.calendar-counter');
+                    if (!insertAfterElement) { // Testing if element exist
+                        console.log("No '.calendar-counter'");
+                        console.log('Stop execution');
+                        return;
+                    }
+
+                    let insertElement = BX.create('button', // Creating new element
+                        {
+                            'attrs': {
+                                'id': 'aug-select-calendar-event-button'
+                            },
+                            text: 'Hide Event 3'
+                        });
+                    if (!insertElement) { // Testing if new element created
+                        console.log('insertElement not created');
+                        console.log('Stop execution');
+                        return;
+                    }
+
+                    BX.insertAfter(insertElement, insertAfterElement); // Insert new element
+                    let testElement = document.getElementById('aug-select-calendar-event-button');
+                    if (!testElement) {
+                        console.log('testElement is null, no new element inserted');
+                        console.log('Stop execution');
+                        return;
+                    }
+                })();
+            }
+        }
+
+        augSetTimerLoop(1000, 5, augTimerObject);
+    })()
+)
