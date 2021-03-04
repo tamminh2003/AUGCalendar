@@ -194,6 +194,7 @@ BX.ready(
                     augTimerObject.run();
                 }
             } catch (error) {
+                console.log(error);
                 return;
             }
         }
@@ -234,6 +235,11 @@ BX.ready(
             }
         }
 
-        augSetTimerLoop(1000, 5, augTimerObject);
+        try {
+            augSetTimerLoop(1000, 5, augTimerObject);
+        } catch (error) {
+            console.log(error);
+            return;
+        }
     })()
 )
