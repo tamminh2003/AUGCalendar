@@ -7,7 +7,12 @@ BX.ready(
 
             // Hide selected events
             function hideCalendarEvent(eventColor) {
-                const eventList = document.getElementsByClassName('calendar-event-line-dot');
+                const eventList = BX.findChildrenByClassName(document, 'calendar-event-line-dot');
+                // NOTE: New code using BX library selector for selecting element
+
+                // const eventList = document.getElementsByClassName('calendar-event-line-dot'); 
+                // NOTE: Old code using vanilla javascript for selecting element
+
                 for (let i = 0; i < eventList.length; i++) {
                     if (eventList[i].style.backgroundColor == eventColor) {
                         BX.addClass(eventList[i].parentElement.parentElement.parentElement, 'aug_hide');
@@ -17,7 +22,11 @@ BX.ready(
 
             // Show selected events
             function showCalendarEvent(eventColor) {
-                const eventList = document.getElementsByClassName('calendar-event-line-dot');
+                const eventList = BX.findChildrenByClassName(document, 'calendar-event-line-dot');
+                // NOTE: New code using BX library selector for selecting element
+
+                // const eventList = document.getElementsByClassName('calendar-event-line-dot');
+                // NOTE: Old code using vanilla javasciprt for selecting element
                 for (let i = 0; i < eventList.length; i++) {
                     if (eventList[i].style.backgroundColor == eventColor) {
                         BX.removeClass(eventList[i].parentElement.parentElement.parentElement, 'aug_hide');
@@ -53,7 +62,9 @@ BX.ready(
                         text: 'Hide Event'
                     }
                 ),
-                document.getElementsByClassName('calendar-counter')[0]
+                BX.findChildByClassName(document, 'calendar-counter', true)
+                // document.getElementsByClassName('calendar-counter')[0];
+                // NOTE: Old code using vanilla javascript to select element.
             );
 
             // Inserting filtering button: show event button
@@ -69,7 +80,9 @@ BX.ready(
                         text: 'Show Event'
                     }
                 ),
-                document.getElementsByClassName('calendar-counter')[0]
+                BX.findChildByClassName(document, 'calendar-counter', true)
+                // document.getElementsByClassName('calendar-counter')[0]
+                // NOTE: Old code using vannila javascript to select element
             );
 
             /* Adding drop box to choose event category */
@@ -83,7 +96,8 @@ BX.ready(
                             change: function (e) { dropboxValueChange(e); }
                         }
                     }),
-                document.getElementsByClassName('calendar-counter')[0]
+                BX.findChildByClassName(document, 'calendar-counter', true)
+                // NOTE: document.getElementsByClassName('calendar-counter')[0]
             );
 
             const augDropbox = BX('aug-select-calendar-event-button');
