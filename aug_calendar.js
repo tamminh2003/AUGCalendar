@@ -113,61 +113,68 @@ BX.ready(
     }())
 );
 
-
 // Test running using document.readyState
-console.log("Test 2");
+console.log("Test using document.readyState");
 BX.ready(
     (function () {
-        try {
-            if (document.readyState !== "complete") { // Testing if document is ready 
-                console.log("Document is not ready");
-                console.log('Stop execution');
+        /* @function documentCompleteHandler - event handler for readystatechange */
+        function documentCompleteHandler() {
+            try {
+                // Testing if document is ready
+                if (document.readyState !== "complete") {
+                    console.log("Document is not ready");
+                    console.log('Stop execution');
+                    return;
+                }
+
+                // Creating and inserting button
+                (function createButton() {
+                    let insertAfterElement = document.querySelector('.calendar-counter');
+                    if (!insertAfterElement) { // Testing if element exist
+                        console.log("No '.calendar-counter'");
+                        console.log('Stop execution');
+                        return;
+                    }
+                    console.log("Element .calendar-counter seleceted");
+
+                    let insertElement = BX.create('button', // Creating new element
+                        {
+                            'attrs': {
+                                'id': 'aug-select-calendar-event-button'
+                            },
+                            text: 'Hide Event 2'
+                        });
+                    if (!insertElement) { // Testing if new element created
+                        console.log('insertElement not created');
+                        console.log('Stop execution');
+                        return;
+                    }
+                    console.log("New element created");
+
+                    BX.insertAfter(insertElement, insertAfterElement); // Insert new element
+                    let testElement = document.getElementById('aug-select-calendar-event-button');
+                    if (!testElement) {
+                        console.log('testElement is null, no new element inserted');
+                        console.log('Stop execution');
+                        return;
+                    }
+                    console.log("New element inserted");
+                })();
+
+            } catch (error) {
+                console.log(error);
                 return;
             }
-
-            // Creating and inserting button
-            (function createButton() {
-                let insertAfterElement = document.querySelector('.calendar-counter');
-                if (!insertAfterElement) { // Testing if element exist
-                    console.log("No '.calendar-counter'");
-                    console.log('Stop execution');
-                    return;
-                }
-                console.log("Element .calendar-counter seleceted");
-
-                let insertElement = BX.create('button', // Creating new element
-                    {
-                        'attrs': {
-                            'id': 'aug-select-calendar-event-button'
-                        },
-                        text: 'Hide Event 2'
-                    });
-                if (!insertElement) { // Testing if new element created
-                    console.log('insertElement not created');
-                    console.log('Stop execution');
-                    return;
-                }
-                console.log("New element created");
-
-                BX.insertAfter(insertElement, insertAfterElement); // Insert new element
-                let testElement = document.getElementById('aug-select-calendar-event-button');
-                if (!testElement) {
-                    console.log('testElement is null, no new element inserted');
-                    console.log('Stop execution');
-                    return;
-                }
-                console.log("New element inserted");
-            })();
-
-        } catch (error) {
-            console.log(error);
-            return;
         }
-    }())
-);
+
+        /* bind documentCompleteHandler to readystatechange event*/
+        document.addEventListener('readystatechange', documentCompleteHandler);
+    })()
+)
 
 // Test running scrit using timeout
-console.log("Test 3");
+// Result: Button added
+console.log("Test using timer");
 BX.ready(
     (function () {
         async function augSetTimerLoop(delayTimer, loop, augTimerObject) {
