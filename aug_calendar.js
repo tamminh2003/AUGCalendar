@@ -97,7 +97,7 @@ BX.ready(
             //             }
             //         }),
             //     BX.findChildByClassName(document, 'calendar-counter', true)
-            //     // NOTE: document.getElementsByClassName('calendar-counter')[0]
+            //     NOTE: document.getElementsByClassName('calendar-counter')[0]
             // );
 
             // const augDropbox = BX('aug-select-calendar-event-button');
