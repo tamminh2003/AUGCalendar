@@ -30,7 +30,7 @@ BX.ready(
               attrs: {
                 id: "aug-select-calendar-event-button",
               },
-              text: "Hide Event 2",
+              text: "Select Event",
             }
           );
           if (!insertElement) {

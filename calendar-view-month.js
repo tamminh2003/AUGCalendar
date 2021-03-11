@@ -210,7 +210,7 @@
 
 	MonthView.prototype.buildDaysTitle = function()
 	{
-		BX.cleanNode(this.titleCont);
+		BX.cleanNode(this.titleCont); // Remove all child nodes for this.titleCont
 
 		var
 			i, day,
