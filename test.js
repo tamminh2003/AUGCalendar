@@ -1,118 +1,102 @@
-// @funciton Shortcut for getCalendarInstance
-const shortcut = window.BXEventCalendar;
+// @block Shortcut for getCalendarInstance
+const calendarShortcut = window.BXEventCalendar;
 
-function getCalendarInstance(instances) {
-  return instances[Object.keys(instances)[0]]
-};
+function getCalendarInstance(calendarObject) {
+  return calendarObject.instances[Object.keys(calendarObject.instances)[0]];
+}
 
-const calendarInstance = getCalendarInstance(shortcut.instances);
+const calendarInstance = getCalendarInstance(calendarShortcut);
 // ---------------------------------------
 
-// Section Slider binding ---------------------------------
-const sectionButton = BX('aug-select-calendar-event-button'); // select the 3 button
+// @block Slider binding
+const sectionButton = BX("aug-select-calendar-event-button"); // select the 3 button
 
 const sectionParams = {
   calendar: calendarInstance,
-  button: sectionButton
-}
+  button: sectionButton,
+};
 
 const mySectionSlider = new window.BXEventCalendar.SectionSlider(sectionParams);
 // End Section Slider binding ---------------------------------------
 
-// Hide Event based on colors
-let temp = { };
-let color = 'rgb(157, 207, 0)';
-temp.eventElement = document.querySelectorAll('.calendar-event-line-wrap');
+// @block Hide Event based on colors
+let temp = {};
+let color = "rgb(157, 207, 0)";
+temp.eventElement = document.querySelectorAll(".calendar-event-line-wrap");
 temp.eventElement.forEach((element, index) => {
   console.log(element);
-  let lineDot = element.querySelector('.calendar-event-line-dot');
-  if(lineDot.style.backgroundColor == color) {
-    element.style.display = 'none';
+  let lineDot = element.querySelector(".calendar-event-line-dot");
+  if (lineDot.style.backgroundColor == color) {
+    element.style.display = "none";
   }
-})
+});
+// ------------------------------------
 
-// Getting entries from database using loadEntries
-const shortcut = window.BXEventCalendar;
+// @block Request event entries
+// #function Calendar.Core.request( ... )
+// #state Tested
+// #result Success Array of entry raw data
 
-function getCalendarInstance(instances) {
-  return instances[Object.keys(instances)[0]]
-};
+// Setting parameter for request
+function getCalendarRequestParams(calendarObject) {
+  const viewRange = calendarObject.getDisplayedViewRange();
+  const sections = calendarObject.sectionController.getSectionsInfo();
+  startDate = new Date(
+    viewRange.start.getFullYear(),
+    viewRange.start.getMonth(),
+    1
+  );
+  finishDate = new Date(
+    viewRange.end.getFullYear(),
+    viewRange.end.getMonth() + 1,
+    1
+  );
+  return { params: { startDate, finishDate, viewRange }, sections: sections };
+}
 
-const calendarInstance = getCalendarInstance(shortcut.instances);
-
-let sections = calendarInstance.sectionController.getSectionsInfo();
+let test = getCalendarRequestParams(calendarInstance);
+params = test.params;
+sections = test.sections;
 
 calendarInstance.showLoader();
 calendarInstance.request({
-  type: 'post',
+  type: "post",
   data: {
-    action: 'load_entries',
-    month_from: params.startDate ? (params.startDate.getMonth() + 1) : '',
-    year_from: params.startDate ? params.startDate.getFullYear() : '',
-    month_to: params.finishDate ? params.finishDate.getMonth() + 1 : '',
-    year_to: params.finishDate ? params.finishDate.getFullYear() : '',
+    action: "load_entries",
+    month_from: params.startDate ? params.startDate.getMonth() + 1 : "",
+    year_from: params.startDate ? params.startDate.getFullYear() : "",
+    month_to: params.finishDate ? params.finishDate.getMonth() + 1 : "",
+    year_to: params.finishDate ? params.finishDate.getFullYear() : "",
     active_sect: sections.active,
     hidden_sect: sections.hidden,
     sup_sect: sections.superposed,
-    loadNext: params.loadNext ? 'Y' : 'N',
-    loadPrevious: params.loadPrevious ? 'Y' : 'N',
+    loadNext: params.loadNext ? "Y" : "N",
+    loadPrevious: params.loadPrevious ? "Y" : "N",
     loadLimit: params.loadLimit || 0,
-    cal_dav_data_sync: calendarInstance.reloadGoogle ? 'Y' : 'N'
+    cal_dav_data_sync: calendarInstance.reloadGoogle ? "Y" : "N",
   },
-  handler: BX.delegate(function(response)
-  {
+  handler: BX.delegate(function (response) {
+    calendarInstance.hideLoader();
     console.log(response);
-    temp.response = response;
-  }, window)
+    test.response = response;
+  }, window),
 });
+// -------------------------------------
 
-// Date template for loadEntries method
-let loadEntriesParams = {
-  type = 'post',
-  data: {
-    action: 'load_entries',
-    month_from: params.startDate ? (params.startDate.getMonth() + 1) : '',
-    year_from: params.startDate ? params.startDate.getFullYear() : '',
-    month_to: params.finishDate ? params.finishDate.getMonth() + 1 : '',
-    year_to: params.finishDate ? params.finishDate.getFullYear() : '',
-    active_sect: sections.active,
-    hidden_sect: sections.hidden,
-    sup_sect: sections.superposed,
-    loadNext: params.loadNext ? 'Y' : 'N',
-    loadPrevious: params.loadPrevious ? 'Y' : 'N',
-    loadLimit: params.loadLimit || 0,
-    cal_dav_data_sync: calendarInstance.reloadGoogle ? 'Y' : 'N'
-  }, 
-  handler: BX.delegate(function(response)
-  {
-    console.log(response);
-    temp.response = response;
-  }, window)
+// @block Entry creation
+// #function Entry constructor Entry(CalendarInstance, entriesRaw)
+// #State Tested
+// #Result Success - Array of Entry
+
+entriesRaw = test.response.entries;
+entries = [];
+for (let i = 0; i < entriesRaw.length; i++) {
+  let entry = new calendarShortcut.Entry(calendarInstance, entriesRaw[i]);
+  if (test.params.viewRange) {
+    if (entry.applyViewRange(test.params.viewRange)) {
+      entries.push(entry);
+    }
+  } else {
+    entries.push(entry);
+  }
 }
-
-let loadEntriesParamObject = {
-  type: 'post',
-  data: {
-    action: 'load_entries',
-    month_from: params.startDate ? (params.startDate.getMonth() + 1) : '',
-    year_from: params.startDate ? params.startDate.getFullYear() : '',
-    month_to: params.finishDate ? params.finishDate.getMonth() + 1 : '',
-    year_to: params.finishDate ? params.finishDate.getFullYear() : '',
-    active_sect: sections.active,
-    hidden_sect: sections.hidden,
-    sup_sect: sections.superposed,
-    loadNext: params.loadNext ? 'Y' : 'N',
-    loadPrevious: params.loadPrevious ? 'Y' : 'N',
-    loadLimit: params.loadLimit || 0,
-    cal_dav_data_sync: calendarInstance.reloadGoogle ? 'Y' : 'N'
-  },
-  handler: BX.delegate(function(response)
-  {
-    console.log(response);
-    temp.response = response;
-  }, window)
-}
-
-
-
-
