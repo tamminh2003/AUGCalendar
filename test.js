@@ -100,3 +100,19 @@ for (let i = 0; i < entriesRaw.length; i++) {
     entries.push(entry);
   }
 }
+// -------------------------------------
+
+// @block Entry filtering based on color
+// #function Array.prototype.filter( ... )
+// #State Tested
+// #Result Success - Array of Entry with the same color.
+
+entryReduced = entries.filter(function(entry) {
+  return entry.color == entries[0].color;
+});
+
+//--------------------------------------------
+
+
+// Disposable area
+calendarInstance.sectionController.getSection(target.getAttribute('data-bx-calendar-section'))
