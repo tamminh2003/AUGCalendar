@@ -1,6 +1,5 @@
-console.log("Test 1");
-// Test running using document.readyState
-console.log("Test using document.readyState");
+console.log("Start of AUG_Calendar custom script");
+console.log("-----------------------------------");
 BX.ready(
   (function () {
     /* @function documentCompleteHandler - event handler for readystatechange */
@@ -8,9 +7,7 @@ BX.ready(
       try {
         // Testing if document is ready
         if (document.readyState !== "complete") {
-          console.log("Document is not ready");
-          console.log("Stop execution");
-          return;
+          return; // document object is not ready, quit execution
         }
 
         // Creating and inserting button
@@ -18,14 +15,13 @@ BX.ready(
           let insertAfterElement = document.querySelector(".calendar-counter");
           if (!insertAfterElement) {
             // Testing if element exist
-            console.log("No '.calendar-counter'");
-            console.log("Stop execution");
+            console.log("Error - No '.calendar-counter' or not created yet");
             return;
           }
-          console.log("Element .calendar-counter seleceted");
-
+          
+          // Creating new element
           let insertElement = BX.create(
-            "button", // Creating new element
+            "button", 
             {
               attrs: {
                 id: "aug-select-calendar-event-button",
@@ -35,22 +31,19 @@ BX.ready(
           );
           if (!insertElement) {
             // Testing if new element created
-            console.log("insertElement not created");
-            console.log("Stop execution");
+            console.log("Error - insertElement not created");
             return;
           }
-          console.log("New element created");
-
           BX.insertAfter(insertElement, insertAfterElement); // Insert new element
+
           let testElement = document.getElementById(
             "aug-select-calendar-event-button"
           );
           if (!testElement) {
-            console.log("testElement is null, no new element inserted");
-            console.log("Stop execution");
-            return;
+            // Test if elment inserted
+            console.log("Error - Element aug-select-calendar-event-button not created");
+            return; // No element created
           }
-          console.log("New element inserted");
         })();
 
         (function bindButton() {
@@ -62,13 +55,13 @@ BX.ready(
 
           const calendarInstance = getCalendarInstance(shortcut.instances);
           if (!calendarInstance) {
-            console.log("calendarInstance is empty. Exit bindButton()");
+            console.log("Error - calendarInstance is empty. Exit bindButton()");
             return;
           }
 
           const sectionButton = BX("aug-select-calendar-event-button"); // select the 3 button
           if (!sectionButton) {
-            console.log("sectionButton is empty. Exit bindButton()");
+            console.log("Error - sectionButton is empty. Exit bindButton()");
             return;
           }
 
