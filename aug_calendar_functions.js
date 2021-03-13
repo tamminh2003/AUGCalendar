@@ -24,8 +24,11 @@
   // Result: Pending
   AUG_Calendar.prototype.createCustomFilter = function() {
     this.customFilterContainer = BX.create("div", {attrs: {class: "aug-filter-container"}});
-    this.customFilterContainer.appendChild(BX.create('checkbox'))
-
+    this.customFilterContainer.appendChild(BX.create('input', {attrs: {type: 'checkbox'}, text: 'option 1'}));
+    this.customFilterContainer.appendChild(BX.create('input', {attrs: {type: 'checkbox'}, text: 'option 2'}));
+    this.customFilterContainer.appendChild(BX.create('input', {attrs: {type: 'checkbox'}, text: 'option 3'}));
+    this.customFilterContainer.appendChild(BX.create('input', {attrs: {type: 'checkbox'}, text: 'option 4'}));
+    BX.insertAfter(this.customerFilterContainer, document.querySelector('.calendar-counter'));
 
   };
 
