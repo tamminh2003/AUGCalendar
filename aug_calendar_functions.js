@@ -6,7 +6,7 @@ function getCalendarInstance(calendarObject) {
     return calendarObject.instances[Object.keys(instances)[0]]
 };
 
-// @function getCalendarRequesteParams
+// @function getCalendarRequestParams
 // @param calendarInstance - Calendar.Core Object Instance, usually window.BXEventCalendar.instances[0]
 // @return Object{'params':{startDate, finishDate, viewRange}, 'sections'}
 // @Description Return parameters for Calendar.Core.request( ... ) method
