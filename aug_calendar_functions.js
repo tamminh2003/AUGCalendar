@@ -5,8 +5,8 @@
 (function (window) {
   // @Object AUG_Calendar - Custom Calendar Object containing required functions for custom script
   function AUG_Calendar() {
-    this.name = 'AUG_Calendar';
-  };
+    this.name = "AUG_Calendar";
+  }
 
   // @method getCalendarInstance
   // @param calendarObject - Calendar.Core Object, usually window.BXEventCalendar
@@ -22,21 +22,42 @@
   // @Description Create Custom Filter Section
   // State: Coding
   // Result: Pending
-  AUG_Calendar.prototype.createCustomFilter = function() {
-    this.customFilterContainer = BX.create("div", {attrs: {class: "aug-filter-container"}});
-    this.customFilterContainer.appendChild(BX.create('input', {attrs: {type: 'checkbox'}, text: 'option 1'}));
-    this.customFilterContainer.appendChild(BX.create('input', {attrs: {type: 'checkbox'}, text: 'option 2'}));
-    this.customFilterContainer.appendChild(BX.create('input', {attrs: {type: 'checkbox'}, text: 'option 3'}));
-    this.customFilterContainer.appendChild(BX.create('input', {attrs: {type: 'checkbox'}, text: 'option 4'}));
-    BX.insertAfter(this.customerFilterContainer, document.querySelector('.calendar-counter'));
+  AUG_Calendar.prototype.createCustomFilter = function () {
+    this.customFilterContainer = BX.create("div", {
+      attrs: { class: "aug-filter-container" },
+    });
 
+    this.option1 = BX.create('div', {attrs: {class: 'option-container'}});
+    this.option1.appendChild(BX.create('input', {attrs:{type:'checkbox'}}));
+    this.option1.appendChild(BX.create('span', {attrs:{class:'aug-option-name'}, text: 'option 1'}));
+
+    this.option2 = BX.create('div', {attrs: {class: 'option-container'}});
+    this.option2.appendChild(BX.create('input', {attrs:{type:'checkbox'}}));
+    this.option2.appendChild(BX.create('span', {attrs:{class:'aug-option-name'}, text: 'option 2'}));
+
+    this.option3 = BX.create('div', {attrs: {class: 'option-container'}});
+    this.option3.appendChild(BX.create('input', {attrs:{type:'checkbox'}}));
+    this.option3.appendChild(BX.create('span', {attrs:{class:'aug-option-name'}, text: 'option 3'}));
+    
+    this.customFilterContainer.appendChild(this.option1);
+    this.customFilterContainer.appendChild(this.option2);
+    this.customFilterContainer.appendChild(this.option3);
+
+    BX.insertAfter(
+      this.customFilterContainer,
+      document.querySelector(".calendar-counter")
+    );
+
+    
   };
 
   // @method getCalendarRequestParams
   // @param calendarInstance - Calendar.Core Object Instance, usually window.BXEventCalendar.instances[0]
   // @return Object{'params':{startDate, finishDate, viewRange}, 'sections'}
   // @Description Return parameters for Calendar.Core.request( ... ) method
-  AUG_Calendar.prototype.getCalendarRequestParams = function (calendarInstance) {
+  AUG_Calendar.prototype.getCalendarRequestParams = function (
+    calendarInstance
+  ) {
     const viewRange = calendarInstance.getDisplayedViewRange();
     const sections = calendarInstance.sectionController.getSectionsInfo();
     startDate = new Date(
@@ -53,12 +74,9 @@
   };
 
   // Assign AUG_Calendar class / Init AUG_Calendar Class
-	if (window.AUG_Calendar)
-		window.AUG_Calendar = AUG_Calendar;
-
-	else 
-		BX.addCustomEvent(window, "onBXEventCalendarInit", function() {
-			window.AUG_Calendar = AUG_Calendar;
-		});
-    
+  if (window.AUG_Calendar) window.AUG_Calendar = AUG_Calendar;
+  else
+    BX.addCustomEvent(window, "onBXEventCalendarInit", function () {
+      window.AUG_Calendar = AUG_Calendar;
+    });
 })(window);
