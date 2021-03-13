@@ -4,7 +4,9 @@
 
 (function (window) {
   // @Object AUG_Calendar - Custom Calendar Object containing required functions for custom script
-  function AUG_Calendar() {}
+  function AUG_Calendar() {
+    this.name = 'AUG_Calendar';
+  };
 
   // @method getCalendarInstance
   // @param calendarObject - Calendar.Core Object, usually window.BXEventCalendar
@@ -12,6 +14,19 @@
   // @Description Return current Calendar.Core instance
   AUG_Calendar.prototype.getCalendarInstance = function (calendarObject) {
     return calendarObject.instances[Object.keys(instances)[0]];
+  };
+
+  // @method createCustomFilter
+  // @param
+  // @return
+  // @Description Create Custom Filter Section
+  // State: Coding
+  // Result: Pending
+  AUG_Calendar.prototype.createCustomFilter = function() {
+    this.customFilterContainer = BX.create("div", {attrs: {class: "aug-filter-container"}});
+    this.customFilterContainer.appendChild(BX.create('checkbox'))
+
+
   };
 
   // @method getCalendarRequestParams
@@ -34,7 +49,7 @@
     return { params: { startDate, finishDate, viewRange }, sections: sections };
   };
 
-  // Assign Calendar class / Init Calendar Class
+  // Assign AUG_Calendar class / Init AUG_Calendar Class
 	if (window.AUG_Calendar)
 		window.AUG_Calendar = AUG_Calendar;
 
