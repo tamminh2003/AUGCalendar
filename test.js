@@ -159,7 +159,13 @@ AUGdisplayEntries = function (params) {
   console.log(this.entries);
 
   console.log("Filtering event entries");
-  color = this.entries[0].color;
+  if (params.color) {
+    color = params.color;
+  } else {
+    console.log('No color assign. Assign to default color');
+    color = this.entries[0].color;
+  }
+
   tempArray = this.entries.filter(function(entry) {
     return entry.color == color;
   })
