@@ -18,17 +18,22 @@
     return calendarObject.instances[Object.keys(instances)[0]];
   };
 
-  // ! @method createCustomFilter
+  // ! Ongoing
+  // @method createCustomFilter
   // @param 
   // @return
   // @Description Create Custom Filter Section
   // #State: Coding
   // #Result: Pending
+  // TODO: Making custom filter as popup
+  // TODO: Making custom filter choices as predefined text input
   AUG_Calendar.prototype.createCustomFilter = function () {
     let wrap = document.querySelector('.calendar-view-switcher-list');
     let filterContainer = wrap.appendChild(BX.create("div", { attrs: { class: "aug-filter-container" } }))
 
     this.createOptions(this.getEventTypeList(), filterContainer);
+
+    
 
   };
 
