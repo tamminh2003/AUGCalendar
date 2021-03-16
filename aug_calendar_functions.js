@@ -7,6 +7,7 @@
   function AUG_Calendar() {
     this.name = "AUG_Calendar";
     this.calendar = this.getCalendarInstance(window.BXEventCalendar);
+    this.eventType = [{name:'meeting', color:'#9DCF00'}, {name: 'holiday', color: '#DE2B24'}]
   }
 
   // @method getCalendarInstance
@@ -45,8 +46,7 @@
   // #State: Tested
   // #Result: Success
   AUG_Calendar.prototype.getEventTypeList = function () {
-    const eventType = ['meeting', 'holiday', 'break', 'event'];
-    return eventType;
+    return this.eventType;
   }
 
   // @method createOptions
@@ -58,7 +58,7 @@
   // #Result: Success
   AUG_Calendar.prototype.createOptions = function (eventType, filterContainer) {
     for (const eventElement of eventType) {
-      let optionName = eventElement.substr(0, 1).toUpperCase() + eventElement.substr(1);
+      let optionName = eventElement.name.substr(0, 1).toUpperCase() + eventElement.name.substr(1);
       let optionContainer = filterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
       optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
       optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: optionName }));
@@ -73,10 +73,22 @@
   // #State: Tested
   // #Result: Success
   AUG_Calendar.prototype.assignCheckboxHandler = function (checkboxes) {
-
+    let color;
+    for(const checkbox of checkboxes) {
+      switch (checkbox.parentElement.querySelector('.aug-option-name').innerHTML) {
+        case 'Meeting':
+          color = '#9DCF00';
+          break;
+        case 'Holiday':
+          color = '#DE2B24';
+          break;
+        default:
+          break;
+      }
+    }
     checkboxes[0].addEventListener('change', BX.delegate(function (event) {
       let params = {};
-      params.color = '#9dcf00';
+      params.color = color;
       this.calendar.views[2].AUGdisplayEntries(params)
     }, this));
 
@@ -86,6 +98,16 @@
       this.calendar.views[2].AUGdisplayEntries(params)
     }, this));
   }
+
+  AUG_Calendar.prototype.customFilterHandler(e) {
+    if(!e.target.tagName == 'INPUT') return; //Terminate if target is not checkbox
+    let checkboxes = e.target.parentElement.querySelectorAll('.aug-option-name');
+    let eventType = this.getEventTypeList();
+    let displayEventType = [];
+    for (const checkbox of checkboxes) {
+      if(checkbox == )
+    }
+  }  
 
   // @method assignAUGdisplayEntries
   // @param params object - used to pass parameters around within the object
@@ -354,10 +376,6 @@ AUG_Calendar.prototype.getCalendarRequestParams = function (calendarInstance) {
 };
 
 // * Assign AUG_Calendar class / Init AUG_Calendar Class
-if (window.AUG_Calendar) window.AUG_Calendar = AUG_Calendar;
-else
-  window.AUG_Calendar = AUG_Calendar;
-    // BX.addCustomEvent(window, "onBXEventCalendarInit", function () {
-    //   window.AUG_Calendar = AUG_Calendar;
-    // });
+window.AUG_Calendar = AUG_Calendar;
+
 }) (window);
