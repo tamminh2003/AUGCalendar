@@ -34,26 +34,20 @@
     this.assignAUGdisplayEntries();
 
     let wrap = document.querySelector('.calendar-view-switcher-list');
+    let filterContainer = document.querySelector('.aug-filter-container');
 
-    let filterContainer = wrap.appendChild(BX.create("div", { attrs: { class: "aug-filter-container" } }))
+    if (!filterContainer) {
+      filterContainer = wrap.appendChild(BX.create("div", { attrs: { class: "aug-filter-container" } }))
+    }
 
     filterContainer.style.border = 'thin solid black';
 
-    this.createOptions(this.getEventTypeList(), filterContainer);
+    this.displayOptions();
 
-    this.assignCheckboxHandler(filterContainer.querySelectorAll('input'));
+    // this.assignCheckboxHandler(filterContainer.querySelectorAll('input'));
   };
 
-  // @method getEventTypeList
-  // @param no parameters
-  // @return Array<String> eventType 
-  // @Description This method is for the ease of managing list of event types.
-  // In the future, if there is the need to add or remove event type, it can be done here.
-  // #State: Tested
-  // #Result: Success
-  AUG_Calendar.prototype.getEventTypeList = function () {
-    return this.eventType;
-  }
+
 
   // @method createOptions
   // @param Array<String> eventType - from getEventTypeList
@@ -71,6 +65,37 @@
     }
   }
 
+  // @method displayOptions
+  // @return  no return
+  // @Description Display option menu
+  // #State: Tested
+  // #Result: Success
+  AUG_Calendar.prototype.displayOptions = function () {
+    let eventType = this.getEventTypeList();
+    let filterContainer = document.querySelector('.aug-filter-container')
+    if (!filterContainer) {
+      console.log('Error, no aug-filter-container.')
+      return;
+    }
+
+    // CLear filterContainer
+    for (const optionContainer of filterContainer.querySelectorAll('.option-container')) {
+      optionContainer.remove();
+    }
+
+    // Add new elements
+    for (const eventElement of eventType) {
+      let optionName = eventElement.name.substr(0, 1).toUpperCase() + eventElement.name.substr(1);
+      let optionContainer = filterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
+      optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
+      optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: optionName }));
+    }
+
+    for (const element of filterContainer.querySelectorAll('input')) {
+      element.checked = true;
+    };
+
+  }
 
   // @method assignCheckboxHandler
   // @param checkboxes - checkboxes nodes
@@ -359,6 +384,17 @@
     }
   }
 
+  // @method getEventTypeList
+  // @param no parameters
+  // @return Array<String> eventType 
+  // @Description This method is for the ease of managing list of event types.
+  // In the future, if there is the need to add or remove event type, it can be done here.
+  // #State: Tested
+  // #Result: Success
+  AUG_Calendar.prototype.getEventTypeList = function () {
+    return this.eventType;
+  }
+
   // @method addEventType
   // @param eventName - name of the eventType
   // @param eventColor - color of the eventType
@@ -386,6 +422,7 @@
     }
 
     this.eventType.push({ name: name, color: eventColor });
+    this.displayOptions();
   }
 
   // @method removeEventType
@@ -401,7 +438,8 @@
 
     for (let i = 0; i < eventTypeList.length; i++) {
       if (name == eventTypeList[i].name) {
-        this.eventType.splice(i,1);
+        this.eventType.splice(i, 1);
+        this.displayOptions();
         return;
       }
     }
