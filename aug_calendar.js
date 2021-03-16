@@ -353,12 +353,7 @@ BX.ready(
     };
 
     // * Assign AUG_Calendar class / Init AUG_Calendar Class
-    if (window.AUG_Calendar) window.AUG_Calendar = AUG_Calendar;
-    else
-      // window.AUG_Calendar = AUG_Calendar;
-      BX.addCustomEvent(window, "onBXEventCalendarInit", function () {
-        window.AUG_Calendar = AUG_Calendar;
-      });
+    if (!window.AUG_Calendar) window.AUG_Calendar = AUG_Calendar;
   })(window));
 
 
