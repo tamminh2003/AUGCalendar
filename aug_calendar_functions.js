@@ -104,7 +104,6 @@
     augFilterPopup.style.position = 'absolute';
     augFilterPopup.style.visibility = 'hidden';
     augFilterPopup.style.left = (parseInt(window.getComputedStyle(container).width) + 10).toString() + 'px';
-    augFilterPopup.style.top = (4 - ((parseInt(window.getComputedStyle(container).height) / 2))).toString() + 'px';
     augFilterPopup.style.width = 'max-content'
     augFilterPopup.style.zIndex = 1;
 
@@ -155,7 +154,16 @@
   // #State: To be Code
   // #Result: Pending
   AUG_Calendar.prototype.popupButtonHandler = function (e) {
+    augFilterPopup = document.querySelector('.aug-filter-popup');
 
+    if (!augFilterPopup.classList.contains('aug-popup-show')) {
+      augFilterPopup.classList.add('aug-popup-show');
+      augFilterPopup.style.visibility = 'visible';
+      augFilterPopup.style.top = (11 - ((parseInt(window.getComputedStyle(augFilterPopup).height) / 2))).toString() + 'px';
+    } else {
+      augFilterPopup.classList.remove('aug-popup-show');
+      augFilterPopup.style.visibility = 'hidden';
+    }
   }
 
   // ! Utility Area
