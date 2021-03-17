@@ -7,8 +7,14 @@
   function AUG_Calendar() {
     this.name = "AUG_Calendar";
     this.calendar = this.getCalendarInstance(window.BXEventCalendar);
-    this.eventType = [{ name: 'meeting', color: '#9DCF00' }, { name: 'holiday', color: '#DE2B24' }]
+    this.eventType = [
+      { name: 'meeting', color: '#9DCF00' },
+      { name: 'holiday', color: '#DE2B24' },
+      { name: 'eating', color: '#123456' },
+    ]
   }
+
+  // ! Main methods
 
   // @method getCalendarInstance
   // @param calendarObject - Calendar.Core Object, usually window.BXEventCalendar
@@ -34,68 +40,80 @@
     this.assignAUGdisplayEntries();
 
     let wrap = document.querySelector('.calendar-view-switcher-list');
+
+    // Add popup button
     let filterContainer = document.querySelector('.aug-filter-container');
+    if (!filterContainer) filterContainer = wrap.appendChild(BX.create("div", { attrs: { class: "aug-filter-container" } }))
+    filterContainer.style.position = 'relative';
 
-    if (!filterContainer) {
-      filterContainer = wrap.appendChild(BX.create("div", { attrs: { class: "aug-filter-container" } }))
-    }
+    let popupButton = filterContainer.querySelector('.aug-filter-popup-button');
+    if (!popupButton) popupButton = filterContainer.appendChild(BX.create('button', { text: 'Filter Options' }));
+    popupButton.addEventListener('click', this.popupButtonHandler);
 
-    filterContainer.style.border = 'thin solid black';
+    // Build Popup div
+    augFilterPopup = this.buildPopup(filterContainer);
 
-    this.displayOptions();
+    this.displayOptions(augFilterPopup.querySelector('.aug-main-option-container'));
 
-    // this.assignCheckboxHandler(filterContainer.querySelectorAll('input'));
   };
-
-
-
-  // @method createOptions
-  // @param Array<String> eventType - from getEventTypeList
-  // @param filterContainer - aug custom container where we are putting the custom filter
-  // @return  no return
-  // @Description Create Custom Filter Section
-  // #State: Tested
-  // #Result: Success
-  AUG_Calendar.prototype.createOptions = function (eventType, filterContainer) {
-    for (const eventElement of eventType) {
-      let optionName = eventElement.name.substr(0, 1).toUpperCase() + eventElement.name.substr(1);
-      let optionContainer = filterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
-      optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
-      optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: optionName }));
-    }
-  }
 
   // @method displayOptions
   // @return  no return
   // @Description Display option menu
   // #State: Tested
   // #Result: Success
-  AUG_Calendar.prototype.displayOptions = function () {
+  AUG_Calendar.prototype.displayOptions = function (container) {
     let eventType = this.getEventTypeList();
-    let filterContainer = document.querySelector('.aug-filter-container')
-    if (!filterContainer) {
-      console.log('Error, no aug-filter-container.')
+    if (!container) {
+      console.log('Error, no container.')
       return;
     }
 
-    // CLear filterContainer
-    for (const optionContainer of filterContainer.querySelectorAll('.option-container')) {
+    // Clear container
+    for (const optionContainer of container.querySelectorAll('.option-container')) {
+      if (!optionContainer) continue;
       optionContainer.remove();
     }
 
     // Add new elements
     for (const eventElement of eventType) {
       let optionName = eventElement.name.substr(0, 1).toUpperCase() + eventElement.name.substr(1);
-      let optionContainer = filterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
+      let optionContainer = container.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
       optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
       optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: optionName }));
     }
 
-    for (const element of filterContainer.querySelectorAll('input')) {
+    for (const element of container.querySelectorAll('input')) {
       element.checked = true;
     };
-
   }
+
+  // @method buildPopup
+  // @param container
+  // @return augFilterPopup
+  // @Description Return parameters for Calendar.Core.request( ... ) method
+  // #State: Coding
+  // #Result: Pending
+  AUG_Calendar.prototype.buildPopup = function (container) {
+    augFilterPopup = BX.create('div', { attrs: { class: 'aug-filter-popup' } });
+    augFilterPopup.appendChild(BX.create('div', { attrs: { class: 'aug-main-option-container' } }));
+    container.appendChild(augFilterPopup);
+
+    console.log(parseInt(window.getComputedStyle(container).height) / 2);
+
+    augFilterPopup.style.position = 'absolute';
+    augFilterPopup.style.visibility = 'hidden';
+    augFilterPopup.style.left = (parseInt(window.getComputedStyle(container).width) + 10).toString() + 'px';
+    augFilterPopup.style.top = (4 - ((parseInt(window.getComputedStyle(container).height) / 2))).toString() + 'px';
+    augFilterPopup.style.width = 'max-content'
+    augFilterPopup.style.zIndex = 1;
+
+    console.log(augFilterPopup);
+
+    return augFilterPopup;
+  }
+
+  // ! Handlers Area
 
   // @method assignCheckboxHandler
   // @param checkboxes - checkboxes nodes
@@ -130,17 +148,19 @@
     }, this));
   }
 
-  // AUG_Calendar.prototype.customFilterHandler(e) {
-  //   if(!e.target.tagName == 'INPUT') return; //Terminate if target is not checkbox
-  //   let checkboxes = e.target.parentElement.querySelectorAll('.aug-option-name');
-  //   let eventType = this.getEventTypeList();
-  //   let displayEventType = [];
-  //   for (const checkbox of checkboxes) {
-  //     if(checkbox == )
-  //   }
-  // }  
+  // @method popupButtonHandler
+  // @param 
+  // @return 
+  // @Description Handler for Filter Popup button
+  // #State: To be Code
+  // #Result: Pending
+  AUG_Calendar.prototype.popupButtonHandler = function (e) {
 
-  // @method assignAUGdisplayEntries
+  }
+
+  // ! Utility Area
+
+  // ! @method assignAUGdisplayEntries
   // @param params object - used to pass parameters around within the object
   // @return  no return
   // @Description assign custom displayEntries method to month view
@@ -384,7 +404,7 @@
     }
   }
 
-  // @method getEventTypeList
+  // * @method getEventTypeList
   // @param no parameters
   // @return Array<String> eventType 
   // @Description This method is for the ease of managing list of event types.
@@ -395,7 +415,7 @@
     return this.eventType;
   }
 
-  // @method addEventType
+  // * @method addEventType
   // @param eventName - name of the eventType
   // @param eventColor - color of the eventType
   // @return no return
@@ -425,7 +445,7 @@
     this.displayOptions();
   }
 
-  // @method removeEventType
+  // * @method removeEventType
   // @param eventName - name of the eventType
   // @return no return
   // @Description Remove an event type into the filter list
