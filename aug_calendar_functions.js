@@ -8,10 +8,10 @@
     this.name = "AUG_Calendar";
     this.calendar = this.getCalendarInstance(window.BXEventCalendar);
     this.eventType = [
-      { name: 'meeting', color: '#9DCF00' },
-      { name: 'holiday', color: '#DE2B24' },
-      { name: 'eating', color: '#123456' },
-    ]
+      { name: 'meeting', color: '#9DCF00', active: true },
+      { name: 'holiday', color: '#DE2B24', active: true },
+      { name: 'eating', color: '#123456', active: true },
+    ];
   }
 
   // ! Main methods
@@ -54,7 +54,6 @@
     augFilterPopup = this.buildPopup(filterContainer);
 
     this.displayOptions(augFilterPopup.querySelector('.aug-main-option-container'));
-
   };
 
   // @method displayOptions
@@ -99,15 +98,13 @@
     augFilterPopup.appendChild(BX.create('div', { attrs: { class: 'aug-main-option-container' } }));
     container.appendChild(augFilterPopup);
 
-    console.log(parseInt(window.getComputedStyle(container).height) / 2);
-
     augFilterPopup.style.position = 'absolute';
     augFilterPopup.style.visibility = 'hidden';
     augFilterPopup.style.left = (parseInt(window.getComputedStyle(container).width) + 10).toString() + 'px';
     augFilterPopup.style.width = 'max-content'
     augFilterPopup.style.zIndex = 1;
 
-    console.log(augFilterPopup);
+    augFilterPopup.addEventListener('click', this.filterClickHandler);
 
     return augFilterPopup;
   }
@@ -165,6 +162,17 @@
       augFilterPopup.style.visibility = 'hidden';
     }
   }
+
+  // @method filterClickHandler
+  // @param 
+  // @return 
+  // @Description Handler for Filter div
+  // #State: To be Code
+  // #Result: Pending
+  AUG_Calendar.prototype.filterClickHandler = function (e) {
+
+  }
+
 
   // ! Utility Area
 
