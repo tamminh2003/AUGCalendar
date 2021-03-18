@@ -88,14 +88,14 @@
 
     for (const checkbox of document.querySelectorAll("input[type='checkbox'")) {
       checkbox.addEventListener('change', function (e) {
-        for (const elementEvent of this.eventType) {
-          if (checkbox.parentElement.querySelector('aug-option-name').innerHTML.toLowerCase() == elementEvent.name) {
+        for (const elementEvent of window.AUG_Calendar.instance.eventType) {
+          if (checkbox.parentElement.querySelector('.aug-option-name').innerHTML.toLowerCase() == elementEvent.name) {
             elementEvent.active = checkbox.checked;
           }
         }
         params = {};
-        params.eventType = this.getEventTypeList();
-        this.calendar.views[2].AUGdisplayEntries(params);
+        params.eventType = window.AUG_Calendar.instance.getEventTypeList();
+        window.AUG_Calendar.instance.calendar.views[2].AUGdisplayEntries(params);
       });
     }
   }

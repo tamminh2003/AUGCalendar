@@ -91,14 +91,14 @@ BX.ready(
 
       for (const checkbox of document.querySelectorAll("input[type='checkbox'")) {
         checkbox.addEventListener('change', function (e) {
-          for (const elementEvent of this.eventType) {
-            if (checkbox.parentElement.querySelector('aug-option-name').innerHTML.toLowerCase() == elementEvent.name) {
+          for (const elementEvent of window.AUG_Calendar.instance.eventType) {
+            if (checkbox.parentElement.querySelector('.aug-option-name').innerHTML.toLowerCase() == elementEvent.name) {
               elementEvent.active = checkbox.checked;
             }
           }
           params = {};
-          params.eventType = this.getEventTypeList();
-          this.calendar.views[2].AUGdisplayEntries(params);
+          params.eventType = window.AUG_Calendar.instance.getEventTypeList();
+          window.AUG_Calendar.instance.calendar.views[2].AUGdisplayEntries(params);
         });
       }
     }
@@ -496,7 +496,8 @@ BX.ready(
     // * Assign AUG_Calendar class / Init AUG_Calendar Class
     window.AUG_Calendar = AUG_Calendar;
 
-  })(window));
+  })(window)
+);
 
 
 // ------------------------------------
@@ -508,7 +509,7 @@ BX.ready(
         // Testing if document is ready
         if (document.readyState !== "complete") {
           return; // document object is not ready, quit execution
-        } 
+        }
 
         window.AUG_Calendar.instance = new window.AUG_Calendar();
         if (document.querySelector('.aug-filter-container')) {
