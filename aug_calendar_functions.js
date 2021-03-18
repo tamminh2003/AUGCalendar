@@ -52,8 +52,8 @@
 
     // Build Popup div
     augFilterPopup = this.buildPopup(filterContainer);
-
     this.displayOptions(augFilterPopup.querySelector('.aug-main-option-container'));
+
   };
 
   // @method displayOptions
@@ -85,6 +85,19 @@
     for (const element of container.querySelectorAll('input')) {
       element.checked = true;
     };
+
+    for (const checkbox of document.querySelectorAll("input[type='checkbox'")) {
+      checkbox.addEventListener('change', function (e) {
+        for (const elementEvent of this.eventType) {
+          if (checkbox.parentElement.querySelector('aug-option-name').innerHTML.toLowerCase() == elementEvent.name) {
+            elementEvent.active = checkbox.checked;
+          }
+        }
+        params = {};
+        params.eventType = this.getEventTypeList();
+        this.calendar.views[2].AUGdisplayEntries(params);
+      });
+    }
   }
 
   // @method buildPopup
@@ -230,16 +243,14 @@
       console.log(this.entries);
 
       console.log("Filtering event entries");
-      if (params.color) {
-        color = params.color;
-        console.log('color = ' + color);
-      } else {
-        console.log('No color assign. Assign to default color');
-        return;
-      }
 
       tempArray = this.entries.filter(function (entry) {
-        return entry.color.toUpperCase() == color.toUpperCase();
+        for (const eventElement of params.eventType) {
+          if (eventElement.color.toLowerCase() == entry.color.toLowerCase())
+            if(eventElement.active == true)
+              return true;
+        }
+        return false;
       })
 
       console.log("List of event entries after filtering");
@@ -423,10 +434,7 @@
   // * @method getEventTypeList
   // @param no parameters
   // @return Array<String> eventType 
-  // @Description This method is for the ease of managing list of event types.
-  // In the future, if there is the need to add or remove event type, it can be done here.
-  // #State: Tested
-  // #Result: Success
+  // @Description Return eventType array
   AUG_Calendar.prototype.getEventTypeList = function () {
     return this.eventType;
   }
@@ -481,28 +489,6 @@
     }
     console.log("No event type found.");
   }
-
-  // @method getCalendarRequestParams
-  // @param calendarInstance - Calendar.Core Object Instance, usually window.BXEventCalendar.instances[0]
-  // @return Object{'params':{startDate, finishDate, viewRange}, 'sections'}
-  // @Description Return parameters for Calendar.Core.request( ... ) method
-  // #State: Tested
-  // #Result: Success
-  AUG_Calendar.prototype.getCalendarRequestParams = function (calendarInstance) {
-    const viewRange = calendarInstance.getDisplayedViewRange();
-    const sections = calendarInstance.sectionController.getSectionsInfo();
-    startDate = new Date(
-      viewRange.start.getFullYear(),
-      viewRange.start.getMonth(),
-      1
-    );
-    finishDate = new Date(
-      viewRange.end.getFullYear(),
-      viewRange.end.getMonth() + 1,
-      1
-    );
-    return { params: { startDate, finishDate, viewRange }, sections: sections };
-  };
 
   // * Assign AUG_Calendar class / Init AUG_Calendar Class
   window.AUG_Calendar = AUG_Calendar;
