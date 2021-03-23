@@ -186,21 +186,8 @@
       }
 
       // ! -------- Injected code to manipulate the entries before display
-      console.log("Entries before filtered:");
-      console.log(this.entries);
-
       tempArray = this.entries.filter(function (entry) {
-        console.log("Entry being filtered:");
-        console.log(entry);
-        console.log("Entry's color: " + entry.color);
-        console.log("Entry's CAL_TYPE: " + entry.data.CAL_TYPE);
-
         for (const eventElement of params.eventType) {
-
-          console.log("eventElement's color: " + eventElement.color.toLowerCase());
-          console.log("entry.data.CAL_TYPE == \"user\": " + (entry.data.CAL_TYPE == "user"));
-          console.log("eventElement.color.toLowerCase() == entry.color.toLowerCase(): " + (eventElement.color.toLowerCase() == entry.color.toLowerCase()));
-
           if (entry.data.CAL_TYPE == "user") {
             if (eventElement.color.toLowerCase() == entry.color.toLowerCase()) {
               if (eventElement.active != true) {
@@ -213,9 +200,6 @@
         }
         return false;
       })
-
-      console.log("Entries after filtered:");
-      console.log(tempArray);
       this.entries = tempArray;
 
       // ! -------- End of injected code

@@ -6,42 +6,25 @@ BX.ready(
   // ! The use of IIFE (Immediately Invoked Function Expression) aka self-invoke function is to keep the global scope free of identifiers during the creation of the AUG_Calendar object.
 
   (function (window) {
+
+    // @METHOD CONSTRUCTOR
     // @Object AUG_Calendar - Custom Calendar Object containing required functions for custom script
     function AUG_Calendar() {
       this.name = "AUG_Calendar";
       this.calendar = this.getCalendarInstance(window.BXEventCalendar);
       this.eventType = [
-        { name: 'meeting', color: '#9DCF00', active: true },
-        { name: 'holiday', color: '#DE2B24', active: true },
-        { name: 'eating', color: '#123456', active: true },
+        { name: 'meeting', color: '#86b100', active: true },
+        { name: 'holiday', color: '#0092cc', active: true },
+        { name: 'eating', color: '#e97090', active: true },
       ];
     }
 
-    // ! Main methods
+    // SECTION MAIN METHODS
 
-    // @method getCalendarInstance
-    // @param calendarObject - Calendar.Core Object, usually window.BXEventCalendar
-    // @return Calendar.Core
-    // @Description Return current Calendar.Core instance
-    // #State: Tested
-    // #Result: Success
-    AUG_Calendar.prototype.getCalendarInstance = function (calendarObject) {
-      return calendarObject.instances[Object.keys(calendarObject.instances)[0]];
-    };
-
-    // ! Ongoing
-    // @method createCustomFilter
-    // @param 
-    // @return
+    // @METHOD createCustomFilter
     // @Description Create Custom Filter Section
-    // #State: Testing
-    // #Result: Pending
-    // TODO: Making custom filter as popup
-    // TODO: Making custom filter choices as predefined text input
     AUG_Calendar.prototype.createCustomFilter = function () {
-
       this.assignAUGdisplayEntries();
-
       let wrap = document.querySelector('.calendar-view-switcher-list');
 
       // Add popup button
@@ -59,11 +42,10 @@ BX.ready(
 
     };
 
-    // @method displayOptions
+    // @METHOD displayOptions
+    // @param container - container where the 
     // @return  no return
-    // @Description Display option menu
-    // #State: Tested
-    // #Result: Success
+    // @Description Generate option menu
     AUG_Calendar.prototype.displayOptions = function (container) {
       let eventType = this.getEventTypeList();
       if (!container) {
@@ -85,10 +67,12 @@ BX.ready(
         optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: optionName }));
       }
 
+      // Make all checkboxes active 
       for (const element of container.querySelectorAll('input')) {
         element.checked = true;
       };
 
+      // Assign handler to checkboxes
       for (const checkbox of document.querySelectorAll("input[type='checkbox'")) {
         checkbox.addEventListener('change', function (e) {
           for (const elementEvent of window.AUG_Calendar.instance.eventType) {
@@ -103,12 +87,10 @@ BX.ready(
       }
     }
 
-    // @method buildPopup
+    // @METHOD buildPopup
     // @param container
     // @return augFilterPopup
     // @Description Return parameters for Calendar.Core.request( ... ) method
-    // #State: Coding
-    // #Result: Pending
     AUG_Calendar.prototype.buildPopup = function (container) {
       augFilterPopup = BX.create('div', { attrs: { class: 'aug-filter-popup' } });
       augFilterPopup.appendChild(BX.create('div', { attrs: { class: 'aug-main-option-container' } }));
@@ -116,7 +98,7 @@ BX.ready(
 
       augFilterPopup.style.position = 'absolute';
       augFilterPopup.style.visibility = 'hidden';
-      augFilterPopup.style.left = (parseInt(window.getComputedStyle(container).width) + 10).toString() + 'px';
+      //augFilterPopup.style.left = (parseInt(window.getComputedStyle(container).width) + 10).toString() + 'px';
       augFilterPopup.style.width = 'max-content'
       augFilterPopup.style.zIndex = 1;
 
@@ -125,74 +107,40 @@ BX.ready(
       return augFilterPopup;
     }
 
-    // ! Handlers Area
+    // /SECTION
 
-    // @method assignCheckboxHandler
-    // @param checkboxes - checkboxes nodes
-    // @return  no return
-    // @Description assign Handler function for filter checkbox
-    // #State: Tested
-    // #Result: Success
-    AUG_Calendar.prototype.assignCheckboxHandler = function (checkboxes) {
-      let color;
-      for (const checkbox of checkboxes) {
-        switch (checkbox.parentElement.querySelector('.aug-option-name').innerHTML) {
-          case 'Meeting':
-            color = '#9DCF00';
-            break;
-          case 'Holiday':
-            color = '#DE2B24';
-            break;
-          default:
-            break;
-        }
-      }
-      checkboxes[0].addEventListener('change', BX.delegate(function (event) {
-        let params = {};
-        params.color = color;
-        this.calendar.views[2].AUGdisplayEntries(params)
-      }, this));
+    // SECTION HANDLER
 
-      checkboxes[1].addEventListener('change', BX.delegate(function (event) {
-        let params = {};
-        params.color = '#DE2B24';
-        this.calendar.views[2].AUGdisplayEntries(params)
-      }, this));
-    }
-
-    // @method popupButtonHandler
+    // @METHOD popupButtonHandler
     // @param 
-    // @return 
+    // @return  
     // @Description Handler for Filter Popup button
-    // #State: To be Code
-    // #Result: Pending
     AUG_Calendar.prototype.popupButtonHandler = function (e) {
       augFilterPopup = document.querySelector('.aug-filter-popup');
 
       if (!augFilterPopup.classList.contains('aug-popup-show')) {
         augFilterPopup.classList.add('aug-popup-show');
         augFilterPopup.style.visibility = 'visible';
-        augFilterPopup.style.top = (11 - ((parseInt(window.getComputedStyle(augFilterPopup).height) / 2))).toString() + 'px';
+        //augFilterPopup.style.top = (11 - ((parseInt(window.getComputedStyle(augFilterPopup).height) / 2))).toString() + 'px';
       } else {
         augFilterPopup.classList.remove('aug-popup-show');
         augFilterPopup.style.visibility = 'hidden';
       }
     }
 
-    // @method filterClickHandler
-    // @param 
-    // @return 
-    // @Description Handler for Filter div
-    // #State: To be Code
-    // #Result: Pending
-    AUG_Calendar.prototype.filterClickHandler = function (e) {
+    // /SECTION
 
-    }
+    // SECTION UTILITY
 
+    // @METHOD getCalendarInstance
+    // @param calendarObject - Calendar.Core Object, window.BXEventCalendar
+    // @return Calendar.Core
+    // @Description Return current Calendar.Core instance
+    AUG_Calendar.prototype.getCalendarInstance = function (calendarObject) {
+      return calendarObject.instances[Object.keys(calendarObject.instances)[0]];
+    };
 
-    // ! Utility Area
-
-    // ! @method assignAUGdisplayEntries
+    // @METHOD assignAUGdisplayEntries
     // @param params object - used to pass parameters around within the object
     // @return  no return
     // @Description assign custom displayEntries method to month view
@@ -239,31 +187,25 @@ BX.ready(
             finishCallback: BX.proxy(this.displayEntries, this),
           });
         }
-        // ! Injected code to manipulate the entries before display
-        console.log("Start of modified displayEntries");
 
-        console.log("List of event entries retrieved from server");
-        console.log(this.entries);
-
-        console.log("Filtering event entries");
-
+        // ! -------- Injected code to manipulate the entries before display
         tempArray = this.entries.filter(function (entry) {
           for (const eventElement of params.eventType) {
-            if (eventElement.color.toLowerCase() == entry.color.toLowerCase())
-              if (eventElement.active == true)
-                return true;
+            if (entry.data.CAL_TYPE == "user") {
+              if (eventElement.color.toLowerCase() == entry.color.toLowerCase()) {
+                if (eventElement.active != true) {
+                  console.log(entry);
+                  return false;
+                } else return true;
+              }
+            }
+            else return true;
           }
           return false;
         })
-
-        console.log("List of event entries after filtering");
-        console.log(tempArray);
-
-        console.log("Assigning filtered event entries to displaying array");
         this.entries = tempArray;
 
-        console.log("End of modified displayEntries");
-        // ! End of injected code
+        // ! -------- End of injected code
 
         // Clean holders
         this.entryHolders.forEach(function (holder) {
@@ -434,7 +376,7 @@ BX.ready(
       }
     }
 
-    // * @method getEventTypeList
+    // @METHOD getEventTypeList
     // @param no parameters
     // @return Array<String> eventType 
     // @Description Return eventType array
@@ -442,7 +384,7 @@ BX.ready(
       return this.eventType;
     }
 
-    // * @method addEventType
+    // @METHOD addEventType
     // @param eventName - name of the eventType
     // @param eventColor - color of the eventType
     // @return no return
@@ -468,11 +410,11 @@ BX.ready(
         }
       }
 
-      this.eventType.push({ name: name, color: eventColor });
-      this.displayOptions();
+      this.eventType.push({ name: name, color: eventColor, active: true });
+      this.displayOptions(document.querySelector('.aug-filter-popup').querySelector('.aug-main-option-container'));
     }
 
-    // * @method removeEventType
+    // @METHOD removeEventType
     // @param eventName - name of the eventType
     // @return no return
     // @Description Remove an event type into the filter list
@@ -486,17 +428,21 @@ BX.ready(
       for (let i = 0; i < eventTypeList.length; i++) {
         if (name == eventTypeList[i].name) {
           this.eventType.splice(i, 1);
-          this.displayOptions();
+          this.displayOptions(document.querySelector('.aug-filter-popup').querySelector('.aug-main-option-container'));
           return;
         }
       }
       console.log("No event type found.");
     }
 
+    // /SECTION
+
+    // @METHOD ASSIGN AUG_CALENDAR
     // * Assign AUG_Calendar class / Init AUG_Calendar Class
     window.AUG_Calendar = AUG_Calendar;
 
   })(window)
+
 );
 
 
