@@ -35,7 +35,7 @@
 
     // Build Popup div
     augFilterPopup = this.buildPopup(filterContainer);
-    this.displayOptions(augFilterPopup.querySelector('.aug-main-option-container'));
+    this.displayOptions(augFilterPopup);
 
   };
 
@@ -51,18 +51,49 @@
     }
 
     // Clear container
-    for (const optionContainer of container.querySelectorAll('.option-container')) {
-      if (!optionContainer) continue;
-      optionContainer.remove();
-    }
+    if (container.querySelector('.aug-main-option-container')) container.querySelector('.aug-main-option-container').remove();
 
+    // for (const optionContainer of container.querySelectorAll('.option-container')) {
+    //   if (!optionContainer) continue;
+    //   optionContainer.remove();
+    // }
+
+    mainOptionContainer = container.appendChild(BX.create('div', { attrs: { class: 'aug-main-option-container' } }));
+    mainOptionContainer.style.columnCount = 3;
     // Add new elements
+
+    // User Filter Options
+    optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', { attrs: { class: 'option-title' }, text: 'User Filter' }));
+
     for (const eventElement of eventType) {
       let optionName = eventElement.name.substr(0, 1).toUpperCase() + eventElement.name.substr(1);
-      let optionContainer = container.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
+      let optionContainer = optionFilterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
       optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
       optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: optionName }));
     }
+
+    // Company Filter Options
+    optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', { attrs: { class: 'option-title' }, text: 'Company Filter' }));
+
+    optionContainer = optionFilterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
+    optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
+    optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: 'Adelaide' }));
+
+    optionContainer = optionFilterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
+    optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
+    optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: 'Brisbane' }));
+
+    optionContainer = optionFilterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
+    optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
+    optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: 'Melbourne' }));
+
+    // Workgroup Filter Options
+    optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', { attrs: { class: 'option-title' }, text: 'Workgroup Filter' }));
+    optionContainer = optionFilterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
+    optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
+    optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: 'Soccer' }));
+
+
 
     // Make all checkboxes active 
     for (const element of container.querySelectorAll('input')) {
@@ -70,7 +101,7 @@
     };
 
     // Assign handler to checkboxes
-    for (const checkbox of document.querySelectorAll("input[type='checkbox'")) {
+    for (const checkbox of document.querySelectorAll("input[type='checkbox']")) {
       checkbox.addEventListener('change', function (e) {
         for (const elementEvent of window.AUG_Calendar.instance.eventType) {
           if (checkbox.parentElement.querySelector('.aug-option-name').innerHTML.toLowerCase() == elementEvent.name) {
@@ -90,14 +121,17 @@
   // @Description Return parameters for Calendar.Core.request( ... ) method
   AUG_Calendar.prototype.buildPopup = function (container) {
     augFilterPopup = BX.create('div', { attrs: { class: 'aug-filter-popup' } });
-    augFilterPopup.appendChild(BX.create('div', { attrs: { class: 'aug-main-option-container' } }));
     container.appendChild(augFilterPopup);
 
     augFilterPopup.style.position = 'absolute';
     augFilterPopup.style.visibility = 'hidden';
-    //augFilterPopup.style.left = (parseInt(window.getComputedStyle(container).width) + 10).toString() + 'px';
+    augFilterPopup.style.left = (parseInt(window.getComputedStyle(container).width) + 10).toString() + 'px';
     augFilterPopup.style.width = 'max-content'
     augFilterPopup.style.zIndex = 1;
+    augFilterPopup.style.backgroundColor = '#FFF';
+    augFilterPopup.style.borderRadius = '5px';
+    augFilterPopup.style.border = 'solid thin #000';
+    augFilterPopup.style.padding = '5px';
 
     augFilterPopup.addEventListener('click', this.filterClickHandler);
 
@@ -116,10 +150,12 @@
     augFilterPopup = document.querySelector('.aug-filter-popup');
 
     if (!augFilterPopup.classList.contains('aug-popup-show')) {
+      document.querySelector('.page-header').style.opacity = 1;
       augFilterPopup.classList.add('aug-popup-show');
       augFilterPopup.style.visibility = 'visible';
-      //augFilterPopup.style.top = (11 - ((parseInt(window.getComputedStyle(augFilterPopup).height) / 2))).toString() + 'px';
+      augFilterPopup.style.top = (11 - ((parseInt(window.getComputedStyle(augFilterPopup).height) / 2))).toString() + 'px';
     } else {
+      document.querySelector('.page-header').style.opacity = 0.96;
       augFilterPopup.classList.remove('aug-popup-show');
       augFilterPopup.style.visibility = 'hidden';
     }
