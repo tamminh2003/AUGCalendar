@@ -10,10 +10,21 @@
     this.name = "AUG_Calendar";
     this.calendar = this.getCalendarInstance(window.BXEventCalendar);
     this.eventType = [
-      { name: 'meeting', color: '#86b100', active: true },
-      { name: 'holiday', color: '#0092cc', active: true },
-      { name: 'eating', color: '#e97090', active: true },
+      { name: 'augTravel', color: '#86b100', active: true, title: 'AUG Travel' },
+      { name: 'general', color: '#0092cc', active: true, title: 'General' },
+      { name: 'marketing', color: '#00afc7', active: true, title: 'Marketing Promotions' },
+      { name: 'meeting', color: '#da9100', active: true, title: 'Meeting' },
+      { name: 'personal', color: '#00b38c', active: true, title: 'Personal' },
+      { name: 'visitpr', color: '#de2b24', active: true, title: 'Visits/PR' },
+      { name: 'social', color: '#bd7ac9', active: true, title: 'Social Media' },
+      { name: 'others', color: '#838fa0', active: true, title: 'Others' }
     ];
+
+    this.companyCalendar = this.getAvailableSection().filter(function (section) { return section.type == "company_calendar" });
+    for (const section of this.companyCalendar) {
+      section.active = true;
+    }
+
   }
 
   // SECTION MAIN METHODS
@@ -35,6 +46,7 @@
 
     // Build Popup div
     augFilterPopup = this.buildPopup(filterContainer);
+
     this.displayOptions(augFilterPopup);
 
   };
@@ -52,59 +64,24 @@
 
     // Clear container
     if (container.querySelector('.aug-main-option-container')) container.querySelector('.aug-main-option-container').remove();
-
-    // for (const optionContainer of container.querySelectorAll('.option-container')) {
-    //   if (!optionContainer) continue;
-    //   optionContainer.remove();
-    // }
-
     mainOptionContainer = container.appendChild(BX.create('div', { attrs: { class: 'aug-main-option-container' } }));
-    mainOptionContainer.style.columnCount = 3;
-    // Add new elements
 
-    // User Filter Options
-    optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', { attrs: { class: 'option-title' }, text: 'User Filter' }));
+    // Generate filter sections
+    // User Filter 
+    optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', { attrs: { class: 'event-type-filter' }, text: 'Event Type' }));
 
     for (const eventElement of eventType) {
-      let optionName = eventElement.name.substr(0, 1).toUpperCase() + eventElement.name.substr(1);
-      let optionContainer = optionFilterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
+      let optionName = eventElement.title;
+      let optionContainer = optionFilterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container', 'data-name': eventElement.name } }));
       optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
       optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: optionName }));
     }
 
-    // Company Filter Options
-    optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', { attrs: { class: 'option-title' }, text: 'Company Filter' }));
-
-    optionContainer = optionFilterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
-    optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
-    optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: 'Adelaide' }));
-
-    optionContainer = optionFilterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
-    optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
-    optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: 'Brisbane' }));
-
-    optionContainer = optionFilterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
-    optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
-    optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: 'Melbourne' }));
-
-    // Workgroup Filter Options
-    optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', { attrs: { class: 'option-title' }, text: 'Workgroup Filter' }));
-    optionContainer = optionFilterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
-    optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
-    optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: 'Soccer' }));
-
-
-
-    // Make all checkboxes active 
-    for (const element of container.querySelectorAll('input')) {
-      element.checked = true;
-    };
-
-    // Assign handler to checkboxes
-    for (const checkbox of document.querySelectorAll("input[type='checkbox']")) {
+    // Assign handler to event type checkboxes
+    for (const checkbox of document.querySelectorAll("div.event-type-filter>div>input")) {
       checkbox.addEventListener('change', function (e) {
         for (const elementEvent of window.AUG_Calendar.instance.eventType) {
-          if (checkbox.parentElement.querySelector('.aug-option-name').innerHTML.toLowerCase() == elementEvent.name) {
+          if (checkbox.parentElement.dataset.name == elementEvent.name) {
             elementEvent.active = checkbox.checked;
           }
         }
@@ -113,6 +90,62 @@
         window.AUG_Calendar.instance.calendar.views[2].AUGdisplayEntries(params);
       });
     }
+    // <-- End of assign handler to event type checkboxes
+    // <-- End of user filter
+
+    // Company Filter 
+    optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', { attrs: { class: 'company-filter' }, text: 'Company Filter' }));
+
+    for (const section of this.companyCalendar) {
+      optionContainer = optionFilterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
+      optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox', "data-id": section.id } }));
+      optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: section.name }));
+    }
+
+    // Assign handler to company filter checkboxex
+    for (const checkbox of document.querySelectorAll("div.company-filter>div>input")) {
+      checkbox.addEventListener('change', function (e) {
+        for (const section of window.AUG_Calendar.instance.companyCalendar) {
+          if (checkbox.dataset.id == section.id) {
+            section.active = checkbox.checked;
+          }
+        }
+        // params = {};
+        // params.eventType = window.AUG_Calendar.instance.getEventTypeList();
+        // window.AUG_Calendar.instance.calendar.views[2].AUGdisplayEntries(params);
+      });
+    }
+    // <-- End of assigning handler to company checkboxes
+    // <-- End of company filter
+
+    // Workgroup Filter 
+    availableWorkgroupSection = this.getAvailableSection().filter(function (section) {
+      return section.type == "group";
+    });
+
+    optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', { attrs: { class: 'workgroup-title' }, text: 'Workgroup Filter' }));
+
+    for (const section of availableWorkgroupSection) {
+      optionContainer = optionFilterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
+      optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
+      optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: section.name }));
+    }
+
+    // <-- End of generating filter sections
+
+    // Make all checkboxes active 
+    for (const element of container.querySelectorAll('input')) {
+      element.checked = true;
+    };
+    // <-- End of make all checkboxes active
+
+    // Adding spaces between filter Section
+    for (const element of document.querySelector('.aug-main-option-container').children) {
+      element.style.paddingBottom = '10px';
+    }
+    // <-- End of adding spcaes between filter section
+
+
   }
 
   // @METHOD buildPopup
@@ -126,14 +159,13 @@
     augFilterPopup.style.position = 'absolute';
     augFilterPopup.style.visibility = 'hidden';
     augFilterPopup.style.left = (parseInt(window.getComputedStyle(container).width) + 10).toString() + 'px';
+    augFilterPopup.style.top = '10px';
     augFilterPopup.style.width = 'max-content'
     augFilterPopup.style.zIndex = 1;
     augFilterPopup.style.backgroundColor = '#FFF';
     augFilterPopup.style.borderRadius = '5px';
     augFilterPopup.style.border = 'solid thin #000';
     augFilterPopup.style.padding = '5px';
-
-    augFilterPopup.addEventListener('click', this.filterClickHandler);
 
     return augFilterPopup;
   }
@@ -153,7 +185,7 @@
       document.querySelector('.page-header').style.opacity = 1;
       augFilterPopup.classList.add('aug-popup-show');
       augFilterPopup.style.visibility = 'visible';
-      augFilterPopup.style.top = (11 - ((parseInt(window.getComputedStyle(augFilterPopup).height) / 2))).toString() + 'px';
+      // augFilterPopup.style.top = (11 - ((parseInt(window.getComputedStyle(augFilterPopup).height) / 2))).toString() + 'px';
     } else {
       document.querySelector('.page-header').style.opacity = 0.96;
       augFilterPopup.classList.remove('aug-popup-show');
@@ -224,15 +256,27 @@
       // ! -------- Injected code to manipulate the entries before display
       tempArray = this.entries.filter(function (entry) {
         for (const eventElement of params.eventType) {
+
           if (entry.data.CAL_TYPE == "user") {
             if (eventElement.color.toLowerCase() == entry.color.toLowerCase()) {
               if (eventElement.active != true) {
-                console.log(entry);
                 return false;
               } else return true;
             }
           }
-          else return true;
+
+          else if (entry.data.CAL_TYPE == "group") {
+            return true;
+          }
+
+          else if (entry.data.CAL_TYPE == "company_calendar") {
+            return true;
+          }
+
+          else {
+            console.log("Uncaught case for filtering ");
+            return true;
+          }
         }
         return false;
       })
@@ -466,6 +510,11 @@
       }
     }
     console.log("No event type found.");
+  }
+
+  // @METHOD getAvailableSection
+  AUG_Calendar.prototype.getAvailableSection = function () {
+    return this.calendar.sectionController.sections;
   }
 
   // /SECTION
