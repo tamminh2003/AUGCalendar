@@ -25,6 +25,10 @@
       section.active = true;
     }
 
+    this.workgroupCalendar = this.getAvailableSection().filter(function (section) { return section.type == "group" });
+    for (const section of this.workgroupCalendar) {
+      section.active = true;
+    }
   }
 
   // SECTION MAIN METHODS
@@ -87,6 +91,8 @@
         }
         params = {};
         params.eventType = window.AUG_Calendar.instance.getEventTypeList();
+        params.workgroupCalendar = window.AUG_Calendar.instance.workgroupCalendar;
+        params.companyCalendar = window.AUG_Calendar.instance.companyCalendar;
         window.AUG_Calendar.instance.calendar.views[2].AUGdisplayEntries(params);
       });
     }
@@ -110,27 +116,42 @@
             section.active = checkbox.checked;
           }
         }
-        // params = {};
-        // params.eventType = window.AUG_Calendar.instance.getEventTypeList();
-        // window.AUG_Calendar.instance.calendar.views[2].AUGdisplayEntries(params);
+        params = {};
+        params.eventType = window.AUG_Calendar.instance.getEventTypeList();
+        params.workgroupCalendar = window.AUG_Calendar.instance.workgroupCalendar;
+        params.companyCalendar = window.AUG_Calendar.instance.companyCalendar;
+        window.AUG_Calendar.instance.calendar.views[2].AUGdisplayEntries(params);
       });
     }
     // <-- End of assigning handler to company checkboxes
     // <-- End of company filter
 
     // Workgroup Filter 
-    availableWorkgroupSection = this.getAvailableSection().filter(function (section) {
-      return section.type == "group";
-    });
+    optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', { attrs: { class: 'workgroup-filter' }, text: 'Workgroup Filter' }));
 
-    optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', { attrs: { class: 'workgroup-title' }, text: 'Workgroup Filter' }));
-
-    for (const section of availableWorkgroupSection) {
+    for (const section of this.workgroupCalendar) {
       optionContainer = optionFilterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
-      optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
+      optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox', 'data-id': section.id } }));
       optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: section.name }));
     }
 
+    // Assign handler to company filter checkboxex
+    for (const checkbox of document.querySelectorAll("div.workgroup-filter>div>input")) {
+      checkbox.addEventListener('change', function (e) {
+        for (const section of window.AUG_Calendar.instance.workgroupCalendar) {
+          if (checkbox.dataset.id == section.id) {
+            section.active = checkbox.checked;
+          }
+        }
+        params = {};
+        params.eventType = window.AUG_Calendar.instance.getEventTypeList();
+        params.workgroupCalendar = window.AUG_Calendar.instance.workgroupCalendar;
+        params.companyCalendar = window.AUG_Calendar.instance.companyCalendar;
+        window.AUG_Calendar.instance.calendar.views[2].AUGdisplayEntries(params);
+      });
+    }
+    // <-- End of assigning handler to company checkboxes
+    // <-- End of company filter
     // <-- End of generating filter sections
 
     // Make all checkboxes active 
@@ -255,30 +276,79 @@
 
       // ! -------- Injected code to manipulate the entries before display
       tempArray = this.entries.filter(function (entry) {
-        for (const eventElement of params.eventType) {
-
-          if (entry.data.CAL_TYPE == "user") {
-            if (eventElement.color.toLowerCase() == entry.color.toLowerCase()) {
-              if (eventElement.active != true) {
-                return false;
-              } else return true;
+        console.log(entry);
+        switch (entry.data.CAL_TYPE) {
+          case "user":
+            for (const element of params.eventType) {
+              if (element.color.toLowerCase() == entry.color.toLowerCase()) {
+                return element.active;
+              }
             }
-          }
+            return false;
+            break;
 
-          else if (entry.data.CAL_TYPE == "group") {
-            return true;
-          }
+          case "group":
+            for (const section of params.workgroupCalendar) {
+              if (section.id == entry.sectionId) {
+                if(!section.active) return false;
+                for (const element of params.eventType) {
+                  if (element.color.toLowerCase() == entry.color.toLowerCase()) {
+                    return element.active;
+                  }
+                }
+              };
+            }
+            console.log("Error - Entry belongs to different workgroup calendar");
+            return false;
+            break;
 
-          else if (entry.data.CAL_TYPE == "company_calendar") {
-            return true;
-          }
+          case "company_calendar":
+            for (const section of params.companyCalendar) {
+              console.log(section.id);
+              console.log(entry.sectionId);
+              if (section.id == entry.sectionId) {
+                console.log("inside if");
+                if(!section.active) return false;
+                for (const element of params.eventType) {
+                  if (element.color.toLowerCase() == entry.color.toLowerCase()) {
+                    return element.active;
+                  }
+                }
+              }
+            }
+            console.log("Error - Entry belongs to different company calendar");
+            return false;
+            break;
 
-          else {
-            console.log("Uncaught case for filtering ");
-            return true;
-          }
+          default:
+            console.log("Error - Uncaught CAL_TYPE");
+            return false;
         }
-        return false;
+
+        // for (const eventElement of params.eventType) {
+        //   if (entry.data.CAL_TYPE == "user") {
+        //     if (eventElement.color.toLowerCase() == entry.color.toLowerCase()) {
+        //       if (eventElement.active != true) {
+        //         return false;
+        //       } else return true;
+        //     }
+        //   }
+
+        //   else if (entry.data.CAL_TYPE == "group") {
+        //     if (entry.sectionId)
+        //       return true;
+        //   }
+
+        //   else if (entry.data.CAL_TYPE == "company_calendar") {
+        //     return true;
+        //   }
+
+        //   else {
+        //     console.log("Uncaught case for filtering ");
+        //     return true;
+        //   }
+        // }
+        // return false;
       })
       this.entries = tempArray;
 
