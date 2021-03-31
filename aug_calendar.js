@@ -5,14 +5,6 @@ BX.ready(
 
   // ! The use of IIFE (Immediately Invoked Function Expression) aka self-invoke function is to keep the global scope free of identifiers during the creation of the AUG_Calendar object.
 
-  // ! Description: this file contains a custom AUG_Calendar object that is added to the global object (window) and can be access by window.AUG_Calendar. The AUG_Calendar object contains methods for the custom script aug_calendar.js
-
-  // ! The use of IIFE (Immediately Invoked Function Expression) aka self-invoke function is to keep the global scope free of identifiers during the creation of the AUG_Calendar object.
-
-  // ! Description: this file contains a custom AUG_Calendar object that is added to the global object (window) and can be access by window.AUG_Calendar. The AUG_Calendar object contains methods for the custom script aug_calendar.js
-
-  // ! The use of IIFE (Immediately Invoked Function Expression) aka self-invoke function is to keep the global scope free of identifiers during the creation of the AUG_Calendar object.
-
   (function (window) {
 
     // @METHOD CONSTRUCTOR
@@ -36,6 +28,10 @@ BX.ready(
         section.active = true;
       }
 
+      this.workgroupCalendar = this.getAvailableSection().filter(function (section) { return section.type == "group" });
+      for (const section of this.workgroupCalendar) {
+        section.active = true;
+      }
     }
 
     // SECTION MAIN METHODS
@@ -98,6 +94,8 @@ BX.ready(
           }
           params = {};
           params.eventType = window.AUG_Calendar.instance.getEventTypeList();
+          params.workgroupCalendar = window.AUG_Calendar.instance.workgroupCalendar;
+          params.companyCalendar = window.AUG_Calendar.instance.companyCalendar;
           window.AUG_Calendar.instance.calendar.views[2].AUGdisplayEntries(params);
         });
       }
@@ -121,27 +119,42 @@ BX.ready(
               section.active = checkbox.checked;
             }
           }
-          // params = {};
-          // params.eventType = window.AUG_Calendar.instance.getEventTypeList();
-          // window.AUG_Calendar.instance.calendar.views[2].AUGdisplayEntries(params);
+          params = {};
+          params.eventType = window.AUG_Calendar.instance.getEventTypeList();
+          params.workgroupCalendar = window.AUG_Calendar.instance.workgroupCalendar;
+          params.companyCalendar = window.AUG_Calendar.instance.companyCalendar;
+          window.AUG_Calendar.instance.calendar.views[2].AUGdisplayEntries(params);
         });
       }
       // <-- End of assigning handler to company checkboxes
       // <-- End of company filter
 
       // Workgroup Filter 
-      availableWorkgroupSection = this.getAvailableSection().filter(function (section) {
-        return section.type == "group";
-      });
+      optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', { attrs: { class: 'workgroup-filter' }, text: 'Workgroup Filter' }));
 
-      optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', { attrs: { class: 'workgroup-title' }, text: 'Workgroup Filter' }));
-
-      for (const section of availableWorkgroupSection) {
+      for (const section of this.workgroupCalendar) {
         optionContainer = optionFilterContainer.appendChild(BX.create('div', { attrs: { class: 'option-container' } }));
-        optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox' } }));
+        optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox', 'data-id': section.id } }));
         optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: section.name }));
       }
 
+      // Assign handler to company filter checkboxex
+      for (const checkbox of document.querySelectorAll("div.workgroup-filter>div>input")) {
+        checkbox.addEventListener('change', function (e) {
+          for (const section of window.AUG_Calendar.instance.workgroupCalendar) {
+            if (checkbox.dataset.id == section.id) {
+              section.active = checkbox.checked;
+            }
+          }
+          params = {};
+          params.eventType = window.AUG_Calendar.instance.getEventTypeList();
+          params.workgroupCalendar = window.AUG_Calendar.instance.workgroupCalendar;
+          params.companyCalendar = window.AUG_Calendar.instance.companyCalendar;
+          window.AUG_Calendar.instance.calendar.views[2].AUGdisplayEntries(params);
+        });
+      }
+      // <-- End of assigning handler to company checkboxes
+      // <-- End of company filter
       // <-- End of generating filter sections
 
       // Make all checkboxes active 
@@ -266,30 +279,50 @@ BX.ready(
 
         // ! -------- Injected code to manipulate the entries before display
         tempArray = this.entries.filter(function (entry) {
-          for (const eventElement of params.eventType) {
-
-            if (entry.data.CAL_TYPE == "user") {
-              if (eventElement.color.toLowerCase() == entry.color.toLowerCase()) {
-                if (eventElement.active != true) {
-                  return false;
-                } else return true;
+          switch (entry.data.CAL_TYPE) {
+            case "user":
+              for (const element of params.eventType) {
+                if (element.color.toLowerCase() == entry.color.toLowerCase()) {
+                  return element.active;
+                }
               }
-            }
+              return false;
+              break;
 
-            else if (entry.data.CAL_TYPE == "group") {
-              return true;
-            }
+            case "group":
+              for (const section of params.workgroupCalendar) {
+                if (section.id == entry.sectionId) {
+                  if (!section.active) return false;
+                  for (const element of params.eventType) {
+                    if (element.color.toLowerCase() == entry.color.toLowerCase()) {
+                      return element.active;
+                    }
+                  }
+                };
+              }
+              console.log("Error - Entry belongs to different workgroup calendar");
+              return false;
+              break;
 
-            else if (entry.data.CAL_TYPE == "company_calendar") {
-              return true;
-            }
+            case "company_calendar":
+              for (const section of params.companyCalendar) {
+                if (section.id == entry.sectionId) {
+                  if (!section.active) return false;
+                  for (const element of params.eventType) {
+                    if (element.color.toLowerCase() == entry.color.toLowerCase()) {
+                      return element.active;
+                    }
+                  }
+                }
+              }
+              console.log("Error - Entry belongs to different company calendar");
+              return false;
+              break;
 
-            else {
-              console.log("Uncaught case for filtering ");
-              return true;
-            }
+            default:
+              console.log("Error - Uncaught CAL_TYPE");
+              return false;
           }
-          return false;
         })
         this.entries = tempArray;
 
@@ -536,7 +569,6 @@ BX.ready(
 
   })(window)
 
-
 );
 
 
@@ -551,20 +583,84 @@ BX.ready(
           return; // document object is not ready, quit execution
         }
 
+        // Create custom AUG filter
         window.AUG_Calendar.instance = new window.AUG_Calendar();
         if (document.querySelector('.aug-filter-container')) {
           document.querySelector('.aug-filter-container').remove();
         }
         window.AUG_Calendar.instance.createCustomFilter();
+        // <-- End of create custom AUG filter
 
-      } catch (error) {
-        console.log(error);
-        return;
+        // Set the type of the event matching with the color
+        (function() {
+          if (window.colorPopupObserver) {
+            delete window.colorPopupObserver
+          }
+
+          window.colorPopupObserver = new MutationObserver(function (m) {
+            console.log(m);
+            regexPattern = /.*popup-window-content-menu-popup-color-select.*/g
+            console.log(regexPattern);
+            for (const eachM of m) {
+              console.log(eachM);
+              if (regexPattern.test(eachM.target.id)) {
+                console.log("inside if");
+                console.log(eachM);
+                for (const eachElem of eachM.target.querySelectorAll('.menu-popup-item-text')) {
+                  eachElem.style.display = 'inline';
+                  console.log(eachElem.innerHTML)
+                  switch (eachElem.innerHTML) {
+                    case "#86B100":
+                      eachElem.innerHTML = "AUG Travel";
+                      break;
+                    case "#0092CC":
+                      eachElem.innerHTML = "General";
+                      break;
+                    case "#00AFC7":
+                      eachElem.innerHTML = "Marketing Promotions";
+                      break;
+                    case "#DA9100":
+                      eachElem.innerHTML = "Meeting";
+                      break;
+                    case "#00B38C":
+                      eachElem.innerHTML = "Personal";
+                      break;
+                    case "#DE2B24":
+                      eachElem.innerHTML = "Visits/PR";
+                      break;
+                    case "#BD7AC9":
+                      eachElem.innerHTML = "Social Media";
+                      break;
+                    case "#838FA0":
+                      eachElem.innerHTML = "Others";
+                      break;
+                    case "#AB7917":
+                      eachElem.parentElement.remove();
+                      break;
+                    case "#E97090":
+                      eachElem.parentElement.remove();
+                      break;
+                    default:
+                      console.log("uncaught case");
+                      break;
+                  };
+                }
+              }
+            }
+          });
+
+          window.colorPopupObserver.observe(document.querySelector('body'), { subtree: true, childList: true });
+        })();
+          // <-- End of setting event type matching with color
+          
+        } catch (error) {
+          console.log(error);
+          return;
+        }
       }
-    }
 
     /* bind documentCompleteHandler to readystatechange event*/
     document.addEventListener("readystatechange", documentCompleteHandler);
-  })()
+    })()
   // ------------------------------------------
 );

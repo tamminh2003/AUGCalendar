@@ -276,7 +276,6 @@
 
       // ! -------- Injected code to manipulate the entries before display
       tempArray = this.entries.filter(function (entry) {
-        console.log(entry);
         switch (entry.data.CAL_TYPE) {
           case "user":
             for (const element of params.eventType) {
@@ -290,7 +289,7 @@
           case "group":
             for (const section of params.workgroupCalendar) {
               if (section.id == entry.sectionId) {
-                if(!section.active) return false;
+                if (!section.active) return false;
                 for (const element of params.eventType) {
                   if (element.color.toLowerCase() == entry.color.toLowerCase()) {
                     return element.active;
@@ -304,11 +303,8 @@
 
           case "company_calendar":
             for (const section of params.companyCalendar) {
-              console.log(section.id);
-              console.log(entry.sectionId);
               if (section.id == entry.sectionId) {
-                console.log("inside if");
-                if(!section.active) return false;
+                if (!section.active) return false;
                 for (const element of params.eventType) {
                   if (element.color.toLowerCase() == entry.color.toLowerCase()) {
                     return element.active;
@@ -324,31 +320,6 @@
             console.log("Error - Uncaught CAL_TYPE");
             return false;
         }
-
-        // for (const eventElement of params.eventType) {
-        //   if (entry.data.CAL_TYPE == "user") {
-        //     if (eventElement.color.toLowerCase() == entry.color.toLowerCase()) {
-        //       if (eventElement.active != true) {
-        //         return false;
-        //       } else return true;
-        //     }
-        //   }
-
-        //   else if (entry.data.CAL_TYPE == "group") {
-        //     if (entry.sectionId)
-        //       return true;
-        //   }
-
-        //   else if (entry.data.CAL_TYPE == "company_calendar") {
-        //     return true;
-        //   }
-
-        //   else {
-        //     console.log("Uncaught case for filtering ");
-        //     return true;
-        //   }
-        // }
-        // return false;
       })
       this.entries = tempArray;
 
@@ -594,3 +565,66 @@
   window.AUG_Calendar = AUG_Calendar;
 
 })(window);
+
+// Set the type of the event matching with the color
+(function () {
+  if (window.colorPopupObserver) {
+    delete window.colorPopupObserver
+  }
+
+  window.colorPopupObserver = new MutationObserver(function (m) {
+    console.log(m);
+    regexPattern = /.*popup-window-content-menu-popup-color-select.*/g
+    console.log(regexPattern);
+    for (const eachM of m) {
+      console.log(eachM);
+      if (regexPattern.test(eachM.target.id)) {
+        console.log("inside if");
+        console.log(eachM);
+        for (const eachElem of eachM.target.querySelectorAll('.menu-popup-item-text')) {
+          eachElem.style.display = 'inline';
+          console.log(eachElem.innerHTML)
+          switch (eachElem.innerHTML) {
+            case "#86B100":
+              eachElem.innerHTML = "AUG Travel";
+              break;
+            case "#0092CC":
+              eachElem.innerHTML = "General";
+              break;
+            case "#00AFC7":
+              eachElem.innerHTML = "Marketing Promotions";
+              break;
+            case "#DA9100":
+              eachElem.innerHTML = "Meeting";
+              break;
+            case "#00B38C":
+              eachElem.innerHTML = "Personal";
+              break;
+            case "#DE2B24":
+              eachElem.innerHTML = "Visits/PR";
+              break;
+            case "#BD7AC9":
+              eachElem.innerHTML = "Social Media";
+              break;
+            case "#838FA0":
+              eachElem.innerHTML = "Others";
+              break;
+            case "#AB7917":
+              eachElem.parentElement.remove();
+              break;
+            case "#E97090":
+              eachElem.parentElement.remove();
+              break;
+            default:
+              console.log("uncaught case");
+              break;
+          };
+        }
+      }
+    }
+  });
+
+  window.colorPopupObserver.observe(document.querySelector('body'), { subtree: true, childList: true });
+})();
+          // <-- End of setting event type matching with color
+
