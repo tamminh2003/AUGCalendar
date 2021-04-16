@@ -84,6 +84,21 @@
       optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: optionName }));
     }
 
+    // Select All & Deselect All button
+    optionFilterContainer.appendChild(BX.create('button', { text: 'Select All' }));
+    optionFilterContainer.querySelector('button.select-all-button').addEventListener('click', function (e) {
+      for (const checkbox of document.querySelectorAll("div.event-type-filter>div>input")) {
+        checkbox.checked = true;
+      }
+    });
+
+    optionFilterContainer.appendChild(BX.create('button', { text: 'Deselect All' }));
+    optionFilterContainer.querySelector('button.deselect-all-button').addEventListener('click', function (e) {
+      for (const checkbox of document.querySelectorAll("div.event-type-filter>div>input")) {
+        checkbox.checked = false;
+      }
+    });
+
     // Assign handler to event type checkboxes
     for (const checkbox of document.querySelectorAll("div.event-type-filter>div>input")) {
       checkbox.addEventListener('change', function (e) {
@@ -111,6 +126,17 @@
       optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: section.name }));
     }
 
+    // Select All & Deselect All button
+    optionFilterContainer.appendChild(BX.create('button', { attrs: { class: 'select-all-button' }, text: 'Select All' }));
+    optionFilterContainer.querySelector('button.select-all-button').addEventListener('click', function (e) {
+
+    });
+
+    optionFilterContainer.appendChild(BX.create('button', { attrs: { class: 'deselect-all-button' }, text: 'Deselect All' }));
+    optionFilterContainer.querySelector('button.deselect-all-button').addEventListener('click', function (e) {
+
+    });
+
     // Assign handler to company filter checkboxex
     for (const checkbox of document.querySelectorAll("div.company-filter>div>input")) {
       checkbox.addEventListener('change', function (e) {
@@ -137,6 +163,10 @@
       optionContainer.appendChild(BX.create('input', { attrs: { type: 'checkbox', 'data-id': section.id } }));
       optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: section.name }));
     }
+
+    // Select All & Deselect All button
+    optionFilterContainer.appendChild(BX.create('button', { text: 'Select All' }));
+    optionFilterContainer.appendChild(BX.create('button', { text: 'Deselect All' }));
 
     // Assign handler to company filter checkboxex
     for (const checkbox of document.querySelectorAll("div.workgroup-filter>div>input")) {
@@ -167,7 +197,7 @@
     for (const element of document.querySelector('.aug-main-option-container').children) {
       element.style.paddingBottom = '10px';
     }
-    // <-- End of adding spcaes between filter section
+    // <-- End of adding spaces between filter section
 
   }
 
