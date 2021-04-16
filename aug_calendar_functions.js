@@ -36,21 +36,24 @@
   // @METHOD createCustomFilter
   // @Description Create Custom Filter Section
   AUG_Calendar.prototype.createCustomFilter = function () {
+
     this.assignAUGdisplayEntries();
     let wrap = document.querySelector('.calendar-view-switcher-list');
 
-    // Add popup button
+    // Add Popup button
     let filterContainer = document.querySelector('.aug-filter-container');
     if (!filterContainer) filterContainer = wrap.appendChild(BX.create("div", { attrs: { class: "aug-filter-container" } }))
     filterContainer.style.position = 'relative';
 
     let popupButton = filterContainer.querySelector('.aug-filter-popup-button');
-    if (!popupButton) popupButton = filterContainer.appendChild(BX.create('button', { text: 'Filter Options' }));
+    if (!popupButton) popupButton = filterContainer.appendChild(BX.create('button', { attrs: { class: "aug-filter-popup-button" }, text: 'Filter Options' }));
     popupButton.addEventListener('click', this.popupButtonHandler);
 
-    // Build Popup div
-    augFilterPopup = this.buildPopup(filterContainer);
+    // Add Popup div
+    augFilterPopup = this.buildPopup();
+    filterContainer.appendChild(augFilterPopup);
 
+    // Add option in Popup Div
     this.displayOptions(augFilterPopup);
 
   };
@@ -60,9 +63,10 @@
   // @return  no return
   // @Description Generate option menu
   AUG_Calendar.prototype.displayOptions = function (container) {
-    let eventType = this.getEventTypeList();
+    let eventType = this.eventType;
+
     if (!container) {
-      console.log('Error, no container.')
+      console.log('Error, no container.');
       return;
     }
 
@@ -166,16 +170,14 @@
     }
     // <-- End of adding spcaes between filter section
 
-
   }
 
   // @METHOD buildPopup
   // @param container
   // @return augFilterPopup
   // @Description Return parameters for Calendar.Core.request( ... ) method
-  AUG_Calendar.prototype.buildPopup = function (container) {
+  AUG_Calendar.prototype.buildPopup = function () {
     augFilterPopup = BX.create('div', { attrs: { class: 'aug-filter-popup' } });
-    container.appendChild(augFilterPopup);
 
     augFilterPopup.style.position = 'absolute';
     augFilterPopup.style.visibility = 'hidden';
@@ -275,6 +277,7 @@
       }
 
       // ! -------- Injected code to manipulate the entries before display
+
       tempArray = this.entries.filter(function (entry) {
         switch (entry.data.CAL_TYPE) {
           case "user":
@@ -494,65 +497,6 @@
     }
   }
 
-  // @METHOD getEventTypeList
-  // @param no parameters
-  // @return Array<String> eventType 
-  // @Description Return eventType array
-  AUG_Calendar.prototype.getEventTypeList = function () {
-    return this.eventType;
-  }
-
-  // @METHOD addEventType
-  // @param eventName - name of the eventType
-  // @param eventColor - color of the eventType
-  // @return no return
-  // @Description Add an event type into the filter list
-  // #State: Tested
-  // #Result: Success
-  AUG_Calendar.prototype.addEventType = function (eventName, eventColor) {
-    let name = eventName.toLowerCase();
-    // Event Color in form of hex color code #XXXXXX
-    if (eventColor.substr(0, 1) != "#" || eventColor.length != 7) {
-      console.log("Event's color in form of hex color code #XXXXXX.");
-      console.log("Event type was not added.");
-      return;
-    }
-    // Check if events with the same name and same color already in the eventType List
-    let eventTypeList = this.getEventTypeList();
-
-    for (const element of eventTypeList) {
-      if (name == element.name || eventColor == element.color) {
-        console.log("Event is already in the eventTypeList.");
-        console.log("Event type was not added.");
-        return;
-      }
-    }
-
-    this.eventType.push({ name: name, color: eventColor, active: true });
-    this.displayOptions(document.querySelector('.aug-filter-popup').querySelector('.aug-main-option-container'));
-  }
-
-  // @METHOD removeEventType
-  // @param eventName - name of the eventType
-  // @return no return
-  // @Description Remove an event type into the filter list
-  // #State: Tested
-  // #Result: Success
-  AUG_Calendar.prototype.removeEventType = function (eventName) {
-    let name = eventName.toLowerCase();
-    // Find event in the eventTypeList
-    let eventTypeList = this.getEventTypeList();
-
-    for (let i = 0; i < eventTypeList.length; i++) {
-      if (name == eventTypeList[i].name) {
-        this.eventType.splice(i, 1);
-        this.displayOptions(document.querySelector('.aug-filter-popup').querySelector('.aug-main-option-container'));
-        return;
-      }
-    }
-    console.log("No event type found.");
-  }
-
   // @METHOD getAvailableSection
   AUG_Calendar.prototype.getAvailableSection = function () {
     return this.calendar.sectionController.sections;
@@ -566,6 +510,8 @@
 
 })(window);
 
+
+// SECTION colorPopupObserver
 // Set the type of the event matching with the color
 (function () {
   if (window.colorPopupObserver) {
@@ -573,17 +519,11 @@
   }
 
   window.colorPopupObserver = new MutationObserver(function (m) {
-    console.log(m);
     regexPattern = /.*popup-window-content-menu-popup-color-select.*/g
-    console.log(regexPattern);
     for (const eachM of m) {
-      console.log(eachM);
       if (regexPattern.test(eachM.target.id)) {
-        console.log("inside if");
-        console.log(eachM);
         for (const eachElem of eachM.target.querySelectorAll('.menu-popup-item-text')) {
           eachElem.style.display = 'inline';
-          console.log(eachElem.innerHTML)
           switch (eachElem.innerHTML) {
             case "#86B100":
               eachElem.innerHTML = "AUG Travel";
