@@ -73,8 +73,7 @@
     if (container.querySelector('.aug-main-option-container')) container.querySelector('.aug-main-option-container').remove();
     mainOptionContainer = container.appendChild(BX.create('div', { attrs: { class: 'aug-main-option-container' } }));
 
-    // Generate filter sections
-    // User Filter 
+    // Generate User Filter 
     optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', { attrs: { class: 'event-type-filter' }, text: 'Event Type' }));
 
     for (const eventElement of eventType) {
@@ -84,20 +83,31 @@
       optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: optionName }));
     }
 
-    // Select All & Deselect All button
-    optionFilterContainer.appendChild(BX.create('button', { text: 'Select All' }));
+    // Select All button
+    optionFilterContainer.appendChild(BX.create('button', { attrs: { class: 'select-all-button' }, text: 'Select All' }));
     optionFilterContainer.querySelector('button.select-all-button').addEventListener('click', function (e) {
       for (const checkbox of document.querySelectorAll("div.event-type-filter>div>input")) {
         checkbox.checked = true;
       }
+      for (const elementEvent of window.AUG_Calendar.instance.eventType) {
+        elementEvent.active = true;
+      }
+      window.AUG_Calendar.instance.refreshCalendarDisplay();
     });
+    // <-- End of Select All button
 
-    optionFilterContainer.appendChild(BX.create('button', { text: 'Deselect All' }));
+    // Deselect All button
+    optionFilterContainer.appendChild(BX.create('button', { attrs: { class: 'deselect-all-button' }, text: 'Deselect All' }));
     optionFilterContainer.querySelector('button.deselect-all-button').addEventListener('click', function (e) {
       for (const checkbox of document.querySelectorAll("div.event-type-filter>div>input")) {
         checkbox.checked = false;
       }
+      for (const elementEvent of window.AUG_Calendar.instance.eventType) {
+        elementEvent.active = false;
+      }
+      window.AUG_Calendar.instance.refreshCalendarDisplay();
     });
+    // <-- End of Deselect All button
 
     // Assign handler to event type checkboxes
     for (const checkbox of document.querySelectorAll("div.event-type-filter>div>input")) {
@@ -117,7 +127,7 @@
     // <-- End of assign handler to event type checkboxes
     // <-- End of user filter
 
-    // Company Filter 
+    // Generate Company Filter 
     optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', { attrs: { class: 'company-filter' }, text: 'Company Filter' }));
 
     for (const section of this.companyCalendar) {
@@ -126,16 +136,31 @@
       optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: section.name }));
     }
 
-    // Select All & Deselect All button
+    // Select All button
     optionFilterContainer.appendChild(BX.create('button', { attrs: { class: 'select-all-button' }, text: 'Select All' }));
     optionFilterContainer.querySelector('button.select-all-button').addEventListener('click', function (e) {
-
+      for (const checkbox of document.querySelectorAll("div.company-filter>div>input")) {
+        checkbox.checked = true;
+      }
+      for (const elementCompanyCalendar of window.AUG_Calendar.instance.companyCalendar) {
+        elementCompanyCalendar.active = true;
+      }
+      window.AUG_Calendar.instance.refreshCalendarDisplay();
     });
+    //<-- End of Select All button
 
+    // Deselect All button
     optionFilterContainer.appendChild(BX.create('button', { attrs: { class: 'deselect-all-button' }, text: 'Deselect All' }));
     optionFilterContainer.querySelector('button.deselect-all-button').addEventListener('click', function (e) {
-
+      for (const checkbox of document.querySelectorAll("div.company-filter>div>input")) {
+        checkbox.checked = false;
+      }
+      for (const elementCompanyCalendar of window.AUG_Calendar.instance.companyCalendar) {
+        elementCompanyCalendar.active = false;
+      }
+      window.AUG_Calendar.instance.refreshCalendarDisplay();
     });
+    // <-- End of Deselect All button
 
     // Assign handler to company filter checkboxex
     for (const checkbox of document.querySelectorAll("div.company-filter>div>input")) {
@@ -155,7 +180,7 @@
     // <-- End of assigning handler to company checkboxes
     // <-- End of company filter
 
-    // Workgroup Filter 
+    // Generate Workgroup Filter 
     optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', { attrs: { class: 'workgroup-filter' }, text: 'Workgroup Filter' }));
 
     for (const section of this.workgroupCalendar) {
@@ -164,11 +189,33 @@
       optionContainer.appendChild(BX.create('span', { attrs: { class: 'aug-option-name' }, text: section.name }));
     }
 
-    // Select All & Deselect All button
-    optionFilterContainer.appendChild(BX.create('button', { text: 'Select All' }));
-    optionFilterContainer.appendChild(BX.create('button', { text: 'Deselect All' }));
+    // Select All button
+    optionFilterContainer.appendChild(BX.create('button', { attrs: { class: 'select-all-button' }, text: 'Select All' }));
+    optionFilterContainer.querySelector('button.select-all-button').addEventListener('click', function (e) {
+      for (const checkbox of document.querySelectorAll("div.workgroup-filter>div>input")) {
+        checkbox.checked = true;
+      }
+      for (const elementWorkgroupCalendar of window.AUG_Calendar.instance.workgroupCalendar) {
+        elementWorkgroupCalendar.active = true;
+      }
+      window.AUG_Calendar.instance.refreshCalendarDisplay();
+    });
+    //<-- End of Select All button
 
-    // Assign handler to company filter checkboxex
+    // Deselect All button
+    optionFilterContainer.appendChild(BX.create('button', { attrs: { class: 'deselect-all-button' }, text: 'Deselect All' }));
+    optionFilterContainer.querySelector('button.deselect-all-button').addEventListener('click', function (e) {
+      for (const checkbox of document.querySelectorAll("div.workgroup-filter>div>input")) {
+        checkbox.checked = false;
+      }
+      for (const elementWorkgroupCalendar of window.AUG_Calendar.instance.workgroupCalendar) {
+        elementWorkgroupCalendar.active = false;
+      }
+      window.AUG_Calendar.instance.refreshCalendarDisplay();
+    });
+    // <-- End of Deselect All button
+
+    // Assign handler to workgroup filter checkboxex
     for (const checkbox of document.querySelectorAll("div.workgroup-filter>div>input")) {
       checkbox.addEventListener('change', function (e) {
         for (const section of window.AUG_Calendar.instance.workgroupCalendar) {
@@ -183,9 +230,8 @@
         window.AUG_Calendar.instance.calendar.views[2].AUGdisplayEntries(params);
       });
     }
-    // <-- End of assigning handler to company checkboxes
-    // <-- End of company filter
-    // <-- End of generating filter sections
+    // <-- End of assigning handler to workgroup checkboxes
+    // <-- End of workgroup filter
 
     // Make all checkboxes active 
     for (const element of container.querySelectorAll('input')) {
@@ -535,6 +581,15 @@
   // @METHOD getAvailableSection
   AUG_Calendar.prototype.getAvailableSection = function () {
     return this.calendar.sectionController.sections;
+  }
+
+  // @METHOD refreshCalendarDisplay
+  AUG_Calendar.prototype.refreshCalendarDisplay = function () {
+    params = {};
+    params.eventType = window.AUG_Calendar.instance.getEventTypeList();
+    params.workgroupCalendar = window.AUG_Calendar.instance.workgroupCalendar;
+    params.companyCalendar = window.AUG_Calendar.instance.companyCalendar;
+    window.AUG_Calendar.instance.calendar.views[2].AUGdisplayEntries(params);
   }
 
   // /SECTION
