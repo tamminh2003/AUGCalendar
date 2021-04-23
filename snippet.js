@@ -41,7 +41,6 @@ if (!window.colorChangeObserver) {
     colorChangeObserver = new MutationObserver(colorChangeObserverCallback)
 }
 else {
-    console.log('disconnect observer');
     colorChangeObserver.disconnect();
     colorChangeObserver = new MutationObserver(colorChangeObserverCallback)
 }
@@ -100,7 +99,6 @@ AUG_mutationObserverCallback = function (m) {
     regexPattern = /.*popup-window calendar-simple-view-popup.*/gi;
     for (const eachM of m) {
         if (regexPattern.test(eachM.target.className)) {
-            colorChangeObserver.observe(document.querySelector('.calendar-field-select-icon'), { attributes: true });
             eachM.target.querySelector('div.calendar-field').click();
         }
     }
@@ -110,11 +108,7 @@ AUG_mutationObserverCallback = function (m) {
         if (regexPattern.test(eachM.target.id)) {
             console.log(eachM);
             eachM.target.parentElement.style.width = '190px';
-            console.log('before setting visibility to hidden');
-            console.log(`eachM.target.parentElement.style.visibility = ${eachM.target.parentElement.style.visibility}`);
             eachM.target.parentElement.style.visibility = 'hidden';
-            console.log('after setting visibility to visible');
-            console.log(`eachM.target.parentElement.style.visibility = ${eachM.target.parentElement.style.visibility}`);
 
             for (const eachElem of eachM.target.querySelectorAll('.menu-popup-item-text')) {
                 eachElem.style.display = 'inline';
@@ -155,6 +149,7 @@ AUG_mutationObserverCallback = function (m) {
                 selectorID = selector[selector.length - 1].id.split('-');
                 someNumber = parseInt(selectorID[selectorID.length - 1]);
                 document.querySelector('span.menu-popup-item:nth-child(2)').click();
+                colorChangeObserver.observe(document.querySelector('.calendar-field-select-icon'), { attributes: true });
             } else {
                 console.log('Eyy, subsequence popup')
                 selector = document.querySelectorAll('.popup-window-content');
@@ -164,15 +159,17 @@ AUG_mutationObserverCallback = function (m) {
                     console.log('Eyy, this popup is different from last popup');
                     someNumber = newNumber;
                     document.querySelector('span.menu-popup-item:nth-child(2)').click();
-                } else if (choosingCalendar) {
+                    return;
+                }
+                if (choosingCalendar) {
+                    console.log('choosing calendar');
                     document.querySelector('span.menu-popup-item:nth-child(2)').click();
                     choosingCalendar = false;
-                } else {
-                    console.log(eachM);
+                    return;
+                } 
+                {
                     console.log('Eyy, this suppose to show the popup again');
-                    temp = eachM.target;
                     eachM.target.parentElement.style.visibility = 'visible';
-                    console.log(`eachM.target.parentElement.style.visibility = ${eachM.target.parentElement.style.visibility}`);
                 }
             }
         }
