@@ -3,6 +3,10 @@ if (!someNumber) {
     var someNumber;
 }
 
+if (!choosingCalendar) {
+    var choosingCalendar;
+}
+
 function rgbtohex(rgbstring) {
     rgbArray = rgbstring.match(/[0-9]*/g).filter(function (element) { return element !== ''; })
     hexArray = rgbArray.map(function (element) { return parseInt(element).toString(16); });
@@ -25,8 +29,10 @@ if (window.colorPopupObserver) colorPopupObserver.disconnect();
 colorChangeObserverCallback = function (m) {
     for (const eachM of m) {
         if (!defaultColors.includes(rgbtohex(eachM.target.style.backgroundColor).toUpperCase())) {
+            console.log('Eyy, this is when choosing calendar');
+            console.log(eachM);
+            choosingCalendar = true;
             document.querySelector('div.calendar-field').click();
-            document.querySelector('span.menu-popup-item:nth-child(2)').click();
         }
     }
 }
@@ -35,6 +41,7 @@ if (!window.colorChangeObserver) {
     colorChangeObserver = new MutationObserver(colorChangeObserverCallback)
 }
 else {
+    console.log('disconnect observer');
     colorChangeObserver.disconnect();
     colorChangeObserver = new MutationObserver(colorChangeObserverCallback)
 }
@@ -93,7 +100,6 @@ AUG_mutationObserverCallback = function (m) {
     regexPattern = /.*popup-window calendar-simple-view-popup.*/gi;
     for (const eachM of m) {
         if (regexPattern.test(eachM.target.className)) {
-            console.log('Eyyyyy, you are looking for me');
             colorChangeObserver.observe(document.querySelector('.calendar-field-select-icon'), { attributes: true });
             eachM.target.querySelector('div.calendar-field').click();
         }
@@ -104,6 +110,12 @@ AUG_mutationObserverCallback = function (m) {
         if (regexPattern.test(eachM.target.id)) {
             console.log(eachM);
             eachM.target.parentElement.style.width = '190px';
+            console.log('before setting visibility to hidden');
+            console.log(`eachM.target.parentElement.style.visibility = ${eachM.target.parentElement.style.visibility}`);
+            eachM.target.parentElement.style.visibility = 'hidden';
+            console.log('after setting visibility to visible');
+            console.log(`eachM.target.parentElement.style.visibility = ${eachM.target.parentElement.style.visibility}`);
+
             for (const eachElem of eachM.target.querySelectorAll('.menu-popup-item-text')) {
                 eachElem.style.display = 'inline';
                 switch (eachElem.innerHTML) {
@@ -138,17 +150,29 @@ AUG_mutationObserverCallback = function (m) {
             }
 
             if (!someNumber) {
+                console.log('Eyy, show popup first');
                 selector = document.querySelectorAll('.popup-window-content');
                 selectorID = selector[selector.length - 1].id.split('-');
                 someNumber = parseInt(selectorID[selectorID.length - 1]);
                 document.querySelector('span.menu-popup-item:nth-child(2)').click();
             } else {
+                console.log('Eyy, subsequence popup')
                 selector = document.querySelectorAll('.popup-window-content');
                 selectorID = selector[selector.length - 1].id.split('-');
                 newNumber = parseInt(selectorID[selectorID.length - 1]);
                 if (someNumber !== newNumber) {
+                    console.log('Eyy, this popup is different from last popup');
                     someNumber = newNumber;
                     document.querySelector('span.menu-popup-item:nth-child(2)').click();
+                } else if (choosingCalendar) {
+                    document.querySelector('span.menu-popup-item:nth-child(2)').click();
+                    choosingCalendar = false;
+                } else {
+                    console.log(eachM);
+                    console.log('Eyy, this suppose to show the popup again');
+                    temp = eachM.target;
+                    eachM.target.parentElement.style.visibility = 'visible';
+                    console.log(`eachM.target.parentElement.style.visibility = ${eachM.target.parentElement.style.visibility}`);
                 }
             }
         }
