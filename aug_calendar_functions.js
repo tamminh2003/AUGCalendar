@@ -1,11 +1,9 @@
 // ! Description: this file contains a custom AUG_Calendar object that is added to the global object (window) and can be access by window.AUG_Calendar. The AUG_Calendar object contains methods for the custom script aug_calendar.js
-
 // ! The use of IIFE (Immediately Invoked Function Expression) aka self-invoke function is to keep the global scope free of identifiers during the creation of the AUG_Calendar object.
 
 (function (window) {
 
   // @METHOD CONSTRUCTOR
-  // @Object AUG_Calendar - Custom Calendar Object containing required functions for custom script
   function AUG_Calendar() {
     this.name = "AUG_Calendar";
     this.calendar = this.getCalendarInstance(window.BXEventCalendar);
@@ -34,7 +32,6 @@
   // SECTION MAIN METHODS
 
   // @METHOD createCustomFilter
-  // @Description Create Custom Filter Section
   AUG_Calendar.prototype.createCustomFilter = function () {
 
     this.assignAUGdisplayEntries();

@@ -46,9 +46,9 @@ else {
 }
 
 AUG_mutationObserverCallback = function (m) {
-    myRegex = /.*calendar-field-colorpicker.*/i;
+    regexPattern = /.*calendar-field-colorpicker.*/i;
     for (const eachM of m) {
-        if (myRegex.test(eachM.target.className)) {
+        if (regexPattern.test(eachM.target.className)) {
             eachM.target.style.display = 'flex';
             eachM.target.style.justifyContent = 'space-evenly';
             eachM.target.style.flexWrap = 'wrap';
