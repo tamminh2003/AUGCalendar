@@ -55,7 +55,7 @@ console.log("-----------------------------------");
     }
 
     refreshCalendarDisplay() {
-      params = {};
+      let params = {};
       params.eventType = window.AUG.Calendar.getEventTypeList();
       params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
       params.companyCalendar = window.AUG.Calendar.companyCalendar;
@@ -154,7 +154,7 @@ console.log("-----------------------------------");
               elementEvent.active = checkbox.checked;
             }
           }
-          params = {};
+          let params = {};
           params.eventType = window.AUG.Calendar.getEventTypeList();
           params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
           params.companyCalendar = window.AUG.Calendar.companyCalendar;
@@ -207,7 +207,7 @@ console.log("-----------------------------------");
               section.active = checkbox.checked;
             }
           }
-          params = {};
+          let params = {};
           params.eventType = window.AUG.Calendar.getEventTypeList();
           params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
           params.companyCalendar = window.AUG.Calendar.companyCalendar;
@@ -260,7 +260,7 @@ console.log("-----------------------------------");
               section.active = checkbox.checked;
             }
           }
-          params = {};
+          let params = {};
           params.eventType = window.AUG.Calendar.getEventTypeList();
           params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
           params.companyCalendar = window.AUG.Calendar.companyCalendar;
@@ -346,7 +346,7 @@ console.log("-----------------------------------");
 
         // ! -------- Injected code to manipulate the entries before display
 
-        tempArray = this.entries.filter(function (entry) {
+        let tempArray = this.entries.filter(function (entry) {
           switch (entry.data.CAL_TYPE) {
             case "user":
               for (const element of params.eventType) {
