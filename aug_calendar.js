@@ -91,7 +91,7 @@ console.log("-----------------------------------");
 
       let popupButton = filterContainer.querySelector('.aug-filter-popup-button');
       if (!popupButton) popupButton = filterContainer.appendChild(BX.create('button', { attrs: { class: "aug-filter-popup-button ui-btn ui-btn-themes ui-btn-xs ui-btn-primary ui-btn-round" }, text: 'Filter Options' }));
-      popupButton.addEventListener('click', this.popupButtonHandler);
+      popupButton.addEventListener('click', window.AUG.Calendar.popupButtonHandler);
 
       // Add Popup div
       augFilterPopup = this.buildPopup(filterContainer);
