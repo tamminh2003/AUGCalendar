@@ -58,24 +58,55 @@ console.log("-----------------------------------");
       params.eventType = window.AUG.Calendar.getEventTypeList();
       params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
       params.companyCalendar = window.AUG.Calendar.companyCalendar;
-      window.AUG.Calendar.calendar.views[2].AUGdisplayEntries(params);
+      window.AUG.Calendar.calendar.views[2].displayEntries(params);
     }
 
     popupButtonHandler(e) {
       augFilterPopup = document.querySelector('.aug-filter-popup');
 
       if (!augFilterPopup.classList.contains('aug-popup-show')) {
-        // document.querySelector('.page-header').style.opacity = 1;
+        document.querySelector('.page-header').style.opacity = 1;
         augFilterPopup.classList.add('aug-popup-show');
-        augFilterPopup.style.opacity = 1;
         augFilterPopup.style.visibility = 'visible';
         // augFilterPopup.style.top = (11 - ((parseInt(window.getComputedStyle(augFilterPopup).height) / 2))).toString() + 'px';
       } else {
         document.querySelector('.page-header').style.opacity = 0.96;
         augFilterPopup.classList.remove('aug-popup-show');
-        augFilterPopup.style.opacity = 0;
         augFilterPopup.style.visibility = 'hidden';
 
+      }
+    }
+
+    checkOutsideFilterPopup(e) {
+      // console.log(e);
+
+      let selectedPopup = document.querySelector('.aug-filter-popup.aug-popup-show');
+
+      if (!selectedPopup) {
+        return;
+      }
+
+      if (!selectedPopup.className.includes("aug-popup-show")) {
+        return;
+      } else {
+        for (const eachElem of e.path) {
+
+          if (!eachElem.className) {
+            if (eachElem.className == "") continue;
+            else break;
+          }
+
+          if (eachElem.className.includes("aug-filter-popup-button")) {
+            return;
+          }
+
+          if (eachElem.className.includes("aug-filter-popup aug-popup-show")) {
+            return;
+          }
+        }
+
+        selectedPopup.classList.remove('aug-popup-show');
+        selectedPopup.style.visibility = "hidden";
       }
     }
 
@@ -98,6 +129,9 @@ console.log("-----------------------------------");
 
       // Add option in Popup Div
       this.displayOptions(augFilterPopup);
+
+      // Handler to close the popup when not focused
+      document.addEventListener('click', this.checkOutsideFilterPopup);
     }
 
     displayOptions(container) {
@@ -160,7 +194,7 @@ console.log("-----------------------------------");
           params.eventType = window.AUG.Calendar.getEventTypeList();
           params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
           params.companyCalendar = window.AUG.Calendar.companyCalendar;
-          window.AUG.Calendar.calendar.views[2].AUGdisplayEntries(params);
+          window.AUG.Calendar.calendar.views[2].displayEntries(params);
         });
       }
       // <-- End of assign handler to event type checkboxes
@@ -213,7 +247,7 @@ console.log("-----------------------------------");
           params.eventType = window.AUG.Calendar.getEventTypeList();
           params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
           params.companyCalendar = window.AUG.Calendar.companyCalendar;
-          window.AUG.Calendar.calendar.views[2].AUGdisplayEntries(params);
+          window.AUG.Calendar.calendar.views[2].displayEntries(params);
         });
       }
       // <-- End of assigning handler to company checkboxes
@@ -266,7 +300,7 @@ console.log("-----------------------------------");
           params.eventType = window.AUG.Calendar.getEventTypeList();
           params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
           params.companyCalendar = window.AUG.Calendar.companyCalendar;
-          window.AUG.Calendar.calendar.views[2].AUGdisplayEntries(params);
+          window.AUG.Calendar.calendar.views[2].displayEntries(params);
         });
       }
       // <-- End of assigning handler to workgroup checkboxes
@@ -299,7 +333,6 @@ console.log("-----------------------------------");
       augFilterPopup.style.borderRadius = '5px';
       augFilterPopup.style.border = 'solid thin #000';
       augFilterPopup.style.padding = '5px';
-      augFilterPopup.style.transition = 'opacity 0.1s, visibility 0s linear 0.1s';
 
       return augFilterPopup;
     }
