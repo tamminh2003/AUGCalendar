@@ -14,8 +14,7 @@ console.log("-----------------------------------");
 // SECTION AUG.Calendar 
 (function (window) {
 
-  class Calendar 
-  {
+  class Calendar {
     constructor() {
       this.name = "AUG_Calendar";
       this.calendar = this.getCalendarInstance(window.BXEventCalendar);
@@ -66,14 +65,17 @@ console.log("-----------------------------------");
       augFilterPopup = document.querySelector('.aug-filter-popup');
 
       if (!augFilterPopup.classList.contains('aug-popup-show')) {
-        document.querySelector('.page-header').style.opacity = 1;
+        // document.querySelector('.page-header').style.opacity = 1;
         augFilterPopup.classList.add('aug-popup-show');
+        augFilterPopup.style.opacity = 1;
         augFilterPopup.style.visibility = 'visible';
         // augFilterPopup.style.top = (11 - ((parseInt(window.getComputedStyle(augFilterPopup).height) / 2))).toString() + 'px';
       } else {
         document.querySelector('.page-header').style.opacity = 0.96;
         augFilterPopup.classList.remove('aug-popup-show');
+        augFilterPopup.style.opacity = 0;
         augFilterPopup.style.visibility = 'hidden';
+
       }
     }
 
@@ -88,7 +90,7 @@ console.log("-----------------------------------");
       filterContainer.style.position = 'relative';
 
       let popupButton = filterContainer.querySelector('.aug-filter-popup-button');
-      if (!popupButton) popupButton = filterContainer.appendChild(BX.create('button', { attrs: { class: "aug-filter-popup-button" }, text: 'Filter Options' }));
+      if (!popupButton) popupButton = filterContainer.appendChild(BX.create('button', { attrs: { class: "aug-filter-popup-button ui-btn ui-btn-themes ui-btn-xs ui-btn-primary ui-btn-round" }, text: 'Filter Options' }));
       popupButton.addEventListener('click', this.popupButtonHandler);
 
       // Add Popup div
@@ -297,6 +299,7 @@ console.log("-----------------------------------");
       augFilterPopup.style.borderRadius = '5px';
       augFilterPopup.style.border = 'solid thin #000';
       augFilterPopup.style.padding = '5px';
+      augFilterPopup.style.transition = 'opacity 0.1s, visibility 0s linear 0.1s';
 
       return augFilterPopup;
     }
@@ -308,7 +311,7 @@ console.log("-----------------------------------");
         return;
       }
 
-      this.calendar.views[2].AUGdisplayEntries = function (params) {
+      this.calendar.views[2].displayEntries = function (params) {
         var prevElement,
           element,
           i,
@@ -621,19 +624,19 @@ console.log("-----------------------------------");
           window.AUG.Observer.fullEventEditor(eachM);
         }
       }
-  
+
       regexPattern = /.*popup-window calendar-simple-view-popup.*/gi;
       for (const eachM of m) {
         if (regexPattern.test(eachM.target.className)) {
           eachM.target.querySelector('div.calendar-field').click();
         }
       }
-  
+
       regexPattern = /.*popup-window-content-menu-popup-color-select.*/g;
       for (const eachM of m) {
         if (regexPattern.test(eachM.target.id)) {
           window.AUG.Observer.colorSelector(eachM);
-         }
+        }
       }
     },
 
