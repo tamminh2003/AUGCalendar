@@ -1,12 +1,10 @@
 console.log("Start of AUG_Calendar custom script");
 console.log("-----------------------------------");
-function documentCompleteHandler() {
+
+// ! Description: this file contains a custom AUG_Calendar object that is added to the global object (window) and can be access by window.AUG_Calendar. The AUG_Calendar object contains methods for the custom script aug_calendar.js
+// ! The use of IIFE (Immediately Invoked Function Expression) aka self-invoke function is to keep the global scope free of identifiers during the creation of the AUG_Calendar object.
+(function documentCompleteHandler() {
   try {
-
-    if (document.readyState !== "complete") {
-        return; // document object is not ready, quit execution
-    }
-
     (function (window) {
       window.AUG = {};
       // AUG is the base object containing all the injected modules for Bitrix's Calendar Module.
@@ -974,6 +972,5 @@ function documentCompleteHandler() {
     console.log(error);
     return;
   }
-};
-
-document.addEventListener("readystatechange", documentCompleteHandler);
+}
+)();
