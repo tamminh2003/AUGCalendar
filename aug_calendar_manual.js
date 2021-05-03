@@ -866,6 +866,65 @@ function documentCompleteHandler() {
                     eachM.addedNodes[0].querySelector('.calendar-field.calendar-field-select.calendar-field-tiny').click();
                   }
 
+                  // Full editor added handler
+                  if (eachM.addedNodes[0].className.includes('side-panel side-panel-overlay side-panel-overlay-open')) {
+
+                    console.log("full event editor sidebar added");
+                    let target = eachM.addedNodes[0];
+                    let colorList = target.querySelector('.calendar-field-colorpicker')
+
+                    colorList.style.display = "flex";
+                    colorList.style.justifyContent = "space-evenly";
+
+                    colorList.querySelectorAll('li').forEach((function (listItem) {
+
+                      listItem.style.display = 'block';
+
+                      let label = listItem.appendChild(document.createElement('DIV'));
+
+                      label.style.position = 'absolute';
+                      label.style.left = '30px';
+                      label.style.top = '6px';
+                      label.style.width = 'max-content';
+
+                      switch (eachM.addedNodes[0].dataset.bxCalendarColor) {
+                        case "#86B100":
+                          eventName = 'AUG Travel';
+                          break;
+                        case "#0092CC":
+                          eventName = 'General';
+                          break;
+                        case "#00AFC7":
+                          eventName = 'Marketing Promotion';
+                          label.style.top = '0px';
+                          label.style.width = 'min-content';
+                          break;
+                        case "#DA9100":
+                          eventName = 'Meeting';
+                          break;
+                        case "#00B38C":
+                          eventName = 'Personal';
+                          break;
+                        case "#DE2B24":
+                          eventName = 'Visits/PR';
+                          break;
+                        case "#BD7AC9":
+                          eventName = 'Social Media';
+                          break;
+                        case "#838FA0":
+                          eventName = 'Others';
+                          break;
+                        default:
+                          listItem.remove();
+                          break;
+                      }
+
+                      label.innerHTML = `${eventName}`;
+
+                    }).bind(this))
+
+                  }
+
                   // Color Selector popup added handler
                   if (eachM.addedNodes[0].id.includes('menu-popup-color-select')) {
 
