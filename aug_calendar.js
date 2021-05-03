@@ -4,7 +4,7 @@ function documentCompleteHandler() {
   try {
 
     if (document.readyState !== "complete") {
-        return; // document object is not ready, quit execution
+      return; // document object is not ready, quit execution
     }
 
     (function (window) {
@@ -513,7 +513,7 @@ function documentCompleteHandler() {
             params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
             params.companyCalendar = window.AUG.Calendar.companyCalendar;
 
-            if(!this.entries) {
+            if (!this.entries) {
               return;
             }
 
@@ -770,194 +770,249 @@ function documentCompleteHandler() {
     (function (window) {
 
       let Observer = {
+
         Utility: window.AUG.Utility,
 
-        colorChangeObserverCallback: function colorChangeObserverCallback(m) {
-          for (const eachM of m) {
-            document.querySelector('div.calendar-field').click();
-          }
+        startColorChangeObserver: function startColorChangeObserver() {
+          // placeholder for colorChangeObserver.observe( ... ) ;
         },
 
-        mutationObserverCallback: function mutationObserverCallback(m) {
-
-          // Handler for full event editor
-          for (const eachM of m) {
-            if (eachM.target.className.includes('calendar-field-colorpicker')) {
-              Observer.fullEventEditor(eachM);
-            }
-          }
-
-          // Current handler for main simple popup
-          for (const eachM of m) {
-            if (eachM.target.className.includes('popup-window calendar-simple-view-popup')) {
-              eachM.target.querySelector('div.calendar-field').click();
-              Observer.colorChangeObserver.observe(document.querySelector('.calendar-field-select-icon'), { attributes: true });
-            }
-          }
-
-          // Handler for color selector popup
-          for (const eachM of m) {
-            if (eachM.target.className.includes('popup-window calendar-color-popup-wrap popup-window-fixed-width')) {
-              Observer.colorSelector(eachM);
-            }
-          }
+        startMutationObserver: function startMutationObserver() {
+          this.mutationObserver.observe(document.querySelector('body'), { childList: true });
         },
 
-        fullEventEditor: function fullEventEditor(eachM) {
-          eachM.target.style.display = 'flex';
-          eachM.target.style.justifyContent = 'space-evenly';
+        getColorChangeObserver: function getColorChangeObserver() {
 
-          if (eachM.addedNodes.length > 0 && eachM.addedNodes[0].nodeName == 'LI') {
-            eachM.addedNodes[0].style.display = 'block';
-            label = eachM.addedNodes[0].appendChild(document.createElement('DIV'));
-            label.style.position = 'absolute';
-            label.style.left = '30px';
-            label.style.top = '6px';
-            label.style.width = 'max-content';
-            switch (eachM.addedNodes[0].dataset.bxCalendarColor) {
-              case "#86B100":
-                eventName = 'AUG Travel';
-                break;
-              case "#0092CC":
-                eventName = 'General';
-                break;
-              case "#00AFC7":
-                eventName = 'Marketing Promotion';
-                label.style.top = '0px';
-                label.style.width = 'min-content';
-                break;
-              case "#DA9100":
-                eventName = 'Meeting';
-                break;
-              case "#00B38C":
-                eventName = 'Personal';
-                break;
-              case "#DE2B24":
-                eventName = 'Visits/PR';
-                break;
-              case "#BD7AC9":
-                eventName = 'Social Media';
-                break;
-              case "#838FA0":
-                eventName = 'Others';
-                break;
-              default:
-                eachM.addedNodes[0].remove();
-                break;
-            }
-            label.innerHTML = `${eventName}`;
-          }
-        },
+          let colorChangeObserver = new MutationObserver(
 
-        colorSelector: function colorSelector(eachM) {
-          console.log("color selector handler");
-          eachM.target.style.width = '190px';
-          eachM.target.style.visibility = 'hidden'; // Hide "Color Selector" popup
+            (function (m) {
 
-          // Add label to color
-          for (const eachElem of eachM.target.querySelectorAll('.menu-popup-item-text')) {
-            eachElem.style.display = 'inline';
-            switch (eachElem.innerHTML) {
-              case "#86B100":
-                eachElem.innerHTML = "AUG Travel";
-                break;
-              case "#0092CC":
-                eachElem.innerHTML = "General";
-                break;
-              case "#00AFC7":
-                eachElem.innerHTML = "Marketing Promotions";
-                break;
-              case "#DA9100":
-                eachElem.innerHTML = "Meeting";
-                break;
-              case "#00B38C":
-                eachElem.innerHTML = "Personal";
-                break;
-              case "#DE2B24":
-                eachElem.innerHTML = "Visits/PR";
-                break;
-              case "#BD7AC9":
-                eachElem.innerHTML = "Social Media";
-                break;
-              case "#838FA0":
-                eachElem.innerHTML = "Others";
-                break;
-              default:
-                eachElem.parentElement.remove();
-                break;
-            };
-          }
-          // <---- End
+              console.log("-----------------------------");
+              console.log("colorChangeObserver activated");
+
+              for (const eachM of m) {
+
+                console.log(eachM);
+                if (eachM.target.className.includes("calendar-field-select-icon")) {
+
+                  console.log("color / event type of Event");
+                  console.log(eachM.target.style.backgroundColor)
+
+                  console.log("check if color in defaultColors");
+                  if (!this.Utility.defaultColors.includes(this.Utility.rgbToHex(eachM.target.style.backgroundColor).toUpperCase())) { // <-- Check if current color matches with defaultColors
+                    console.log("color not in defaultColors - set returnPreviousFlag");
+                    this.returnPreviousFlag = true;
+
+                    console.log('"click" to open color selector');
+                    document.querySelector('.calendar-field.calendar-field-select.calendar-field-tiny').click();
+                  }
+
+                  else {
+                    console.log("color in defaultColors - set previousColor to new current color");
+
+                    console.log("get previousColor from current color on color selector icon");
+                    this.previousColor = this.Utility.defaultColors.filter(
+
+                      (function (currentValue) { // <-- filter defaultColors for previousColor
+                        return currentValue == this.Utility.rgbToHex(document.querySelector('div.calendar-field-select-icon').style.backgroundColor).toUpperCase()
+                      }).bind(this)
+
+                    )[0]
+
+                    console.log(`Observer.previousColor = ${this.previousColor}`); // <-- check value of previousColor
+
+                    if (!this.previousColor) {
+                      console.log("current color selector icon not in defaultColors");
+
+                      console.log("set previousColor to default General");
+                      this.previousColor = "#092CC"; // <-- set previousColor to General
+                    }
+
+                    console.log('set clickTarget based on previousColor');
+                    this.clickTarget = this.Utility.defaultColors.indexOf(this.previousColor) + 1;
+                    console.log(`Observer.clickTarget = ${this.clickTarget}`);
+                  }
+                }
+              }
+            }).bind(this)
+
+          )
+
+          this.colorChangeObserver = colorChangeObserver;
+
+        }, // <-- End of getColorChangeObserver method
+
+        getMutationObserver: function getMutationObserver() {
+
+          let mutationObserver = new MutationObserver(
+
+            (function (m) {
+
+              console.log("--------------------------");
+              console.log("mutationObserver activated");
+              console.log(m);
+
+              for (const eachM of m) {
+
+                // Adding Nodes Handlers
+                if (eachM.addedNodes.length > 0) {
+
+                  // Main popup added handler
+                  if (eachM.addedNodes[0].className.includes('popup-window calendar-simple-view-popup')) {
+
+                    console.log("simple event editor popup added");
+                    console.log(eachM);
+
+                    console.log("set initPopupFlag");
+                    this.initPopupFlag = true;
+                    console.log('"click" to open color selector');
+                    eachM.addedNodes[0].querySelector('.calendar-field.calendar-field-select.calendar-field-tiny').click();
+                  }
+
+                  // Color Selector popup added handler
+                  if (eachM.addedNodes[0].id.includes('menu-popup-color-select')) {
+
+                    console.log("color selector popup added");
+                    console.log(eachM);
+
+                    // Add label to color
+                    console.log("add color label");
+                    for (const eachElem of eachM.addedNodes[0].querySelectorAll('.menu-popup-item-text')) {
+                      eachElem.style.display = 'inline';
+                      switch (eachElem.innerHTML) {
+                        case "#86B100":
+                          eachElem.innerHTML = "AUG Travel";
+                          break;
+                        case "#0092CC":
+                          eachElem.innerHTML = "General";
+                          break;
+                        case "#00AFC7":
+                          eachElem.innerHTML = "Marketing Promotions";
+                          break;
+                        case "#DA9100":
+                          eachElem.innerHTML = "Meeting";
+                          break;
+                        case "#00B38C":
+                          eachElem.innerHTML = "Personal";
+                          break;
+                        case "#DE2B24":
+                          eachElem.innerHTML = "Visits/PR";
+                          break;
+                        case "#BD7AC9":
+                          eachElem.innerHTML = "Social Media";
+                          break;
+                        case "#838FA0":
+                          eachElem.innerHTML = "Others";
+                          break;
+                        default:
+                          eachElem.parentElement.remove();
+                          break;
+                      };
+                    }
+                    // <-- End of add label to color
+
+                    console.log("hide color selector");
+                    eachM.addedNodes[0].style.visibility = "hidden";
+
+                    console.log("extend color selector");
+                    eachM.addedNodes[0].style.width = '190px';
+
+                    // Initiate new simple event editor popup
+                    if (this.initPopupFlag) {
+                      console.log("<<--init new simple event editor popup-->");
+
+                      console.log("clear initPopupFlag flag");
+                      this.initPopupFlag = false;
+
+                      console.log("get previousColor from current color on color selector icon");
+                      this.previousColor = this.Utility.defaultColors.filter(
+
+                        (function (currentValue) { // <-- filter defaultColors for previousColor
+                          return currentValue == this.Utility.rgbToHex(document.querySelector('div.calendar-field-select-icon').style.backgroundColor).toUpperCase()
+                        }).bind(this)
+
+                      )[0]
+
+                      console.log(`Observer.previousColor = ${this.previousColor}`); // <-- check value of previousColor
+
+                      if (!this.previousColor) {
+                        console.log("current color selector icon not in defaultColors");
+
+                        console.log("set previousColor to default General");
+                        this.previousColor = "#092CC"; // <-- set previousColor to General
+                      }
+
+                      console.log('set clickTarget based on previousColor');
+                      this.clickTarget = this.Utility.defaultColors.indexOf(this.previousColor) + 1;
+                      console.log(`Observer.clickTarget = ${this.clickTarget}`);
+
+                      console.log('"click" color selector');
+                      eachM.addedNodes[0].querySelector(`span.menu-popup-item:nth-child(${this.clickTarget})`).click(); // <-- Closing of color selector Popup
+
+                      // Setup colorChangeObserver
+                      console.log("Setup colorChangeObserver");
+                      this.colorChangeObserver.observe(document.querySelector('.calendar-field-select-icon'), { attributeFilter: ["style"] });
+                      // <-- End of setting up colorChangeObserver
+
+                      // <-- Check if color selector popup close at every branch
+                    }
+
+                    else if (this.returnPreviousFlag) {
+                      console.log("clear returnPreviousFlag");
+                      this.returnPreviousFlag = false;
+
+                      console.log('"click" color selector');
+                      eachM.addedNodes[0].querySelector(`span.menu-popup-item:nth-child(${this.clickTarget})`).click(); // <-- Closing of color selector Popup 
+                    }
+
+                    else {
+                      // Show popup <-- Last possible case
+                      console.log("show color selector popup - last possible case");
+                      eachM.addedNodes[0].style.visibility = "visible";
+                    }
+
+                  }
+
+                  // Section Selector Popup Handler
+                  if (eachM.addedNodes[0].id.includes('menu-popup-section-select')) {
+                    this.sectionSelectorFlag = true; // <-- currently unused
+                  }
+
+                }
+                // <------------------------------
+
+                // Removing Nodes Handlers
+                if (eachM.removedNodes.length > 0) {
+
+                  // Main popup removed handler
+                  if (eachM.removedNodes[0].className.includes('popup-window calendar-simple-view-popup')) {
+                    console.log("popup removed");
+                    console.log(eachM);
+
+                    this.colorChangeObserver.disconnect();
+                    // disconnect Observer.colorChangeObserver;
+                  }
+
+                }
+                // <------------------------------
+
+              }
 
 
-          // color selector condition
-          // ------------------------------
-          // New popup
-          if (document.querySelector('.popup-window.calendar-color-popup-wrap.popup-window-fixed-width').id.slice(-6) !== Observer.popupId) {
+            }).bind(this)
 
-            console.log("new popup -> new event or existing event");
-            Observer.popupId = document.querySelector('.popup-window.calendar-color-popup-wrap.popup-window-fixed-width').id.slice(-6); // <-- get id
+          )
 
-            // Color check
-            Observer.selectedColor = Observer.Utility.defaultColors.filter(function (c) {
-              let colorHex = Observer.Utility.rgbToHex(document.querySelector('.calendar-field-select-icon').style.backgroundColor).toUpperCase();
-              return c === colorHex;
-            })[0];
+          this.mutationObserver = mutationObserver;
 
-            if (!Observer.selectedColor) { // <-- New event popup
-              // Return to selectedColor or to default color ("General") if no selectedColor
-              console.log('new event set default color');
-              Observer.selectedColor = Observer.Utility.defaultColors[1];
-              Observer.clickTarget = Observer.Utility.defaultColors.indexOf(Observer.selectedColor) + 1;
-              document.querySelector(`span.menu-popup-item:nth-child(${Observer.clickTarget})`).click();
+        }, // <-- End of getMutationObserver method
 
-            } else { // <-- existing event
-              Observer.clickTarget = Observer.Utility.defaultColors.indexOf(Observer.selectedColor) + 1;
-              document.querySelector(`span.menu-popup-item:nth-child(${Observer.clickTarget})`).click();
-            }
 
-          }
-
-          else { // <-- current popup
-            let colorHex = Observer.Utility.rgbToHex(document.querySelector('.calendar-field-select-icon').style.backgroundColor).toUpperCase();
-            if (!Observer.Utility.defaultColors.includes(colorHex)) { // <-- color changes due to choosing calendar
-
-              console.log(`color changes, choosing calendar`);
-              console.log(`set to previous color`);
-
-              document.querySelector(`span.menu-popup-item:nth-child(${Observer.clickTarget})`).click();
-              // set previous color
-
-            } else {
-              // When choosing event type, it does not fire an event
-
-              eachM.target.style.visibility = 'visible'; // show "Color Selector" popup
-
-            }
-          }
-          // ------------------------------
-          // <--- End of color selector condition
-
-        },
-
-        soneNumber: null
-
-      }
-
-      Observer.mutationObserver = new MutationObserver(Observer.mutationObserverCallback);
-      Observer.mutationObserver.observe(document.querySelector('body'), {
-        subtree: true,
-        childList: true
-      });
-
-      if (!Observer.colorChangeObserver) {
-        Observer.colorChangeObserver = new MutationObserver(Observer.colorChangeObserverCallback);
-      }
+      } // <-- End of Obsever Object Definition --------
 
       window.AUG.Observer = Observer;
 
-    }
-    )(window);
+    })(window);
     // /SECTION AUG.MutationObserver
     // ------------------------------------------
 
