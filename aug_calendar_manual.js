@@ -277,7 +277,7 @@ function documentCompleteHandler() {
               params.eventType = window.AUG.Calendar.getEventTypeList();
               params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
               params.companyCalendar = window.AUG.Calendar.companyCalendar;
-              window.AUG.Calendar.calendar.views[2].displayEntries(params);
+              window.AUG.Calendar.calendar.getView().displayEntries(params);
             });
           }
           // <-- End of assign handler to event type checkboxes
