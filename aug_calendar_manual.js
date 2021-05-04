@@ -776,6 +776,99 @@ function documentCompleteHandler() {
 
         startMutationObserver: function startMutationObserver() {
           this.mutationObserver.observe(document.querySelector('body'), { childList: true });
+          this.fullEventEditorObserver.observe(document.querySelector('body'), { childList: true });
+        },
+
+        getFullEventEditorObserver: function getFullEventEditorObserver() {
+          let fullEventEditorObserver = new MutationObserver(
+
+            (function (m) {
+
+              console.log('===================');
+              console.log('fullObs');
+              console.log(m);
+
+              for (const eachM of m) {
+                if (eachM.addedNodes.length > 0) {
+                  if (eachM.addedNodes[0].className.includes('side-panel side-panel-overlay side-panel-overlay-open')) {
+
+                    console.log('setup tempObs');
+                    this.tempObs = new MutationObserver(function (m) {
+
+                      console.log('===================');
+                      console.log('tempObs');
+                      console.log(m);
+
+                      for (const eachM of m) {
+                        if (eachM.target.className.includes('calendar-field-colorpicker')) {
+
+                          console.log("found ul mutation");
+
+                          // Change <ul> display to flex
+                          console.log("modify ul");
+                          eachM.target.style.display = 'flex';
+                          eachM.target.style.justifyContent = 'space-evenly';
+
+                          console.log("modify li and add labels");
+                          if (eachM.addedNodes.length > 0 && eachM.addedNodes[0].nodeName == 'LI') {
+
+                            eachM.addedNodes[0].style.display = 'block';
+
+                            label = eachM.addedNodes[0].appendChild(document.createElement('DIV'));
+                            label.style.position = 'absolute';
+                            label.style.left = '30px';
+                            label.style.top = '6px';
+                            label.style.width = 'max-content';
+
+                            switch (eachM.addedNodes[0].dataset.bxCalendarColor) {
+                              case "#86B100":
+                                eventName = 'AUG Travel';
+                                break;
+                              case "#0092CC":
+                                eventName = 'General';
+                                break;
+                              case "#00AFC7":
+                                eventName = 'Marketing Promotion';
+                                label.style.top = '0px';
+                                label.style.width = 'min-content';
+                                break;
+                              case "#DA9100":
+                                eventName = 'Meeting';
+                                break;
+                              case "#00B38C":
+                                eventName = 'Personal';
+                                break;
+                              case "#DE2B24":
+                                eventName = 'Visits/PR';
+                                break;
+                              case "#BD7AC9":
+                                eventName = 'Social Media';
+                                break;
+                              case "#838FA0":
+                                eventName = 'Others';
+                                break;
+                              default:
+                                eachM.addedNodes[0].remove();
+                                break;
+                            }
+
+                            label.innerHTML = `${eventName}`;
+                          }
+
+                        }
+                      }
+                    });
+
+                    console.log('run tempObs');
+                    this.tempObs.observe(eachM.addedNodes[0], { childList: true, subtree: true });
+                  }
+                }
+              }
+            }).bind(this)
+
+          )
+
+          this.fullEventEditorObserver = fullEventEditorObserver;
         },
 
         getColorChangeObserver: function getColorChangeObserver() {
@@ -864,65 +957,6 @@ function documentCompleteHandler() {
                     this.initPopupFlag = true;
                     console.log('"click" to open color selector');
                     eachM.addedNodes[0].querySelector('.calendar-field.calendar-field-select.calendar-field-tiny').click();
-                  }
-
-                  // Full editor added handler
-                  if (eachM.addedNodes[0].className.includes('side-panel side-panel-overlay side-panel-overlay-open')) {
-
-                    console.log("full event editor sidebar added");
-                    let target = eachM.addedNodes[0];
-                    let colorList = target.querySelector('.calendar-field-colorpicker')
-
-                    colorList.style.display = "flex";
-                    colorList.style.justifyContent = "space-evenly";
-
-                    colorList.querySelectorAll('li').forEach((function (listItem) {
-
-                      listItem.style.display = 'block';
-
-                      let label = listItem.appendChild(document.createElement('DIV'));
-
-                      label.style.position = 'absolute';
-                      label.style.left = '30px';
-                      label.style.top = '6px';
-                      label.style.width = 'max-content';
-
-                      switch (eachM.addedNodes[0].dataset.bxCalendarColor) {
-                        case "#86B100":
-                          eventName = 'AUG Travel';
-                          break;
-                        case "#0092CC":
-                          eventName = 'General';
-                          break;
-                        case "#00AFC7":
-                          eventName = 'Marketing Promotion';
-                          label.style.top = '0px';
-                          label.style.width = 'min-content';
-                          break;
-                        case "#DA9100":
-                          eventName = 'Meeting';
-                          break;
-                        case "#00B38C":
-                          eventName = 'Personal';
-                          break;
-                        case "#DE2B24":
-                          eventName = 'Visits/PR';
-                          break;
-                        case "#BD7AC9":
-                          eventName = 'Social Media';
-                          break;
-                        case "#838FA0":
-                          eventName = 'Others';
-                          break;
-                        default:
-                          listItem.remove();
-                          break;
-                      }
-
-                      label.innerHTML = `${eventName}`;
-
-                    }).bind(this))
-
                   }
 
                   // Color Selector popup added handler
@@ -1078,6 +1112,11 @@ function documentCompleteHandler() {
       document.querySelector('.aug-filter-container').remove();
     }
     window.AUG.Calendar.createCustomFilter();
+
+    AUG.Observer.getMutationObserver();
+    AUG.Observer.getColorChangeObserver();
+    AUG.Observer.getFullEventEditorObserver();
+    AUG.Observer.startMutationObserver();   
     // <-- End of create custom AUG filter
     // ------------------------------------------
 
