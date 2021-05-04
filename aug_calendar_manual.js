@@ -489,6 +489,469 @@ function documentCompleteHandler() {
             return;
           }
 
+          // ! assign DayView displayEntries
+          this.calendar.views[0].displayEntries = function (params) {
+            var
+              i, entry, part, dayPos, day, entryStarted,
+              maxTopEntryCount = 0,
+              viewRange = this.getViewRange();
+
+            if (!params)
+              params = {};
+
+            if (params.reloadEntries !== false) {
+              this.entries = this.entryController.getList({
+                startDate: new Date(viewRange.start.getFullYear(), viewRange.start.getMonth(), 1),
+                finishDate: new Date(viewRange.end.getFullYear(), viewRange.end.getMonth() + 1, 1),
+                viewRange: viewRange,
+                finishCallback: BX.proxy(this.displayEntries, this)
+              });
+            }
+
+            // ! -------- Injected code to manipulate the entries before display
+            params.eventType = window.AUG.Calendar.getEventTypeList();
+            params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
+            params.companyCalendar = window.AUG.Calendar.companyCalendar;
+
+            if (!this.entries) {
+              return;
+            }
+
+            let tempArray = this.entries.filter(function (entry) {
+              switch (entry.data.CAL_TYPE) {
+                case "user":
+                  for (const element of params.eventType) {
+                    if (element.color.toLowerCase() == entry.color.toLowerCase()) {
+                      return element.active;
+                    }
+                  }
+                  return false;
+                  break;
+
+                case "group":
+                  for (const section of params.workgroupCalendar) {
+                    if (section.id == entry.sectionId) {
+                      if (!section.active)
+                        return false;
+                      for (const element of params.eventType) {
+                        if (element.color.toLowerCase() == entry.color.toLowerCase()) {
+                          return element.active;
+                        }
+                      }
+                    }
+                    ;
+                  }
+                  console.log("Error - Entry belongs to different workgroup calendar");
+                  return false;
+                  break;
+
+                case "company_calendar":
+                  for (const section of params.companyCalendar) {
+                    if (section.id == entry.sectionId) {
+                      if (!section.active) {
+                        console.log('company_calendar');
+                        console.log(entry);
+                        return false;
+                      }
+
+
+                      for (const element of params.eventType) {
+                        if (element.color.toLowerCase() == entry.color.toLowerCase()) {
+                          return element.active;
+                        }
+                      }
+                    }
+                  }
+                  console.log("Error - Entry belongs to different company calendar");
+                  return false;
+                  break;
+
+                default:
+                  console.log("Error - Uncaught CAL_TYPE");
+                  return false;
+              }
+            })
+            this.entries = tempArray;
+
+            // ! -------- End of injected code
+
+            this.partsStorage = [];
+            this.timelinePartsStorage = [];
+
+            // Clean holders
+            BX.cleanNode(this.topEntryHolder);
+            BX.cleanNode(this.timelineEntryHolder);
+            this.fullDayEventsCont.style.height = '';
+
+            // Clean days
+            this.days.forEach(function (day) {
+              day.slots = [];
+              day.timelineMap = {};
+              if (day.collapsedWrap && day.collapsedWrap.top) {
+                day.collapsedWrap.top.destroy();
+              }
+              if (day.collapsedWrap && day.collapsedWrap.bottom) {
+                day.collapsedWrap.bottom.destroy();
+              }
+              day.collapsedWrap = { top: null, bottom: null };
+
+              day.entries = {
+                topList: [],
+                started: [],
+                timeline: [],
+                hidden: []
+              };
+            });
+
+            if (this.entries && this.entries.length) {
+              // Prepare for arrangement
+              for (i = 0; i < this.entries.length; i++) {
+                entry = this.entries[i];
+                this.entriesIndex[entry.uid] = i;
+                entry.cleanParts();
+                entryStarted = false;
+
+                for (dayPos = this.dayIndex[entry.startDayCode]; dayPos < this.days.length; dayPos++) {
+                  day = this.days[dayPos];
+                  if (!entry.isLongWithTime()
+                    && day.dayCode === entry.startDayCode
+                    && day.dayCode === entry.endDayCode && !entry.fullDay) {
+                    part = entry.startPart({
+                      from: day,
+                      to: day,
+                      daysCount: 0,
+                      fromTimeValue: this.util.getTimeValue(entry.from),
+                      toTimeValue: this.util.getTimeValue(entry.to)
+                    });
+
+                    day.entries.timeline.push({ entry: entry, part: part });
+                    this.timelinePartsStorage.push({ part: part, entry: entry });
+                    break;
+                  }
+                  else {
+                    if (day.dayCode === entry.startDayCode) {
+                      entryStarted = true;
+                      part = entry.startPart({ from: day, daysCount: 0 });
+                      day.entries.started.push({ entry: entry, part: part });
+                    }
+
+                    if (entryStarted) {
+                      day.entries.topList.push({ entry: entry, part: part });
+                      part.daysCount++;
+                      part.to = day;
+
+                      if (day.entries.topList.length > maxTopEntryCount)
+                        maxTopEntryCount = day.entries.topList.length;
+
+                      if (day.dayCode === entry.endDayCode ||
+                        day.dayOffset === this.dayCount - 1 /* for week view */ ||
+                        this.dayCount === 1 /*for day view */) {
+                        // here we know where part of event starts and ends
+                        this.partsStorage.push({ part: part, entry: entry });
+
+                        // Event finished
+                        if (day.dayCode === entry.endDayCode) {
+                          break;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            if (this.entries && this.entries.length) {
+              this.displayTopEntries();
+              this.displayTimelineEntries();
+
+              this.SLOTS_COUNT = 10;
+
+              this.arrangeTopEntries();
+              this.arrangeTimelineEntries();
+            }
+
+            this.setFullDayHolderSize(Math.min(Math.max(maxTopEntryCount, 1), this.SLOTS_COUNT));
+
+            // Final arrangement on the grid
+            var showHiddenLink;
+            for (dayPos = 0; dayPos < this.days.length; dayPos++) {
+              day = this.days[dayPos];
+
+              // Here we check all entries in the day and if any of it
+              // was hidden, we going to show 'show all' link
+              if (day.entries.topList.length > 0) {
+                showHiddenLink = false;
+                for (i = 0; i < day.entries.topList.length; i++) {
+                  if (day.entries.topList[i].part.params.wrapNode.style.display === 'none') {
+                    showHiddenLink = true;
+                    break;
+                  }
+                }
+
+                if (showHiddenLink) {
+                  day.hiddenStorage = this.topEntryHolder.appendChild(BX.create('DIV', {
+                    props: {
+                      className: 'calendar-event-line-wrap calendar-event-more-btn-container'
+                    },
+                    attrs: { 'data-bx-calendar-show-all-events': day.dayCode },
+                    style: {
+                      top: (parseInt(this.fullDayEventsCont.style.height) - 20) + 'px',
+                      left: this.dayCount === 1
+                        ? '0' /*for day view */
+                        : 'calc((100% / ' + this.dayCount + ') * (' + (day.dayOffset + 1) + ' - 1) + 2px)',
+                      width: 'calc(100% / ' + this.dayCount + ' - 3px)'
+                    }
+                  }));
+
+                  day.hiddenStorageText = day.hiddenStorage.appendChild(BX.create('span', { props: { className: 'calendar-event-more-btn' } }));
+                  day.hiddenStorage.style.display = 'block';
+                  day.hiddenStorageText.innerHTML = BX.message('EC_SHOW_ALL') + ' ' + day.entries.topList.length;
+                }
+                else if (day.hiddenStorage) {
+                  day.hiddenStorage.style.display = 'none';
+                }
+              }
+            }
+
+            BX.addClass(this.grid, 'calendar-events-holder-show');
+            BX.addClass(this.fullDayEventsCont, 'calendar-events-holder-show');
+
+            var workTime = this.util.getWorkTime();
+            this.checkTimelineScroll(!this.collapseOffHours || (workTime.end - workTime.start) * this.gridLineHeight + 20 > this.util.getViewHeight());
+          }
+
+          // ! assign WeekView displayEntries
+          this.calendar.views[1].displayEntries = function (params) {
+            var
+              i, entry, part, dayPos, day, entryStarted,
+              maxTopEntryCount = 0,
+              viewRange = this.getViewRange();
+
+            if (!params)
+              params = {};
+
+            if (params.reloadEntries !== false) {
+              this.entries = this.entryController.getList({
+                startDate: new Date(viewRange.start.getFullYear(), viewRange.start.getMonth(), 1),
+                finishDate: new Date(viewRange.end.getFullYear(), viewRange.end.getMonth() + 1, 1),
+                viewRange: viewRange,
+                finishCallback: BX.proxy(this.displayEntries, this)
+              });
+            }
+
+            // ! -------- Injected code to manipulate the entries before display
+            params.eventType = window.AUG.Calendar.getEventTypeList();
+            params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
+            params.companyCalendar = window.AUG.Calendar.companyCalendar;
+
+            if (!this.entries) {
+              return;
+            }
+
+            let tempArray = this.entries.filter(function (entry) {
+              switch (entry.data.CAL_TYPE) {
+                case "user":
+                  for (const element of params.eventType) {
+                    if (element.color.toLowerCase() == entry.color.toLowerCase()) {
+                      return element.active;
+                    }
+                  }
+                  return false;
+                  break;
+
+                case "group":
+                  for (const section of params.workgroupCalendar) {
+                    if (section.id == entry.sectionId) {
+                      if (!section.active)
+                        return false;
+                      for (const element of params.eventType) {
+                        if (element.color.toLowerCase() == entry.color.toLowerCase()) {
+                          return element.active;
+                        }
+                      }
+                    }
+                    ;
+                  }
+                  console.log("Error - Entry belongs to different workgroup calendar");
+                  return false;
+                  break;
+
+                case "company_calendar":
+                  for (const section of params.companyCalendar) {
+                    if (section.id == entry.sectionId) {
+                      if (!section.active) {
+                        console.log('company_calendar');
+                        console.log(entry);
+                        return false;
+                      }
+
+
+                      for (const element of params.eventType) {
+                        if (element.color.toLowerCase() == entry.color.toLowerCase()) {
+                          return element.active;
+                        }
+                      }
+                    }
+                  }
+                  console.log("Error - Entry belongs to different company calendar");
+                  return false;
+                  break;
+
+                default:
+                  console.log("Error - Uncaught CAL_TYPE");
+                  return false;
+              }
+            })
+            this.entries = tempArray;
+
+            // ! -------- End of injected code
+
+            this.partsStorage = [];
+            this.timelinePartsStorage = [];
+
+            // Clean holders
+            BX.cleanNode(this.topEntryHolder);
+            BX.cleanNode(this.timelineEntryHolder);
+            this.fullDayEventsCont.style.height = '';
+
+            // Clean days
+            this.days.forEach(function (day) {
+              day.slots = [];
+              day.timelineMap = {};
+              if (day.collapsedWrap && day.collapsedWrap.top) {
+                day.collapsedWrap.top.destroy();
+              }
+              if (day.collapsedWrap && day.collapsedWrap.bottom) {
+                day.collapsedWrap.bottom.destroy();
+              }
+              day.collapsedWrap = { top: null, bottom: null };
+
+              day.entries = {
+                topList: [],
+                started: [],
+                timeline: [],
+                hidden: []
+              };
+            });
+
+            if (this.entries && this.entries.length) {
+              // Prepare for arrangement
+              for (i = 0; i < this.entries.length; i++) {
+                entry = this.entries[i];
+                this.entriesIndex[entry.uid] = i;
+                entry.cleanParts();
+                entryStarted = false;
+
+                for (dayPos = this.dayIndex[entry.startDayCode]; dayPos < this.days.length; dayPos++) {
+                  day = this.days[dayPos];
+                  if (!entry.isLongWithTime()
+                    && day.dayCode === entry.startDayCode
+                    && day.dayCode === entry.endDayCode && !entry.fullDay) {
+                    part = entry.startPart({
+                      from: day,
+                      to: day,
+                      daysCount: 0,
+                      fromTimeValue: this.util.getTimeValue(entry.from),
+                      toTimeValue: this.util.getTimeValue(entry.to)
+                    });
+
+                    day.entries.timeline.push({ entry: entry, part: part });
+                    this.timelinePartsStorage.push({ part: part, entry: entry });
+                    break;
+                  }
+                  else {
+                    if (day.dayCode === entry.startDayCode) {
+                      entryStarted = true;
+                      part = entry.startPart({ from: day, daysCount: 0 });
+                      day.entries.started.push({ entry: entry, part: part });
+                    }
+
+                    if (entryStarted) {
+                      day.entries.topList.push({ entry: entry, part: part });
+                      part.daysCount++;
+                      part.to = day;
+
+                      if (day.entries.topList.length > maxTopEntryCount)
+                        maxTopEntryCount = day.entries.topList.length;
+
+                      if (day.dayCode === entry.endDayCode ||
+                        day.dayOffset === this.dayCount - 1 /* for week view */ ||
+                        this.dayCount === 1 /*for day view */) {
+                        // here we know where part of event starts and ends
+                        this.partsStorage.push({ part: part, entry: entry });
+
+                        // Event finished
+                        if (day.dayCode === entry.endDayCode) {
+                          break;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            if (this.entries && this.entries.length) {
+              this.displayTopEntries();
+              this.displayTimelineEntries();
+
+              this.SLOTS_COUNT = 10;
+
+              this.arrangeTopEntries();
+              this.arrangeTimelineEntries();
+            }
+
+            this.setFullDayHolderSize(Math.min(Math.max(maxTopEntryCount, 1), this.SLOTS_COUNT));
+
+            // Final arrangement on the grid
+            var showHiddenLink;
+            for (dayPos = 0; dayPos < this.days.length; dayPos++) {
+              day = this.days[dayPos];
+
+              // Here we check all entries in the day and if any of it
+              // was hidden, we going to show 'show all' link
+              if (day.entries.topList.length > 0) {
+                showHiddenLink = false;
+                for (i = 0; i < day.entries.topList.length; i++) {
+                  if (day.entries.topList[i].part.params.wrapNode.style.display === 'none') {
+                    showHiddenLink = true;
+                    break;
+                  }
+                }
+
+                if (showHiddenLink) {
+                  day.hiddenStorage = this.topEntryHolder.appendChild(BX.create('DIV', {
+                    props: {
+                      className: 'calendar-event-line-wrap calendar-event-more-btn-container'
+                    },
+                    attrs: { 'data-bx-calendar-show-all-events': day.dayCode },
+                    style: {
+                      top: (parseInt(this.fullDayEventsCont.style.height) - 20) + 'px',
+                      left: this.dayCount === 1
+                        ? '0' /*for day view */
+                        : 'calc((100% / ' + this.dayCount + ') * (' + (day.dayOffset + 1) + ' - 1) + 2px)',
+                      width: 'calc(100% / ' + this.dayCount + ' - 3px)'
+                    }
+                  }));
+
+                  day.hiddenStorageText = day.hiddenStorage.appendChild(BX.create('span', { props: { className: 'calendar-event-more-btn' } }));
+                  day.hiddenStorage.style.display = 'block';
+                  day.hiddenStorageText.innerHTML = BX.message('EC_SHOW_ALL') + ' ' + day.entries.topList.length;
+                }
+                else if (day.hiddenStorage) {
+                  day.hiddenStorage.style.display = 'none';
+                }
+              }
+            }
+
+            BX.addClass(this.grid, 'calendar-events-holder-show');
+            BX.addClass(this.fullDayEventsCont, 'calendar-events-holder-show');
+
+            var workTime = this.util.getWorkTime();
+            this.checkTimelineScroll(!this.collapseOffHours || (workTime.end - workTime.start) * this.gridLineHeight + 20 > this.util.getViewHeight());
+          }
+
+          // ! assign MonthView displayEntries
           this.calendar.views[2].displayEntries = function (params) {
             var prevElement, element, i, j, entry, part, dayPos, entryPart, day, entryStarted, partsStorage = [], entryDisplayed, showHiddenLink, viewRange = this.calendar.getDisplayedViewRange();
 
@@ -751,7 +1214,13 @@ function documentCompleteHandler() {
           return `#${hexArray[0]}${hexArray[1]}${hexArray[2]}`;
         },
 
-        defaultColors: ["#86B10", "#092CC", "#0AFC7", "#DA910", "#0B38C", "#DE2B24", "#BD7AC9", "#838FA0"]
+        defaultColors: ["#86B10", "#092CC", "#0AFC7", "#DA910", "#0B38C", "#DE2B24", "#BD7AC9", "#838FA0"],
+
+        getCalendar: function getCalendar() {
+          let key = Object.keys(window.BXEventCalendar.instances);
+
+          return window.BXEventCalendar.instances[key];
+        }
 
       }
 
@@ -1116,7 +1585,7 @@ function documentCompleteHandler() {
     AUG.Observer.getMutationObserver();
     AUG.Observer.getColorChangeObserver();
     AUG.Observer.getFullEventEditorObserver();
-    AUG.Observer.startMutationObserver();   
+    AUG.Observer.startMutationObserver();
     // <-- End of create custom AUG filter
     // ------------------------------------------
 
