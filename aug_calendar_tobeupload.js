@@ -1,4 +1,7 @@
-console.log("Start of AUG_Calendar custom script");
+
+
+console.log("-----------------------------------");
+console.log("     AUG_Calendar custom script    ");
 console.log("-----------------------------------");
 
 function documentCompleteHandler() {
@@ -281,7 +284,7 @@ function documentCompleteHandler() {
                             params.eventType = window.AUG.Calendar.getEventTypeList();
                             params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
                             params.companyCalendar = window.AUG.Calendar.companyCalendar;
-                            window.AUG.Calendar.calendar.getView().views[2].displayEntries(params);
+                            window.AUG.Calendar.calendar.getView().displayEntries(params);
                         });
                     }
                     // <-- End of assign handler to event type checkboxes
@@ -545,7 +548,7 @@ function documentCompleteHandler() {
                                         }
                                         ;
                                     }
-                                    console.log("Error - Entry belongs to different workgroup calendar");
+                                    // console.log("Error - Entry belongs to different workgroup calendar");
                                     return false;
                                     break;
 
@@ -553,8 +556,8 @@ function documentCompleteHandler() {
                                     for (const section of params.companyCalendar) {
                                         if (section.id == entry.sectionId) {
                                             if (!section.active) {
-                                                console.log('company_calendar');
-                                                console.log(entry);
+                                                // console.log('company_calendar');
+                                                // console.log(entry);
                                                 return false;
                                             }
 
@@ -566,7 +569,7 @@ function documentCompleteHandler() {
                                             }
                                         }
                                     }
-                                    console.log("Error - Entry belongs to different company calendar");
+                                    // console.log("Error - Entry belongs to different company calendar");
                                     return false;
                                     break;
 
@@ -776,7 +779,7 @@ function documentCompleteHandler() {
                                         }
                                         ;
                                     }
-                                    console.log("Error - Entry belongs to different workgroup calendar");
+                                    // console.log("Error - Entry belongs to different workgroup calendar");
                                     return false;
                                     break;
 
@@ -784,8 +787,8 @@ function documentCompleteHandler() {
                                     for (const section of params.companyCalendar) {
                                         if (section.id == entry.sectionId) {
                                             if (!section.active) {
-                                                console.log('company_calendar');
-                                                console.log(entry);
+                                                // console.log('company_calendar');
+                                                // console.log(entry);
                                                 return false;
                                             }
 
@@ -797,7 +800,7 @@ function documentCompleteHandler() {
                                             }
                                         }
                                     }
-                                    console.log("Error - Entry belongs to different company calendar");
+                                    // console.log("Error - Entry belongs to different company calendar");
                                     return false;
                                     break;
 
@@ -973,7 +976,7 @@ function documentCompleteHandler() {
                         }
 
                         // ! -------- Injected code to manipulate the entries before display
-                        console.log(this.entries);
+                        // console.log(this.entries);
 
                         params.eventType = window.AUG.Calendar.getEventTypeList();
                         params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
@@ -984,6 +987,8 @@ function documentCompleteHandler() {
                         }
 
                         let tempArray = this.entries.filter(function (entry) {
+
+                            // console.log('switching entry.data.CAL_TYPE');
                             switch (entry.data.CAL_TYPE) {
                                 case "user":
                                     for (const element of params.eventType) {
@@ -1007,7 +1012,7 @@ function documentCompleteHandler() {
                                         }
                                         ;
                                     }
-                                    console.log("Error - Entry belongs to different workgroup calendar");
+                                    // console.log("Error - Entry belongs to different workgroup calendar");
                                     return false;
                                     break;
 
@@ -1015,8 +1020,8 @@ function documentCompleteHandler() {
                                     for (const section of params.companyCalendar) {
                                         if (section.id == entry.sectionId) {
                                             if (!section.active) {
-                                                console.log('company_calendar');
-                                                console.log(entry);
+                                                // console.log('company_calendar');
+                                                // console.log(entry);
                                                 return false;
                                             }
 
@@ -1028,15 +1033,18 @@ function documentCompleteHandler() {
                                             }
                                         }
                                     }
-                                    console.log("Error - Entry belongs to different company calendar");
+                                    // console.log("Error - Entry belongs to different company calendar");
                                     return false;
                                     break;
 
                                 default:
                                     console.log("Error - Uncaught CAL_TYPE");
+                                    console.log("break, this might be tasks");
+                                    console.log(`entry = ${entry}`);
                                     return false;
                             }
                         })
+
                         this.entries = tempArray;
 
                         // ! -------- End of injected code
@@ -1215,12 +1223,14 @@ function documentCompleteHandler() {
                         return element !== '';
                     })
                     hexArray = rgbArray.map(function (element) {
-                        return parseInt(element).toString(16);
+                        let x = parseInt(element).toString(16);
+                        if (x.length < 2) x = '0' + x;
+                        return x;
                     });
                     return `#${hexArray[0]}${hexArray[1]}${hexArray[2]}`;
                 },
 
-                defaultColors: ["#86B10", "#092CC", "#0AFC7", "#DA910", "#0B38C", "#DE2B24", "#BD7AC9", "#838FA0"],
+                defaultColors: ["#86B100", "#0092CC", "#00AFC7", "#DA9100", "#00B38C", "#DE2B24", "#BD7AC9", "#838FA0"],
 
                 getCalendar: function getCalendar() {
                     let key = Object.keys(window.BXEventCalendar.instances);
@@ -1251,245 +1261,30 @@ function documentCompleteHandler() {
 
                 startMutationObserver: function startMutationObserver() {
                     this.mutationObserver.observe(document.querySelector('body'), { childList: true });
-                    this.fullEventEditorObserver.observe(document.querySelector('body'), { childList: true });
                 },
 
-                getFullEventEditorObserver: function getFullEventEditorObserver() {
-                    let fullEventEditorObserver = new MutationObserver(
 
-                        (function (m) {
-
-                            console.log('===================');
-                            console.log('fullObs');
-                            console.log(m);
-
-                            for (const eachM of m) {
-                                if (eachM.addedNodes.length > 0) {
-                                    if (eachM.addedNodes[0].className.includes('side-panel side-panel-overlay side-panel-overlay-open')) {
-
-                                        console.log('setup tempObs');
-                                        this.tempObs = new MutationObserver(function (m) {
-
-                                            console.log('===================');
-                                            console.log('tempObs');
-                                            console.log(m);
-
-                                            for (const eachM of m) {
-                                                if (eachM.target.className.includes('calendar-field-colorpicker')) {
-
-                                                    console.log("found ul mutation");
-
-                                                    // Change <ul> display to flex
-                                                    console.log("modify ul");
-                                                    eachM.target.style.display = 'flex';
-                                                    eachM.target.style.justifyContent = 'space-evenly';
-
-                                                    console.log("modify li and add labels");
-                                                    if (eachM.addedNodes.length > 0 && eachM.addedNodes[0].nodeName == 'LI') {
-
-                                                        eachM.addedNodes[0].style.display = 'block';
-
-                                                        label = eachM.addedNodes[0].appendChild(document.createElement('DIV'));
-                                                        label.style.position = 'absolute';
-                                                        label.style.left = '30px';
-                                                        label.style.top = '6px';
-                                                        label.style.width = 'max-content';
-
-                                                        switch (eachM.addedNodes[0].dataset.bxCalendarColor) {
-                                                            case "#86B100":
-                                                                eventName = 'AUG Travel';
-                                                                break;
-                                                            case "#0092CC":
-                                                                eventName = 'General';
-                                                                break;
-                                                            case "#00AFC7":
-                                                                eventName = 'Marketing Promotion';
-                                                                label.style.top = '0px';
-                                                                label.style.width = 'min-content';
-                                                                break;
-                                                            case "#DA9100":
-                                                                eventName = 'Meeting';
-                                                                break;
-                                                            case "#00B38C":
-                                                                eventName = 'Personal';
-                                                                break;
-                                                            case "#DE2B24":
-                                                                eventName = 'Visits/PR';
-                                                                break;
-                                                            case "#BD7AC9":
-                                                                eventName = 'Social Media';
-                                                                break;
-                                                            case "#838FA0":
-                                                                eventName = 'Others';
-                                                                break;
-                                                            default:
-                                                                eachM.addedNodes[0].remove();
-                                                                break;
-                                                        }
-
-                                                        label.innerHTML = `${eventName}`;
-                                                    }
-
-                                                }
-                                            }
-                                        });
-
-                                        console.log('run tempObs');
-                                        this.tempObs.observe(eachM.addedNodes[0], { childList: true, subtree: true });
-                                    }
-                                }
-                            }
-                        }).bind(this)
-
-                    )
-
-                    this.fullEventEditorObserver = fullEventEditorObserver;
-                },
-
+                // * ==============================
                 getColorChangeObserver: function getColorChangeObserver() {
 
-                    let colorChangeObserver = new MutationObserver(
+                    if (!this.colorChangeObserver) {
 
-                        (function (m) {
+                        let colorChangeObserver = new MutationObserver(
 
-                            console.log("-----------------------------");
-                            console.log("colorChangeObserver activated");
+                            (function (m) {
 
-                            for (const eachM of m) {
+                                for (const eachM of m) {
 
-                                console.log(eachM);
-                                if (eachM.target.className.includes("calendar-field-select-icon")) {
+                                    if (eachM.target.className.includes("calendar-field-select-icon")) {
 
-                                    console.log("color / event type of Event");
-                                    console.log(eachM.target.style.backgroundColor)
+                                        if (!this.Utility.defaultColors.includes(this.Utility.rgbToHex(eachM.target.style.backgroundColor).toUpperCase())) { // <-- Check if current color matches with defaultColors
+                                            this.returnPreviousFlag = true;
 
-                                    console.log("check if color in defaultColors");
-                                    if (!this.Utility.defaultColors.includes(this.Utility.rgbToHex(eachM.target.style.backgroundColor).toUpperCase())) { // <-- Check if current color matches with defaultColors
-                                        console.log("color not in defaultColors - set returnPreviousFlag");
-                                        this.returnPreviousFlag = true;
-
-                                        console.log('"click" to open color selector');
-                                        document.querySelector('.calendar-field.calendar-field-select.calendar-field-tiny').click();
-                                    }
-
-                                    else {
-                                        console.log("color in defaultColors - set previousColor to new current color");
-
-                                        console.log("get previousColor from current color on color selector icon");
-                                        this.previousColor = this.Utility.defaultColors.filter(
-
-                                            (function (currentValue) { // <-- filter defaultColors for previousColor
-                                                return currentValue == this.Utility.rgbToHex(document.querySelector('div.calendar-field-select-icon').style.backgroundColor).toUpperCase()
-                                            }).bind(this)
-
-                                        )[0]
-
-                                        console.log(`Observer.previousColor = ${this.previousColor}`); // <-- check value of previousColor
-
-                                        if (!this.previousColor) {
-                                            console.log("current color selector icon not in defaultColors");
-
-                                            console.log("set previousColor to default General");
-                                            this.previousColor = "#092CC"; // <-- set previousColor to General
+                                            document.querySelector('.calendar-field.calendar-field-select.calendar-field-tiny').click();
                                         }
 
-                                        console.log('set clickTarget based on previousColor');
-                                        this.clickTarget = this.Utility.defaultColors.indexOf(this.previousColor) + 1;
-                                        console.log(`Observer.clickTarget = ${this.clickTarget}`);
-                                    }
-                                }
-                            }
-                        }).bind(this)
+                                        else {
 
-                    )
-
-                    this.colorChangeObserver = colorChangeObserver;
-
-                }, // <-- End of getColorChangeObserver method
-
-                getMutationObserver: function getMutationObserver() {
-
-                    let mutationObserver = new MutationObserver(
-
-                        (function (m) {
-
-                            console.log("--------------------------");
-                            console.log("mutationObserver activated");
-                            console.log(m);
-
-                            for (const eachM of m) {
-
-                                // Adding Nodes Handlers
-                                if (eachM.addedNodes.length > 0) {
-
-                                    // Main popup added handler
-                                    if (eachM.addedNodes[0].className.includes('popup-window calendar-simple-view-popup')) {
-
-                                        console.log("simple event editor popup added");
-                                        console.log(eachM);
-
-                                        console.log("set initPopupFlag");
-                                        this.initPopupFlag = true;
-                                        console.log('"click" to open color selector');
-                                        eachM.addedNodes[0].querySelector('.calendar-field.calendar-field-select.calendar-field-tiny').click();
-                                    }
-
-                                    // Color Selector popup added handler
-                                    if (eachM.addedNodes[0].id.includes('menu-popup-color-select')) {
-
-                                        console.log("color selector popup added");
-                                        console.log(eachM);
-
-                                        // Add label to color
-                                        console.log("add color label");
-                                        for (const eachElem of eachM.addedNodes[0].querySelectorAll('.menu-popup-item-text')) {
-                                            eachElem.style.display = 'inline';
-                                            switch (eachElem.innerHTML) {
-                                                case "#86B100":
-                                                    eachElem.innerHTML = "AUG Travel";
-                                                    break;
-                                                case "#0092CC":
-                                                    eachElem.innerHTML = "General";
-                                                    break;
-                                                case "#00AFC7":
-                                                    eachElem.innerHTML = "Marketing Promotions";
-                                                    break;
-                                                case "#DA9100":
-                                                    eachElem.innerHTML = "Meeting";
-                                                    break;
-                                                case "#00B38C":
-                                                    eachElem.innerHTML = "Personal";
-                                                    break;
-                                                case "#DE2B24":
-                                                    eachElem.innerHTML = "Visits/PR";
-                                                    break;
-                                                case "#BD7AC9":
-                                                    eachElem.innerHTML = "Social Media";
-                                                    break;
-                                                case "#838FA0":
-                                                    eachElem.innerHTML = "Others";
-                                                    break;
-                                                default:
-                                                    eachElem.parentElement.remove();
-                                                    break;
-                                            };
-                                        }
-                                        // <-- End of add label to color
-
-                                        console.log("hide color selector");
-                                        eachM.addedNodes[0].style.visibility = "hidden";
-
-                                        console.log("extend color selector");
-                                        eachM.addedNodes[0].style.width = '190px';
-
-                                        // Initiate new simple event editor popup
-                                        if (this.initPopupFlag) {
-                                            console.log("<<--init new simple event editor popup-->");
-
-                                            console.log("clear initPopupFlag flag");
-                                            this.initPopupFlag = false;
-
-                                            console.log("get previousColor from current color on color selector icon");
                                             this.previousColor = this.Utility.defaultColors.filter(
 
                                                 (function (currentValue) { // <-- filter defaultColors for previousColor
@@ -1498,79 +1293,353 @@ function documentCompleteHandler() {
 
                                             )[0]
 
-                                            console.log(`Observer.previousColor = ${this.previousColor}`); // <-- check value of previousColor
-
                                             if (!this.previousColor) {
-                                                console.log("current color selector icon not in defaultColors");
+                                                // console.log("current color selector icon not in defaultColors");
 
-                                                console.log("set previousColor to default General");
-                                                this.previousColor = "#092CC"; // <-- set previousColor to General
+                                                // console.log("set previousColor to default General");
+                                                this.previousColor = "#0092CC"; // <-- set previousColor to General
                                             }
 
-                                            console.log('set clickTarget based on previousColor');
+                                            // console.log('set clickTarget based on previousColor');
                                             this.clickTarget = this.Utility.defaultColors.indexOf(this.previousColor) + 1;
-                                            console.log(`Observer.clickTarget = ${this.clickTarget}`);
+                                            // console.log(`Observer.clickTarget = ${this.clickTarget}`);
+                                        }
+                                    }
+                                }
+                            }).bind(this)
 
-                                            console.log('"click" color selector');
-                                            eachM.addedNodes[0].querySelector(`span.menu-popup-item:nth-child(${this.clickTarget})`).click(); // <-- Closing of color selector Popup
+                        )
 
-                                            // Setup colorChangeObserver
-                                            console.log("Setup colorChangeObserver");
-                                            this.colorChangeObserver.observe(document.querySelector('.calendar-field-select-icon'), { attributeFilter: ["style"] });
-                                            // <-- End of setting up colorChangeObserver
+                        this.colorChangeObserver = colorChangeObserver;
+                    }
 
-                                            // <-- Check if color selector popup close at every branch
+                    return this.colorChangeObserver;
+
+                }, // * <-- End of getColorChangeObserver method
+
+                // * ==============================
+                getMutationObserver: function getMutationObserver() {
+
+                    if (!this.mutationObserver) {
+
+                        let mutationObserver = new MutationObserver(
+
+                            (function (m) {
+
+                                // console.log("--------------------------");
+                                // console.log("mutationObserver activated");
+                                // console.log(m);
+
+                                for (const eachM of m) {
+
+                                    // Adding Nodes Handlers
+                                    if (eachM.addedNodes.length > 0) {
+
+                                        // Main popup added handler
+                                        if (eachM.addedNodes[0].className.includes('popup-window calendar-simple-view-popup')) {
+
+                                            // console.log("simple event editor popup added");
+                                            // console.log(eachM);
+
+                                            // console.log("set initPopupFlag");
+                                            this.initPopupFlag = true;
+                                            // console.log('"click" to open color selector');
+                                            eachM.addedNodes[0].querySelector('.calendar-field.calendar-field-select.calendar-field-tiny').click();
                                         }
 
-                                        else if (this.returnPreviousFlag) {
-                                            console.log("clear returnPreviousFlag");
-                                            this.returnPreviousFlag = false;
+                                        // Color Selector popup added handler
+                                        if (eachM.addedNodes[0].id.includes('menu-popup-color-select')) {
 
-                                            console.log('"click" color selector');
-                                            eachM.addedNodes[0].querySelector(`span.menu-popup-item:nth-child(${this.clickTarget})`).click(); // <-- Closing of color selector Popup 
+                                            // console.log("color selector popup added");
+                                            // console.log(eachM);
+
+                                            // Add label to color
+                                            // console.log("add color label");
+                                            for (const eachElem of eachM.addedNodes[0].querySelectorAll('.menu-popup-item-text')) {
+                                                eachElem.style.display = 'inline';
+                                                switch (eachElem.innerHTML) {
+                                                    case "#86B100":
+                                                        eachElem.innerHTML = "AUG Travel";
+                                                        break;
+                                                    case "#0092CC":
+                                                        eachElem.innerHTML = "General";
+                                                        break;
+                                                    case "#00AFC7":
+                                                        eachElem.innerHTML = "Marketing Promotions";
+                                                        break;
+                                                    case "#DA9100":
+                                                        eachElem.innerHTML = "Meeting";
+                                                        break;
+                                                    case "#00B38C":
+                                                        eachElem.innerHTML = "Personal";
+                                                        break;
+                                                    case "#DE2B24":
+                                                        eachElem.innerHTML = "Visits/PR";
+                                                        break;
+                                                    case "#BD7AC9":
+                                                        eachElem.innerHTML = "Social Media";
+                                                        break;
+                                                    case "#838FA0":
+                                                        eachElem.innerHTML = "Others";
+                                                        break;
+                                                    default:
+                                                        eachElem.parentElement.remove();
+                                                        break;
+                                                };
+                                            }
+                                            // <-- End of add label to color
+
+                                            // console.log("hide color selector");
+                                            eachM.addedNodes[0].style.visibility = "hidden";
+
+                                            // console.log("extend color selector");
+                                            eachM.addedNodes[0].style.width = '190px';
+
+                                            // Initiate new simple event editor popup
+                                            if (this.initPopupFlag) {
+                                                // console.log("<<--init new simple event editor popup-->");
+
+                                                // console.log("clear initPopupFlag flag");
+                                                this.initPopupFlag = false;
+
+                                                // console.log("get previousColor from current color on color selector icon");
+                                                this.previousColor = this.Utility.defaultColors.filter(
+
+                                                    (function (currentValue) { // <-- filter defaultColors for previousColor
+                                                        return currentValue == this.Utility.rgbToHex(document.querySelector('div.calendar-field-select-icon').style.backgroundColor).toUpperCase();
+                                                    }).bind(this)
+
+                                                )[0]
+
+                                                // console.log(`Observer.previousColor = ${this.previousColor}`); // <-- check value of previousColor
+
+                                                if (!this.previousColor) {
+                                                    // console.log("current color selector icon not in defaultColors");
+
+                                                    // console.log("set previousColor to default General");
+                                                    this.previousColor = "#0092CC"; // <-- set previousColor to General
+                                                }
+
+                                                // console.log('set clickTarget based on previousColor');
+                                                this.clickTarget = this.Utility.defaultColors.indexOf(this.previousColor) + 1;
+                                                // console.log(`Observer.clickTarget = ${this.clickTarget}`);
+
+                                                // console.log('"click" color selector');
+                                                eachM.addedNodes[0].querySelector(`span.menu-popup-item:nth-child(${this.clickTarget})`).click(); // <-- Closing of color selector Popup
+
+                                                // Setup colorChangeObserver
+                                                // console.log("Setup colorChangeObserver");
+                                                this.colorChangeObserver.observe(document.querySelector('.calendar-field-select-icon'), { attributeFilter: ["style"] });
+                                                // <-- End of setting up colorChangeObserver
+
+                                                // <-- Check if color selector popup close at every branch
+                                            }
+
+                                            else if (this.returnPreviousFlag) {
+                                                // console.log("clear returnPreviousFlag");
+                                                this.returnPreviousFlag = false;
+
+                                                // console.log('"click" color selector');
+                                                eachM.addedNodes[0].querySelector(`span.menu-popup-item:nth-child(${this.clickTarget})`).click(); // <-- Closing of color selector Popup 
+                                            }
+
+                                            else {
+                                                // Show popup <-- Last possible case
+                                                // console.log("show color selector popup - last possible case");
+                                                eachM.addedNodes[0].style.visibility = "visible";
+                                            }
+
                                         }
 
-                                        else {
-                                            // Show popup <-- Last possible case
-                                            console.log("show color selector popup - last possible case");
-                                            eachM.addedNodes[0].style.visibility = "visible";
+                                        // Section Selector Popup Handler
+                                        if (eachM.addedNodes[0].id.includes('menu-popup-section-select')) {
+                                            this.sectionSelectorFlag = true; // <-- currently unused
+                                        }
+
+                                        // Full editor Popup Handler
+                                        if (eachM.addedNodes[0].className.includes('side-panel side-panel-overlay side-panel-overlay-open')) {
+
+                                            // console.log('setup tempObs');
+                                            this.tempObs = new MutationObserver(
+
+                                                (function (m) {
+
+                                                    // console.log('===================');
+                                                    // console.log('tempObs');
+                                                    // console.log(m);
+
+                                                    for (const eachM of m) {
+
+                                                        // Add label to color selector
+                                                        if (eachM.target.className.includes('calendar-field-colorpicker')) {
+
+                                                            // console.log("found ul mutation");
+
+                                                            // Change <ul> display to flex
+                                                            // console.log("modify ul");
+                                                            eachM.target.style.display = 'flex';
+                                                            eachM.target.style.justifyContent = 'space-evenly';
+
+                                                            // console.log("modify li and add labels");
+                                                            if (eachM.addedNodes.length > 0 && eachM.addedNodes[0].nodeName == 'LI') {
+
+                                                                eachM.addedNodes[0].style.display = 'block';
+
+                                                                label = eachM.addedNodes[0].appendChild(document.createElement('DIV'));
+                                                                label.style.position = 'absolute';
+                                                                label.style.left = '30px';
+                                                                label.style.top = '6px';
+                                                                label.style.width = 'max-content';
+
+                                                                switch (eachM.addedNodes[0].dataset.bxCalendarColor) {
+                                                                    case "#86B100":
+                                                                        eventName = 'AUG Travel';
+                                                                        break;
+                                                                    case "#0092CC":
+                                                                        eventName = 'General';
+                                                                        break;
+                                                                    case "#00AFC7":
+                                                                        eventName = 'Marketing Promotion';
+                                                                        label.style.top = '0px';
+                                                                        label.style.width = 'min-content';
+                                                                        break;
+                                                                    case "#DA9100":
+                                                                        eventName = 'Meeting';
+                                                                        break;
+                                                                    case "#00B38C":
+                                                                        eventName = 'Personal';
+                                                                        break;
+                                                                    case "#DE2B24":
+                                                                        eventName = 'Visits/PR';
+                                                                        break;
+                                                                    case "#BD7AC9":
+                                                                        eventName = 'Social Media';
+                                                                        break;
+                                                                    case "#838FA0":
+                                                                        eventName = 'Others';
+                                                                        break;
+                                                                    default:
+                                                                        eachM.addedNodes[0].remove();
+                                                                        break;
+                                                                }
+
+                                                                label.innerHTML = `${eventName}`;
+
+                                                                // check active color
+                                                                if (eachM.addedNodes[0].className.includes('active')) {
+
+                                                                    // console.log("found active color");
+                                                                    this.fullEventEditorColor = eachM.addedNodes[0].dataset.bxCalendarColor;
+                                                                    // console.log(`this.fullEventEditorColor = ${this.fullEventEditorColor}`);
+
+                                                                    if (!this.fullEventEditorColor) {
+                                                                        // console.log('color undefined - set default general');
+                                                                        this.fullEventEditorColor = "#0092CC";
+                                                                        eachM.target.querySelector(`li:nth-child(2)`).click();
+                                                                    }
+
+                                                                }
+
+                                                                // console.log("addEventListener for ul");
+                                                                eachM.target.addEventListener('click', // <-- target is <ul>
+
+                                                                    (function (e) {
+
+                                                                        for (const element of e.currentTarget.querySelectorAll('li.calendar-field-colorpicker-color-item')) {
+
+                                                                            if (element.className.includes('active')) {
+                                                                                this.fullEventEditorColor = element.dataset.bxCalendarColor;
+                                                                                break;
+                                                                            }
+
+                                                                        }
+
+                                                                    }).bind(this)
+
+                                                                );
+
+                                                            }
+
+                                                        }
+
+                                                    }
+                                                }).bind(this)
+
+                                            );
+
+                                            this.tempObs2 = new MutationObserver(
+                                                (function (m) {
+
+                                                    // console.log("==========");
+                                                    // console.log("tempObs2");
+                                                    for (const eachM of m) {
+                                                        if (eachM.removedNodes[0].id.includes('menu-popup-section-select')) {
+                                                            let clickTarget = this.Utility.defaultColors.indexOf(this.fullEventEditorColor) + 1;
+                                                            eachM.target.querySelector(`li:nth-child(${clickTarget})`).click();
+                                                        }
+                                                    }
+
+                                                }).bind(this)
+                                            )
+
+                                            // console.log('run tempObs');
+                                            this.tempObs.observe(eachM.addedNodes[0], { childList: true, subtree: true });
+                                            this.tempObs2.observe(eachM.addedNodes[0].firstChild.firstChild, { childList: true });
+
                                         }
 
                                     }
+                                    // <------------------------------
 
-                                    // Section Selector Popup Handler
-                                    if (eachM.addedNodes[0].id.includes('menu-popup-section-select')) {
-                                        this.sectionSelectorFlag = true; // <-- currently unused
+                                    // Removing Nodes Handlers
+                                    if (eachM.removedNodes.length > 0) {
+
+                                        // Main popup removed handler
+                                        if (eachM.removedNodes[0].className.includes('popup-window calendar-simple-view-popup')) {
+                                            // console.log("popup removed");
+                                            // console.log(eachM);
+
+                                            this.colorChangeObserver.disconnect();
+                                            // disconnect Observer.colorChangeObserver;
+                                        }
+
+                                        // Side Panel / Full Event Editor removed handler
+                                        if (eachM.removedNodes[0].className.includes('side-panel side-panel-overlay side-panel-overlay-open')) {
+
+                                            // console.log('side-panel / full event editor removed');
+
+                                            // console.log('disconnect tempObs');
+                                            this.tempObs.disconnect();
+                                            // console.log('delete Observer.tempObs');
+                                            if (delete this.tempObs) {
+                                                console.log('Observer.tempObs removed');
+                                            }
+
+                                            // console.log('disconnect tempObs2');
+                                            this.tempObs2.disconnect();
+                                            // console.log('delete Observer.tempObs2');
+                                            if (delete this.tempObs2) {
+                                                // console.log('Observer.tempObs2 removed');
+                                            }
+
+                                        }
+
                                     }
+                                    // <------------------------------
 
                                 }
-                                // <------------------------------
-
-                                // Removing Nodes Handlers
-                                if (eachM.removedNodes.length > 0) {
-
-                                    // Main popup removed handler
-                                    if (eachM.removedNodes[0].className.includes('popup-window calendar-simple-view-popup')) {
-                                        console.log("popup removed");
-                                        console.log(eachM);
-
-                                        this.colorChangeObserver.disconnect();
-                                        // disconnect Observer.colorChangeObserver;
-                                    }
-
-                                }
-                                // <------------------------------
-
-                            }
 
 
-                        }).bind(this)
+                            }).bind(this)
 
-                    )
+                        )
 
-                    this.mutationObserver = mutationObserver;
+                        this.mutationObserver = mutationObserver;
+                    }
 
-                }, // <-- End of getMutationObserver method
+                    return this.mutationObserver;
+
+                }, // * <-- End of getMutationObserver method
 
 
             } // <-- End of Obsever Object Definition --------
@@ -1590,7 +1659,6 @@ function documentCompleteHandler() {
 
         AUG.Observer.getMutationObserver();
         AUG.Observer.getColorChangeObserver();
-        AUG.Observer.getFullEventEditorObserver();
         AUG.Observer.startMutationObserver();
         // <-- End of create custom AUG filter
         // ------------------------------------------
