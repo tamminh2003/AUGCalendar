@@ -23,42 +23,42 @@ function documentCompleteHandler() {
           this.calendar = this.getCalendarInstance(window.BXEventCalendar);
           this.eventType = [{
             name: 'augTravel',
-            color: '#86b100',
+            color: '#86B100',
             active: true,
             title: 'AUG Travel'
           }, {
             name: 'general',
-            color: '#0092cc',
+            color: '#0092CC',
             active: true,
             title: 'General'
           }, {
             name: 'marketing',
-            color: '#00afc7',
+            color: '#00AFC7',
             active: true,
             title: 'Marketing Promotions'
           }, {
             name: 'meeting',
-            color: '#da9100',
+            color: '#DA9100',
             active: true,
             title: 'Meeting'
           }, {
             name: 'personal',
-            color: '#00b38c',
+            color: '#00B38C',
             active: true,
             title: 'Personal'
           }, {
             name: 'visitpr',
-            color: '#de2b24',
+            color: '#DE2B24',
             active: true,
             title: 'Visits/PR'
           }, {
             name: 'social',
-            color: '#bd7ac9',
+            color: '#BD7AC9',
             active: true,
             title: 'Social Media'
           }, {
             name: 'others',
-            color: '#838fa0',
+            color: '#838FA0',
             active: true,
             title: 'Others'
           }];
@@ -79,18 +79,25 @@ function documentCompleteHandler() {
         }
 
         // AUG CALENDAR UTILITY
+
+        // @ Description: get current BXEventCalendar.instances.
+        //                BXEventCalendar.instances is created anew everytime the module is loaded.
         getCalendarInstance(calendarObject) {
           return calendarObject.instances[Object.keys(calendarObject.instances)[0]];
         }
 
+        // @ Description: return array of EventType
         getEventTypeList() {
           return this.eventType;
         }
 
+        // @ Description: return array of available calendars.
+        //                BXEventCalendar defines different calendars as section.
         getAvailableSection() {
           return this.calendar.sectionController.sections;
         }
 
+        // @ Deprecated
         refreshCalendarDisplay() {
           let params = {};
           params.eventType = window.AUG.Calendar.getEventTypeList();
@@ -100,6 +107,8 @@ function documentCompleteHandler() {
         }
 
         // AUG CALENDAR HANDLER
+
+        // @ Description: Show/Hide AUG Calendar Filter
         popupButtonHandler(e) {
           let augFilterPopup = document.querySelector('.aug-filter-popup');
 
@@ -116,6 +125,7 @@ function documentCompleteHandler() {
           }
         }
 
+        // @ Description: Hide AUG Calendar Filter if "click" outside filter container.
         checkOutsideFilterPopup(e) {
           // console.log(e);
 
@@ -972,8 +982,6 @@ function documentCompleteHandler() {
             }
 
             // ! -------- Injected code to manipulate the entries before display
-            // console.log(this.entries);
-
             params.eventType = window.AUG.Calendar.getEventTypeList();
             params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
             params.companyCalendar = window.AUG.Calendar.companyCalendar;
@@ -984,18 +992,31 @@ function documentCompleteHandler() {
 
             let tempArray = this.entries.filter(function (entry) {
 
-              // console.log('switching entry.data.CAL_TYPE');
-              switch (entry.data.CAL_TYPE) {
+              
+
+                switch (entry.data.CAL_TYPE) {
+                
                 case "user":
-                  for (const element of params.eventType) {
-                    if (element.color.toLowerCase() == entry.color.toLowerCase()) {
-                      return element.active;
-                    }
+    
+                  try {
+                    let _index = params.eventType.map(function(c) {return c.color}).indexOf(entry.color.toUpperCase());
+                    return _index <= -1 ? false : params.eventType[_index].active;
+                  } catch(e) {
+                    console.log(e);
+                    return false;
                   }
-                  return false;
-                  break;
+
+                  // for (const element of params.eventType) {
+                  //   if (element.color.toLowerCase() == entry.color.toLowerCase()) {
+                  //     return element.active;
+                  //   }
+                  // }
 
                 case "group":
+                case "company_calendar":
+
+                  
+
                   for (const section of params.workgroupCalendar) {
                     if (section.id == entry.sectionId) {
                       if (!section.active)
@@ -1008,7 +1029,6 @@ function documentCompleteHandler() {
                     }
                     ;
                   }
-                  // console.log("Error - Entry belongs to different workgroup calendar");
                   return false;
                   break;
 
@@ -1016,8 +1036,6 @@ function documentCompleteHandler() {
                   for (const section of params.companyCalendar) {
                     if (section.id == entry.sectionId) {
                       if (!section.active) {
-                        // console.log('company_calendar');
-                        // console.log(entry);
                         return false;
                       }
 
