@@ -78,7 +78,8 @@ function documentCompleteHandler() {
           }
         }
 
-        // AUG CALENDAR UTILITY
+
+        // * AUG CALENDAR UTILITY
 
         // @ Description: get current BXEventCalendar.instances.
         //                BXEventCalendar.instances is created anew everytime the module is loaded.
@@ -97,16 +98,150 @@ function documentCompleteHandler() {
           return this.calendar.sectionController.sections;
         }
 
-        // @ Deprecated
+        // @ Description: Call displayEntries() of current View
         refreshCalendarDisplay() {
-          let params = {};
-          params.eventType = window.AUG.Calendar.getEventTypeList();
-          params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
-          params.companyCalendar = window.AUG.Calendar.companyCalendar;
-          window.AUG.Calendar.calendar.views[2].displayEntries(params);
+          this.calendar.getView().displayEntries();
         }
 
-        // AUG CALENDAR HANDLER
+        // @ Description: Generate eventType checkboxes using following structure:
+        //             optionContainer => checkboxContainer => checkbox
+        //                                                  => label
+        createEventTypeCheckbox(optionContainer) {
+          this.eventType.forEach((c) => {
+
+            let checkboxContainer = optionContainer.appendChild(BX.create('div',
+              { attrs: { class: 'checkbox-container', 'data-name': c.name } }
+            )); // <== Outer div of checkbox
+
+            let checkbox = checkboxContainer.appendChild(BX.create('input',
+              { attrs: { type: 'checkbox' } }
+            )); // <== Checkbox
+
+            checkboxContainer.appendChild(BX.create('span',
+              { attrs: { class: 'aug-option-name' }, text: c.title }
+            )); // <== Checkbox's label
+
+            let checkboxHandler = (e) => {
+              let _name = checkbox.parentElement.dataset.name;
+              let _index = this.eventType.map((c) => { return c.name; })
+                .indexOf(_name);
+              if (_index > -1) this.eventType[_index].active = checkbox.checked;
+              this.refreshCalendarDisplay();
+            } //<== checkboxHandler
+
+            checkbox.addEventListener('change', checkboxHandler); // <== assign checkboxHandler 
+
+          })
+        }
+
+
+        // @ Description: Generate Select All and Deselect All button
+        createEventTypeSelectAllButton(buttonContainer, optionSectionContainer) {
+
+          let buttonSelectAll = buttonContainer.appendChild(BX.create('button', {
+            attrs: { class: 'select-all-button' }, text: 'Select All'
+          })); // <== select all button
+
+          buttonSelectAll.addEventListener('click', (e) => {
+            optionSectionContainer.querySelectorAll('input').forEach(c => c.checked = true)
+            this.eventType.forEach(c => c.active = true);
+            this.refreshCalendarDisplay();
+          }); //<== Select All Button Handler
+
+          // Deselect Button
+          let buttonDeselectAll = buttonContainer.appendChild(BX.create('button', {
+            attrs: { class: 'deselect-all-button' }, text: 'Deselect All'
+          }));
+
+          buttonDeselectAll.addEventListener('click', e => {
+            optionSectionContainer.querySelectorAll('input').forEach(c => c.checked = false);
+            this.eventType.forEach(c => c.active = false);
+            this.refreshCalendarDisplay();
+          });
+          // <==========================
+        }
+
+
+        // @ Description: Generate checkboxes for company section and workgroup section
+        createCheckbox(optionContainer, calendarSection) {
+          calendarSection.forEach((c) => {
+            let checkboxContainer = optionContainer.appendChild(BX.create('div', {
+              attrs: { class: 'checkbox-container', 'data-section': c.id }
+            })); // <== Outer div of checkbox
+
+            let checkbox = checkboxContainer.appendChild(BX.create('input', {
+              attrs: { type: 'checkbox' }
+            })); // <== Checkbox
+
+            checkboxContainer.appendChild(BX.create('span', {
+              attrs: { class: 'aug-option-name' }, text: c.name
+            })); // <== Checkbox's label
+
+            checkbox.checked = !this.calendar.sectionController.getHiddenSections().includes(c.id);
+
+            checkbox.addEventListener('change', e => {
+              let hiddenSections = this.calendar.sectionController.getHiddenSections();
+              let _sectionId = checkbox.parentElement.dataset.section;
+              let _index = hiddenSections.indexOf(_sectionId);
+
+              if (checkbox.checked && _index >= 0) hiddenSections.splice(_index);
+              if (!checkbox.checked && _index < 0) hiddenSections.push(_sectionId);
+
+              this.calendar.sectionController.setHiddenSections(hiddenSections);
+              this.refreshCalendarDisplay();
+            })
+          })
+        }
+
+
+        // @ Description: Generate Select All and Deselect All button for company and workgroup section
+        createSelectAllButton(buttonContainer, optionSectionContainer) {
+
+          // Select Button
+          let buttonSelectAll = buttonContainer.appendChild(BX.create('button', {
+            attrs: { class: 'select-all-button' }, text: 'Select All'
+          }));
+
+          buttonSelectAll.addEventListener('click', e => {
+            let arrayCheckbox = optionSectionContainer.querySelectorAll('input')
+
+            arrayCheckbox.forEach(c => {
+              let hiddenSections = this.calendar.sectionController.getHiddenSections();
+              let _sectionId = c.parentElement.dataset.section;
+              let _index = hiddenSections.indexOf(_sectionId);
+
+              c.checked = true;
+              if (_index >= 0) hiddenSections.splice(_index);
+              this.calendar.sectionController.setHiddenSections(hiddenSections);
+              this.refreshCalendarDisplay();
+            });
+          });
+
+          // Deselect Button
+          let buttonDeselectAll = buttonContainer.appendChild(BX.create('button', {
+            attrs: { class: 'deselect-all-button' }, text: 'Deselect All'
+          }));
+
+          buttonDeselectAll.addEventListener('click', e => {
+            let arrayCheckbox = optionSectionContainer.querySelectorAll('input')
+
+            arrayCheckbox.forEach(c => {
+              let hiddenSections = this.calendar.sectionController.getHiddenSections();
+              let _sectionId = c.parentElement.dataset.section;
+              let _index = hiddenSections.indexOf(_sectionId);
+
+              c.checked = false;
+              if (_index < 0) hiddenSections.push(_sectionId);
+              this.calendar.sectionController.setHiddenSections(hiddenSections);
+              this.refreshCalendarDisplay();
+            });
+          });
+        }
+
+        // * ================================
+
+
+        // * AUG CALENDAR HANDLER
 
         // @ Description: Show/Hide AUG Calendar Filter
         popupButtonHandler(e) {
@@ -120,7 +255,7 @@ function documentCompleteHandler() {
           } else {
             document.querySelector('.page-header').style.opacity = 0.96;
             augFilterPopup.classList.remove('aug-popup-show');
-            augFilterPopup.style.visibility = 'hidden';
+            augFilterPopup.style.visibility = 'collapse';
 
           }
         }
@@ -161,22 +296,35 @@ function documentCompleteHandler() {
           }
         }
 
-        // MAIN METHODS
-        createCustomFilter() {
-          this.assignAUGdisplayEntries();
-          let wrap = document.querySelector('.calendar-view-switcher-list');
+        // * ===================================
 
-          // Add Popup button
+        // ! MAIN METHODS
+
+        // @ Description: Create div.aug-filter-container
+        //                This is the starting point for creating custom filter
+        createCustomFilter() {
+
+          this.assignAUGdisplayEntries(); // * <== Call assignAUGdisplayEntries to inject entries filtering into Bitrix displayEntries methods.
+
+
+          // * Create div.aug-filter-container -----------
+          let wrap = document.querySelector('.calendar-view-switcher-list');
           let filterContainer = document.querySelector('.aug-filter-container');
+
           if (!filterContainer)
             filterContainer = wrap.appendChild(BX.create("div", {
               attrs: {
                 class: "aug-filter-container"
               }
             }))
-          filterContainer.style.position = 'relative';
 
+          filterContainer.style.position = 'relative';
+          // * -----------------------------------------
+
+
+          //  * Add popup button -----------------------
           let popupButton = filterContainer.querySelector('.aug-filter-popup-button');
+
           if (!popupButton)
             popupButton = filterContainer.appendChild(BX.create('button', {
               attrs: {
@@ -184,20 +332,20 @@ function documentCompleteHandler() {
               },
               text: 'Filter Options'
             }));
+
           popupButton.addEventListener('click', window.AUG.Calendar.popupButtonHandler);
+          // * -----------------------------------------
 
-          // Add Popup div
-          let augFilterPopup = this.buildPopup(filterContainer);
 
-          // Add option in Popup Div
-          this.displayOptions(augFilterPopup);
+          let augFilterPopup = this.buildPopup(filterContainer);  // * <== Add Popup div.aug-filter-popup
 
-          // Handler to close the popup when not focused
-          document.addEventListener('click', this.checkOutsideFilterPopup);
+          this.displayOptions(augFilterPopup); // * <== Add option in Popup div.aug-filter-popup
+
+          document.addEventListener('click', this.checkOutsideFilterPopup); // * <== Add handler to close popup when not focused
         }
 
+        // @ Description: Create option checkboxes in div.aug-filter-popup
         displayOptions(container) {
-          let eventType = this.eventType;
 
           if (!container) {
             console.log('Error, no container.');
@@ -207,273 +355,111 @@ function documentCompleteHandler() {
           // Clear container
           if (container.querySelector('.aug-main-option-container'))
             container.querySelector('.aug-main-option-container').remove();
+
           let mainOptionContainer = container.appendChild(BX.create('div', {
-            attrs: {
-              class: 'aug-main-option-container'
+            attrs: { class: 'aug-main-option-container' }
+          }));
+          // -------------
+
+          // * Generate Event Type Filter -------------------------
+          let eventTypeOptionContainer = mainOptionContainer.appendChild(BX.create('div', {
+            attrs: { id: 'event-type-option-container', 'data-option-section': '0' } // <== 0 for eventType
+          }));
+
+          if (eventTypeOptionContainer) {
+            // Title
+            let optionTitleContainer = eventTypeOptionContainer.appendChild(BX.create('div', {
+              attrs: { class: 'option-title' }
+            }));
+            optionTitleContainer.innerHTML = 'Event Type' // todo FORMAT TITLE
+
+            // Checkbox container
+            let optionContainer = eventTypeOptionContainer.appendChild(BX.create('div', {
+              attrs: { id: 'event-type-checkbox-container' }
+            }));
+            this.createEventTypeCheckbox(optionContainer);
+
+            // Select All Deselect All button container
+            let buttonContainer = eventTypeOptionContainer.appendChild(BX.create('div', {
+              attrs: { class: 'select-button-container' }
+            }));
+            this.createEventTypeSelectAllButton(buttonContainer, eventTypeOptionContainer); // todo FORMAT BUTTON
+
+            // Make all checkboxes active 
+            eventTypeOptionContainer.querySelectorAll('input').forEach(c => c.checked = true);
+
+          };  // * <== End of Event Type Filter -------------------------
+
+          // * Generate Company Filter -------------------------
+          if (this.companyCalendar.length > 0) {
+
+            let companyCalendarOptionContainer = mainOptionContainer.appendChild(BX.create('div', {
+              attrs: { id: 'company-calendar-option-container', 'data-option-section': '1' }// <== 1 for company calendar
+            }));
+
+            if (companyCalendarOptionContainer) {
+              // Title
+              let optionTitleContainer = companyCalendarOptionContainer.appendChild(BX.create('div', {
+                attrs: { class: 'option-title' }
+              }));
+              optionTitleContainer.innerHTML = 'Company Calendar' // todo FORMAT TITLE
+
+              // Checkbox container
+              let optionContainer = companyCalendarOptionContainer.appendChild(BX.create('div', {
+                attrs: { id: 'company-calendar-checkbox-container' }
+              }));
+              this.createCheckbox(optionContainer, this.companyCalendar);
+
+              // Select All Deselect All button container
+              let buttonContainer = companyCalendarOptionContainer.appendChild(BX.create('div', {
+                attrs: { class: 'select-button-container' }
+              }));
+              this.createSelectAllButton(buttonContainer, companyCalendarOptionContainer); // todo FORMAT BUTTON
+
             }
-          }));
-
-          // Generate User Filter 
-          let optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', {
-            attrs: {
-              class: 'event-type-filter'
-            },
-            text: 'Event Type'
-          }));
-
-          for (const eventElement of eventType) {
-            let optionName = eventElement.title;
-            let optionContainer = optionFilterContainer.appendChild(BX.create('div', {
-              attrs: {
-                class: 'option-container',
-                'data-name': eventElement.name
-              }
-            }));
-            optionContainer.appendChild(BX.create('input', {
-              attrs: {
-                type: 'checkbox'
-              }
-            }));
-            optionContainer.appendChild(BX.create('span', {
-              attrs: {
-                class: 'aug-option-name'
-              },
-              text: optionName
-            }));
           }
+          // * <== End of Company Filter -------------------------
 
-          // Select All button
-          optionFilterContainer.appendChild(BX.create('button', {
-            attrs: {
-              class: 'select-all-button'
-            },
-            text: 'Select All'
-          }));
-          optionFilterContainer.querySelector('button.select-all-button').addEventListener('click', function (e) {
-            for (const checkbox of document.querySelectorAll("div.event-type-filter>div>input")) {
-              checkbox.checked = true;
-            }
-            for (const elementEvent of window.AUG.Calendar.eventType) {
-              elementEvent.active = true;
-            }
-            window.AUG.Calendar.refreshCalendarDisplay();
-          });
-          // <-- End of Select All button
+          // * Generate Workgroup Filter -------------------------
+          if (this.workgroupCalendar.length > 0) {
 
-          // Deselect All button
-          optionFilterContainer.appendChild(BX.create('button', {
-            attrs: {
-              class: 'deselect-all-button'
-            },
-            text: 'Deselect All'
-          }));
-          optionFilterContainer.querySelector('button.deselect-all-button').addEventListener('click', function (e) {
-            for (const checkbox of document.querySelectorAll("div.event-type-filter>div>input")) {
-              checkbox.checked = false;
-            }
-            for (const elementEvent of window.AUG.Calendar.eventType) {
-              elementEvent.active = false;
-            }
-            window.AUG.Calendar.refreshCalendarDisplay();
-          });
-          // <-- End of Deselect All button
-
-          // Assign handler to event type checkboxes
-          for (const checkbox of document.querySelectorAll("div.event-type-filter>div>input")) {
-            checkbox.addEventListener('change', function (e) {
-              for (const elementEvent of window.AUG.Calendar.eventType) {
-                if (checkbox.parentElement.dataset.name == elementEvent.name) {
-                  elementEvent.active = checkbox.checked;
-                }
-              }
-              let params = {};
-              params.eventType = window.AUG.Calendar.getEventTypeList();
-              params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
-              params.companyCalendar = window.AUG.Calendar.companyCalendar;
-              window.AUG.Calendar.calendar.getView().displayEntries(params);
-            });
-          }
-          // <-- End of assign handler to event type checkboxes
-          // <-- End of user filter
-
-          // Generate Company Filter 
-          optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', {
-            attrs: {
-              class: 'company-filter'
-            },
-            text: 'Company Filter'
-          }));
-
-          for (const section of this.companyCalendar) {
-            let optionContainer = optionFilterContainer.appendChild(BX.create('div', {
-              attrs: {
-                class: 'option-container'
-              }
+            let companyCalendarOptionContainer = mainOptionContainer.appendChild(BX.create('div', {
+              attrs: { id: 'workgroup-calendar-option-container', 'data-option-section': '2' }// <== 1 for company calendar
             }));
-            optionContainer.appendChild(BX.create('input', {
-              attrs: {
-                type: 'checkbox',
-                "data-id": section.id
-              }
-            }));
-            optionContainer.appendChild(BX.create('span', {
-              attrs: {
-                class: 'aug-option-name'
-              },
-              text: section.name
-            }));
+
+            if (companyCalendarOptionContainer) {
+              // Title
+              let optionTitleContainer = companyCalendarOptionContainer.appendChild(BX.create('div', {
+                attrs: { class: 'option-title' }
+              }));
+              optionTitleContainer.innerHTML = 'Workgroup Calendar' // todo FORMAT TITLE
+
+              // Checkbox container
+              let optionContainer = companyCalendarOptionContainer.appendChild(BX.create('div', {
+                attrs: { id: 'workgroup-calendar-checkbox-container' }
+              }));
+              this.createCheckbox(optionContainer, this.workgroupCalendar);
+
+              // Select All Deselect All button container
+              let buttonContainer = companyCalendarOptionContainer.appendChild(BX.create('div', {
+                attrs: { class: 'select-button-container' }
+              }));
+              this.createSelectAllButton(buttonContainer, companyCalendarOptionContainer); // todo FORMAT BUTTON
+            }
           }
-
-          // Select All button
-          optionFilterContainer.appendChild(BX.create('button', {
-            attrs: {
-              class: 'select-all-button'
-            },
-            text: 'Select All'
-          }));
-          optionFilterContainer.querySelector('button.select-all-button').addEventListener('click', function (e) {
-            for (const checkbox of document.querySelectorAll("div.company-filter>div>input")) {
-              checkbox.checked = true;
-            }
-            for (const elementCompanyCalendar of window.AUG.Calendar.companyCalendar) {
-              elementCompanyCalendar.active = true;
-            }
-            window.AUG.Calendar.refreshCalendarDisplay();
-          });
-          //<-- End of Select All button
-
-          // Deselect All button
-          optionFilterContainer.appendChild(BX.create('button', {
-            attrs: {
-              class: 'deselect-all-button'
-            },
-            text: 'Deselect All'
-          }));
-          optionFilterContainer.querySelector('button.deselect-all-button').addEventListener('click', function (e) {
-            for (const checkbox of document.querySelectorAll("div.company-filter>div>input")) {
-              checkbox.checked = false;
-            }
-            for (const elementCompanyCalendar of window.AUG.Calendar.companyCalendar) {
-              elementCompanyCalendar.active = false;
-            }
-            window.AUG.Calendar.refreshCalendarDisplay();
-          });
-          // <-- End of Deselect All button
-
-          // Assign handler to company filter checkboxex
-          for (const checkbox of document.querySelectorAll("div.company-filter>div>input")) {
-            checkbox.addEventListener('change', function (e) {
-              for (const section of window.AUG.Calendar.companyCalendar) {
-                if (checkbox.dataset.id == section.id) {
-                  section.active = checkbox.checked;
-                }
-              }
-              let params = {};
-              params.eventType = window.AUG.Calendar.getEventTypeList();
-              params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
-              params.companyCalendar = window.AUG.Calendar.companyCalendar;
-              window.AUG.Calendar.calendar.views[2].displayEntries(params);
-            });
-          }
-          // <-- End of assigning handler to company checkboxes
-          // <-- End of company filter
-
-          // Generate Workgroup Filter 
-          optionFilterContainer = mainOptionContainer.appendChild(BX.create('div', {
-            attrs: {
-              class: 'workgroup-filter'
-            },
-            text: 'Workgroup Filter'
-          }));
-
-          for (const section of this.workgroupCalendar) {
-            let optionContainer = optionFilterContainer.appendChild(BX.create('div', {
-              attrs: {
-                class: 'option-container'
-              }
-            }));
-            optionContainer.appendChild(BX.create('input', {
-              attrs: {
-                type: 'checkbox',
-                'data-id': section.id
-              }
-            }));
-            optionContainer.appendChild(BX.create('span', {
-              attrs: {
-                class: 'aug-option-name'
-              },
-              text: section.name
-            }));
-          }
-
-          // Select All button
-          optionFilterContainer.appendChild(BX.create('button', {
-            attrs: {
-              class: 'select-all-button'
-            },
-            text: 'Select All'
-          }));
-          optionFilterContainer.querySelector('button.select-all-button').addEventListener('click', function (e) {
-            for (const checkbox of document.querySelectorAll("div.workgroup-filter>div>input")) {
-              checkbox.checked = true;
-            }
-            for (const elementWorkgroupCalendar of window.AUG.Calendar.workgroupCalendar) {
-              elementWorkgroupCalendar.active = true;
-            }
-            window.AUG.Calendar.refreshCalendarDisplay();
-          });
-          //<-- End of Select All button
-
-          // Deselect All button
-          optionFilterContainer.appendChild(BX.create('button', {
-            attrs: {
-              class: 'deselect-all-button'
-            },
-            text: 'Deselect All'
-          }));
-          optionFilterContainer.querySelector('button.deselect-all-button').addEventListener('click', function (e) {
-            for (const checkbox of document.querySelectorAll("div.workgroup-filter>div>input")) {
-              checkbox.checked = false;
-            }
-            for (const elementWorkgroupCalendar of window.AUG.Calendar.workgroupCalendar) {
-              elementWorkgroupCalendar.active = false;
-            }
-            window.AUG.Calendar.refreshCalendarDisplay();
-          });
-          // <-- End of Deselect All button
-
-          // Assign handler to workgroup filter checkboxex
-          for (const checkbox of document.querySelectorAll("div.workgroup-filter>div>input")) {
-            checkbox.addEventListener('change', function (e) {
-              for (const section of window.AUG.Calendar.workgroupCalendar) {
-                if (checkbox.dataset.id == section.id) {
-                  section.active = checkbox.checked;
-                }
-              }
-              let params = {};
-              params.eventType = window.AUG.Calendar.getEventTypeList();
-              params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
-              params.companyCalendar = window.AUG.Calendar.companyCalendar;
-              window.AUG.Calendar.calendar.views[2].displayEntries(params);
-            });
-          }
-          // <-- End of assigning handler to workgroup checkboxes
-          // <-- End of workgroup filter
-
-          // Make all checkboxes active 
-          for (const element of container.querySelectorAll('input')) {
-            element.checked = true;
-          }
-          ;// <-- End of make all checkboxes active
+          // * <== End of Workgroup Filter -------------------------
 
           // Adding spaces between filter Section
           for (const element of document.querySelector('.aug-main-option-container').children) {
             element.style.paddingBottom = '10px';
           }
-          // <-- End of adding spaces between filter section
+ 
         }
 
+        // @ Description: Create the popup div.aug-filter-popup
+        // @ Return: div.aug-filter-popup element
         buildPopup(container) {
+
           let augFilterPopup = BX.create('div', {
             attrs: {
               class: 'aug-filter-popup'
@@ -481,16 +467,22 @@ function documentCompleteHandler() {
           });
           container.appendChild(augFilterPopup);
 
-          augFilterPopup.style.position = 'absolute';
-          augFilterPopup.style.visibility = 'hidden';
-          augFilterPopup.style.left = (parseInt(window.getComputedStyle(container).width) + 10).toString() + 'px';
-          augFilterPopup.style.top = '10px';
-          augFilterPopup.style.width = 'max-content'
-          augFilterPopup.style.zIndex = 1;
-          augFilterPopup.style.backgroundColor = '#FFF';
-          augFilterPopup.style.borderRadius = '5px';
-          augFilterPopup.style.border = 'solid thin #000';
-          augFilterPopup.style.padding = '5px';
+          let style = {
+            position: 'absolute',
+            visibility: 'collapse',
+            left: (parseInt(window.getComputedStyle(container).width) + 10).toString() + 'px',
+            top: '10px',
+            width: 'max-content',
+            zIndex: 1,
+            backgroundColor: '#FFF',
+            borderRadius: '5px',
+            border: 'solid thin #000',
+            padding: '5px'
+          }
+
+          for (const e in style) {
+            augFilterPopup.style[e] = style[e];
+          }
 
           return augFilterPopup;
         }
@@ -522,68 +514,27 @@ function documentCompleteHandler() {
             }
 
             // ! -------- Injected code to manipulate the entries before display
+
             params.eventType = window.AUG.Calendar.getEventTypeList();
             params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
             params.companyCalendar = window.AUG.Calendar.companyCalendar;
 
-            if (!this.entries) {
-              return;
-            }
+            if (!this.entries) return;
 
             let tempArray = this.entries.filter(function (entry) {
-              switch (entry.data.CAL_TYPE) {
-                case "user":
-                  for (const element of params.eventType) {
-                    if (element.color.toLowerCase() == entry.color.toLowerCase()) {
-                      return element.active;
-                    }
-                  }
-                  return false;
-                  break;
+              try {
 
-                case "group":
-                  for (const section of params.workgroupCalendar) {
-                    if (section.id == entry.sectionId) {
-                      if (!section.active)
-                        return false;
-                      for (const element of params.eventType) {
-                        if (element.color.toLowerCase() == entry.color.toLowerCase()) {
-                          return element.active;
-                        }
-                      }
-                    }
-                    ;
-                  }
-                  // console.log("Error - Entry belongs to different workgroup calendar");
-                  return false;
-                  break;
+                let _index = params.eventType.map(function (c) { return c.color })
+                  .indexOf(entry.color.toUpperCase());
 
-                case "company_calendar":
-                  for (const section of params.companyCalendar) {
-                    if (section.id == entry.sectionId) {
-                      if (!section.active) {
-                        // console.log('company_calendar');
-                        // console.log(entry);
-                        return false;
-                      }
-
-
-                      for (const element of params.eventType) {
-                        if (element.color.toLowerCase() == entry.color.toLowerCase()) {
-                          return element.active;
-                        }
-                      }
-                    }
-                  }
-                  // console.log("Error - Entry belongs to different company calendar");
-                  return false;
-                  break;
-
-                default:
-                  console.log("Error - Uncaught CAL_TYPE");
-                  return false;
+                return _index <= -1 ? false : params.eventType[_index].active;
+              } catch (e) {
+                console.log(e);
+                return false;
               }
+
             })
+
             this.entries = tempArray;
 
             // ! -------- End of injected code
@@ -753,68 +704,27 @@ function documentCompleteHandler() {
             }
 
             // ! -------- Injected code to manipulate the entries before display
+
             params.eventType = window.AUG.Calendar.getEventTypeList();
             params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
             params.companyCalendar = window.AUG.Calendar.companyCalendar;
 
-            if (!this.entries) {
-              return;
-            }
+            if (!this.entries) return;
 
             let tempArray = this.entries.filter(function (entry) {
-              switch (entry.data.CAL_TYPE) {
-                case "user":
-                  for (const element of params.eventType) {
-                    if (element.color.toLowerCase() == entry.color.toLowerCase()) {
-                      return element.active;
-                    }
-                  }
-                  return false;
-                  break;
+              try {
 
-                case "group":
-                  for (const section of params.workgroupCalendar) {
-                    if (section.id == entry.sectionId) {
-                      if (!section.active)
-                        return false;
-                      for (const element of params.eventType) {
-                        if (element.color.toLowerCase() == entry.color.toLowerCase()) {
-                          return element.active;
-                        }
-                      }
-                    }
-                    ;
-                  }
-                  // console.log("Error - Entry belongs to different workgroup calendar");
-                  return false;
-                  break;
+                let _index = params.eventType.map(function (c) { return c.color })
+                  .indexOf(entry.color.toUpperCase());
 
-                case "company_calendar":
-                  for (const section of params.companyCalendar) {
-                    if (section.id == entry.sectionId) {
-                      if (!section.active) {
-                        // console.log('company_calendar');
-                        // console.log(entry);
-                        return false;
-                      }
-
-
-                      for (const element of params.eventType) {
-                        if (element.color.toLowerCase() == entry.color.toLowerCase()) {
-                          return element.active;
-                        }
-                      }
-                    }
-                  }
-                  // console.log("Error - Entry belongs to different company calendar");
-                  return false;
-                  break;
-
-                default:
-                  console.log("Error - Uncaught CAL_TYPE");
-                  return false;
+                return _index <= -1 ? false : params.eventType[_index].active;
+              } catch (e) {
+                console.log(e);
+                return false;
               }
+
             })
+
             this.entries = tempArray;
 
             // ! -------- End of injected code
@@ -982,81 +892,25 @@ function documentCompleteHandler() {
             }
 
             // ! -------- Injected code to manipulate the entries before display
+
             params.eventType = window.AUG.Calendar.getEventTypeList();
             params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
             params.companyCalendar = window.AUG.Calendar.companyCalendar;
 
-            if (!this.entries) {
-              return;
-            }
+            if (!this.entries) return;
 
             let tempArray = this.entries.filter(function (entry) {
+              try {
 
-              
+                let _index = params.eventType.map(function (c) { return c.color })
+                  .indexOf(entry.color.toUpperCase());
 
-                switch (entry.data.CAL_TYPE) {
-                
-                case "user":
-    
-                  try {
-                    let _index = params.eventType.map(function(c) {return c.color}).indexOf(entry.color.toUpperCase());
-                    return _index <= -1 ? false : params.eventType[_index].active;
-                  } catch(e) {
-                    console.log(e);
-                    return false;
-                  }
-
-                  // for (const element of params.eventType) {
-                  //   if (element.color.toLowerCase() == entry.color.toLowerCase()) {
-                  //     return element.active;
-                  //   }
-                  // }
-
-                case "group":
-                case "company_calendar":
-
-                  
-
-                  for (const section of params.workgroupCalendar) {
-                    if (section.id == entry.sectionId) {
-                      if (!section.active)
-                        return false;
-                      for (const element of params.eventType) {
-                        if (element.color.toLowerCase() == entry.color.toLowerCase()) {
-                          return element.active;
-                        }
-                      }
-                    }
-                    ;
-                  }
-                  return false;
-                  break;
-
-                case "company_calendar":
-                  for (const section of params.companyCalendar) {
-                    if (section.id == entry.sectionId) {
-                      if (!section.active) {
-                        return false;
-                      }
-
-
-                      for (const element of params.eventType) {
-                        if (element.color.toLowerCase() == entry.color.toLowerCase()) {
-                          return element.active;
-                        }
-                      }
-                    }
-                  }
-                  // console.log("Error - Entry belongs to different company calendar");
-                  return false;
-                  break;
-
-                default:
-                  console.log("Error - Uncaught CAL_TYPE");
-                  console.log("break, this might be tasks");
-                  console.log(`entry = ${entry}`);
-                  return false;
+                return _index <= -1 ? false : params.eventType[_index].active;
+              } catch (e) {
+                console.log(e);
+                return false;
               }
+
             })
 
             this.entries = tempArray;
