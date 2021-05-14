@@ -14,7 +14,6 @@ function documentCompleteHandler() {
     )(window);
 
     // ------------------------------------------
-    // SECTION AUG.Calendar 
     (function (window) {
 
       class Calendar {
@@ -66,16 +65,12 @@ function documentCompleteHandler() {
           this.companyCalendar = this.getAvailableSection().filter(function (section) {
             return section.type == "company_calendar"
           });
-          for (const section of this.companyCalendar) {
-            section.active = true;
-          }
 
           this.workgroupCalendar = this.getAvailableSection().filter(function (section) {
             return section.type == "group"
           });
-          for (const section of this.workgroupCalendar) {
-            section.active = true;
-          }
+
+          this.showUserTask = !this.calendar.sectionController.getHiddenSections().includes("tasks"); // <== showUserTask flag ? true => show user task : false => hide user task
         }
 
 
@@ -296,6 +291,19 @@ function documentCompleteHandler() {
           }
         }
 
+        // @ Description: Handler for SHOW USER TASK button, toggle showUserTask flag
+        showUserTaskButtonHandler(e) {
+          this.showUserTask = !this.showUserTask;
+          let hiddenSections = this.calendar.sectionController.getHiddenSections();
+          if(this.showUserTask && hiddenSections.includes("tasks")) {
+            hiddenSections.splice(hiddenSections.indexOf("tasks"));
+          } else if(!this.showUserTask && !hiddenSections.includes("tasks")) {
+            hiddenSections.push("tasks");
+          } 
+          this.calendar.sectionController.setHiddenSections(hiddenSections); 
+          this.refreshCalendarDisplay();
+        }
+
         // * ===================================
 
         // ! MAIN METHODS
@@ -322,26 +330,38 @@ function documentCompleteHandler() {
           // * -----------------------------------------
 
 
-          //  * Add popup button -----------------------
+          //  * Add POPUP button -----------------------
           let popupButton = filterContainer.querySelector('.aug-filter-popup-button');
 
           if (!popupButton)
             popupButton = filterContainer.appendChild(BX.create('button', {
               attrs: {
-                class: "aug-filter-popup-button ui-btn ui-btn-themes ui-btn-xs ui-btn-primary ui-btn-round"
+                class: "aug-filter-popup-button ui-btn ui-btn-themes ui-btn-xs ui-btn-primary ui-btn-round",
+                style: "margin: 10px"
               },
               text: 'Filter Options'
             }));
 
-          popupButton.addEventListener('click', window.AUG.Calendar.popupButtonHandler);
+          popupButton.addEventListener('click', this.popupButtonHandler);
           // * -----------------------------------------
 
-
           let augFilterPopup = this.buildPopup(filterContainer);  // * <== Add Popup div.aug-filter-popup
-
           this.displayOptions(augFilterPopup); // * <== Add option in Popup div.aug-filter-popup
-
           document.addEventListener('click', this.checkOutsideFilterPopup); // * <== Add handler to close popup when not focused
+
+          //  * Add SHOW USER TASK button -----------------------
+          let showUserTaskButton = filterContainer.querySelector('.aug-show-user-task-button');
+
+          if (!showUserTaskButton)
+            showUserTaskButton = filterContainer.appendChild(BX.create('button', {
+              attrs: {
+                class: "aug-show-user-task-button ui-btn ui-btn-themes ui-btn-xs ui-btn-primary ui-btn-round"
+              },
+              text: 'Show Task'
+            }));
+
+            showUserTaskButton.addEventListener('click', this.showUserTaskButtonHandler.bind(this));
+          // * -----------------------------------------
         }
 
         // @ Description: Create option checkboxes in div.aug-filter-popup
@@ -453,7 +473,7 @@ function documentCompleteHandler() {
           for (const element of document.querySelector('.aug-main-option-container').children) {
             element.style.paddingBottom = '10px';
           }
- 
+
         }
 
         // @ Description: Create the popup div.aug-filter-popup
@@ -487,7 +507,9 @@ function documentCompleteHandler() {
           return augFilterPopup;
         }
 
-        // INJECTED METHOD INTO BX.CALENDAR
+        // ! INJECTED METHODS
+
+        // @ Desription: INJECT METHODS INTO BX.CALENDAR
         assignAUGdisplayEntries() {
           if (!window.BXEventCalendar) {
             console.log('No BXEventCalendar. Terminate.');
@@ -515,27 +537,7 @@ function documentCompleteHandler() {
 
             // ! -------- Injected code to manipulate the entries before display
 
-            params.eventType = window.AUG.Calendar.getEventTypeList();
-            params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
-            params.companyCalendar = window.AUG.Calendar.companyCalendar;
-
-            if (!this.entries) return;
-
-            let tempArray = this.entries.filter(function (entry) {
-              try {
-
-                let _index = params.eventType.map(function (c) { return c.color })
-                  .indexOf(entry.color.toUpperCase());
-
-                return _index <= -1 ? false : params.eventType[_index].active;
-              } catch (e) {
-                console.log(e);
-                return false;
-              }
-
-            })
-
-            this.entries = tempArray;
+            window.AUG.Calendar.entryFilter(params, this);
 
             // ! -------- End of injected code
 
@@ -705,27 +707,7 @@ function documentCompleteHandler() {
 
             // ! -------- Injected code to manipulate the entries before display
 
-            params.eventType = window.AUG.Calendar.getEventTypeList();
-            params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
-            params.companyCalendar = window.AUG.Calendar.companyCalendar;
-
-            if (!this.entries) return;
-
-            let tempArray = this.entries.filter(function (entry) {
-              try {
-
-                let _index = params.eventType.map(function (c) { return c.color })
-                  .indexOf(entry.color.toUpperCase());
-
-                return _index <= -1 ? false : params.eventType[_index].active;
-              } catch (e) {
-                console.log(e);
-                return false;
-              }
-
-            })
-
-            this.entries = tempArray;
+            window.AUG.Calendar.entryFilter(params, this);
 
             // ! -------- End of injected code
 
@@ -893,27 +875,7 @@ function documentCompleteHandler() {
 
             // ! -------- Injected code to manipulate the entries before display
 
-            params.eventType = window.AUG.Calendar.getEventTypeList();
-            params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
-            params.companyCalendar = window.AUG.Calendar.companyCalendar;
-
-            if (!this.entries) return;
-
-            let tempArray = this.entries.filter(function (entry) {
-              try {
-
-                let _index = params.eventType.map(function (c) { return c.color })
-                  .indexOf(entry.color.toUpperCase());
-
-                return _index <= -1 ? false : params.eventType[_index].active;
-              } catch (e) {
-                console.log(e);
-                return false;
-              }
-
-            })
-
-            this.entries = tempArray;
+            window.AUG.Calendar.entryFilter(params, this);
 
             // ! -------- End of injected code
 
@@ -1072,17 +1034,53 @@ function documentCompleteHandler() {
           }
         }
 
+        // @ Description: injected method into displayEntries of each view
+        //              : _this parameter is to pass the current context 
+        //              : (which is the context of displayEntries) into this method.
+        entryFilter(params, _this) {
+          params.eventType = window.AUG.Calendar.getEventTypeList();
+          params.workgroupCalendar = window.AUG.Calendar.workgroupCalendar;
+          params.companyCalendar = window.AUG.Calendar.companyCalendar;
+
+          if (!_this.entries) return;
+
+          let tempArray = _this.entries.filter(function (entry) {
+            try {
+
+              if(entry.data["~TYPE"] == "tasks") return true;
+
+              let _index = params.eventType.map(function (c) { return c.color })
+                .indexOf(entry.color.toUpperCase());
+
+              return _index <= -1 ? false : params.eventType[_index].active;
+            } catch (e) {
+              console.log(e);
+              return false;
+            }
+
+          })
+
+          _this.entries = tempArray;
+        }
+
       }
 
       // * Assign AUG_Calendar class / Init AUG_Calendar Class
       window.AUG.Calendar = new Calendar();
     }
     )(window);
-    // /SECTION
     // ------------------------------------------
 
+
+
+
+
+
+
+
+
+
     // ------------------------------------------
-    // SECTION AUG.Utility
     (function (window) {
       let Utility = {
 
@@ -1112,11 +1110,17 @@ function documentCompleteHandler() {
 
     }
     )(window);
-    // /SECTION
     // ------------------------------------------
 
+
+
+
+
+
+
+
+
     // ------------------------------------------
-    // SECTION AUG.Observer
     (function (window) {
 
       let Observer = {
@@ -1515,8 +1519,16 @@ function documentCompleteHandler() {
       window.AUG.Observer = Observer;
 
     })(window);
-    // /SECTION AUG.MutationObserver
     // ------------------------------------------
+
+
+
+
+
+
+
+
+
 
     // ------------------------------------------
     // Create custom AUG filter
