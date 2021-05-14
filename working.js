@@ -1213,7 +1213,7 @@ function documentCompleteHandler() {
                   if (eachM.addedNodes.length > 0) {
 
                     // Main popup added handler
-                    if (eachM.addedNodes[0].className.includes('popup-window calendar-simple-view-popup')) {
+                    if (eachM.addedNodes[0].className && eachM.addedNodes[0].className.includes('popup-window calendar-simple-view-popup')) {
 
                       // console.log("simple event editor popup added");
                       // console.log(eachM);
@@ -1225,7 +1225,7 @@ function documentCompleteHandler() {
                     }
 
                     // Color Selector popup added handler
-                    if (eachM.addedNodes[0].id.includes('menu-popup-color-select')) {
+                    if (eachM.addedNodes[0].id && eachM.addedNodes[0].id.includes('menu-popup-color-select')) {
 
                       // console.log("color selector popup added");
                       // console.log(eachM);
@@ -1329,12 +1329,12 @@ function documentCompleteHandler() {
                     }
 
                     // Section Selector Popup Handler
-                    if (eachM.addedNodes[0].id.includes('menu-popup-section-select')) {
+                    if (eachM.addedNodes[0].id && eachM.addedNodes[0].id.includes('menu-popup-section-select')) {
                       this.sectionSelectorFlag = true; // <-- currently unused
                     }
 
                     // Full editor Popup Handler
-                    if (eachM.addedNodes[0].className.includes('side-panel side-panel-overlay side-panel-overlay-open')) {
+                    if (eachM.addedNodes[0].className && eachM.addedNodes[0].className.includes('side-panel side-panel-overlay side-panel-overlay-open')) {
 
                       // console.log('setup tempObs');
                       this.tempObs = new MutationObserver(
@@ -1450,7 +1450,7 @@ function documentCompleteHandler() {
                           // console.log("==========");
                           // console.log("tempObs2");
                           for (const eachM of m) {
-                            if (eachM.removedNodes[0].id.includes('menu-popup-section-select')) {
+                            if (eachM.removedNodes.length > 0 && eachM.removedNodes[0].id.includes('menu-popup-section-select')) {
                               let clickTarget = this.Utility.defaultColors.indexOf(this.fullEventEditorColor) + 1;
                               eachM.target.querySelector(`li:nth-child(${clickTarget})`).click();
                             }
@@ -1472,7 +1472,7 @@ function documentCompleteHandler() {
                   if (eachM.removedNodes.length > 0) {
 
                     // Main popup removed handler
-                    if (eachM.removedNodes[0].className.includes('popup-window calendar-simple-view-popup')) {
+                    if (eachM.removedNodes[0].className && eachM.removedNodes[0].className.includes('popup-window calendar-simple-view-popup')) {
                       // console.log("popup removed");
                       // console.log(eachM);
 
@@ -1481,7 +1481,7 @@ function documentCompleteHandler() {
                     }
 
                     // Side Panel / Full Event Editor removed handler
-                    if (eachM.removedNodes[0].className.includes('side-panel side-panel-overlay side-panel-overlay-open')) {
+                    if (eachM.removedNodes[0].className && eachM.removedNodes[0].className.includes('side-panel side-panel-overlay side-panel-overlay-open')) {
 
                       // console.log('side-panel / full event editor removed');
 
