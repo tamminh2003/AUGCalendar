@@ -179,7 +179,7 @@ function documentCompleteHandler() {
               let _sectionId = checkbox.parentElement.dataset.section;
               let _index = hiddenSections.indexOf(_sectionId);
 
-              if (checkbox.checked && _index >= 0) hiddenSections.splice(_index);
+              if (checkbox.checked && _index >= 0) hiddenSections.splice(_index, 1);
               if (!checkbox.checked && _index < 0) hiddenSections.push(_sectionId);
 
               this.calendar.sectionController.setHiddenSections(hiddenSections);
@@ -292,16 +292,21 @@ function documentCompleteHandler() {
         }
 
         // @ Description: Handler for SHOW USER TASK button, toggle showUserTask flag
+        //              : _this object is quick access to AUG.Calendar, main object of the script
+        //              : this object refer to the button itself.
         showUserTaskButtonHandler(e) {
-          this.showUserTask = !this.showUserTask;
-          let hiddenSections = this.calendar.sectionController.getHiddenSections();
-          if(this.showUserTask && hiddenSections.includes("tasks")) {
+          let _this = AUG.Calendar;
+          _this.showUserTask = !_this.showUserTask;
+          let hiddenSections = _this.calendar.sectionController.getHiddenSections();
+          if (_this.showUserTask && hiddenSections.includes("tasks")) {
             hiddenSections.splice(hiddenSections.indexOf("tasks"));
-          } else if(!this.showUserTask && !hiddenSections.includes("tasks")) {
+            this.innerHTML = "Hide Task";
+          } else if (!_this.showUserTask && !hiddenSections.includes("tasks")) {
             hiddenSections.push("tasks");
-          } 
-          this.calendar.sectionController.setHiddenSections(hiddenSections); 
-          this.refreshCalendarDisplay();
+            this.innerHTML = "Show Task";
+          }
+          _this.calendar.sectionController.setHiddenSections(hiddenSections);
+          _this.refreshCalendarDisplay();
         }
 
         // * ===================================
@@ -360,7 +365,7 @@ function documentCompleteHandler() {
               text: 'Show Task'
             }));
 
-            showUserTaskButton.addEventListener('click', this.showUserTaskButtonHandler.bind(this));
+          showUserTaskButton.addEventListener('click', this.showUserTaskButtonHandler);
           // * -----------------------------------------
         }
 
@@ -1047,7 +1052,7 @@ function documentCompleteHandler() {
           let tempArray = _this.entries.filter(function (entry) {
             try {
 
-              if(entry.data["~TYPE"] == "tasks") return true;
+              if (entry.data["~TYPE"] == "tasks") return true;
 
               let _index = params.eventType.map(function (c) { return c.color })
                 .indexOf(entry.color.toUpperCase());
