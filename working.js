@@ -228,6 +228,11 @@ function documentCompleteHandler() {
           });
         }
 
+        // @ Description: Generate Refresh button to run refresh view method
+        createRefreshButton() {
+
+        }
+
         // * ================================
 
 
@@ -361,6 +366,22 @@ function documentCompleteHandler() {
             }));
 
           showUserTaskButton.addEventListener('click', this.showUserTaskButtonHandler);
+          // * -----------------------------------------
+
+          // * Add REFRESH button ---------------------------
+          let refreshButton = filterContainer.querySelector('.aug-refresh-button');
+
+          if (!refreshButton)
+            refreshButton = filterContainer.appendChild(BX.create('button', {
+              attrs: {
+                class: "aug-refresh-button ui-btn ui-btn-themes ui-btn-xs ui-btn-primary ui-btn-round"
+              },
+              text: 'Refresh'
+            }));
+
+          refreshButton.addEventListener('click', e => {
+            this.refreshCalendarDisplay();
+          });
           // * -----------------------------------------
         }
 
