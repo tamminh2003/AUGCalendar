@@ -175,14 +175,9 @@ function documentCompleteHandler() {
             checkbox.checked = !this.calendar.sectionController.getHiddenSections().includes(c.id);
 
             checkbox.addEventListener('change', e => {
-              let hiddenSections = this.calendar.sectionController.getHiddenSections();
-              let _sectionId = checkbox.parentElement.dataset.section;
-              let _index = hiddenSections.indexOf(_sectionId);
-
-              if (checkbox.checked && _index >= 0) hiddenSections.splice(_index, 1);
-              if (!checkbox.checked && _index < 0) hiddenSections.push(_sectionId);
-
-              this.calendar.sectionController.setHiddenSections(hiddenSections);
+              let _section = this.calendar.sectionController.getSection(checkbox.parentElement.dataset.section);
+              if (checkbox.checked && !_section.isShown()) _section.show();
+              if (!checkbox.checked && _section.isShown()) _section.hide();
               this.refreshCalendarDisplay();
             })
           })
