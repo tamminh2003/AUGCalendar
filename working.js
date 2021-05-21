@@ -19,7 +19,9 @@ function documentCompleteHandler() {
       class Calendar {
         constructor() {
           this.name = "AUG_Calendar";
+
           this.calendar = this.getCalendarInstance(window.BXEventCalendar);
+
           this.eventType = [{
             name: 'augTravel',
             color: '#86B100',
@@ -526,6 +528,54 @@ function documentCompleteHandler() {
           }
 
           return augFilterPopup;
+        }
+
+        // @ Description: Extend calendar cell and entry holder
+        calendarExtend() {
+          // Build number of slot selector
+          let wrap = document.querySelector('.calendar-view-switcher-list');
+          // TODO a dropdown list where user can select the size of the calendar.
+
+          let selector = wrap.appendChild(BX.create('select',
+            {
+              attrs: {
+                name: 'cellSize',
+                'id': 'size-selector'
+              }
+            }
+          ));
+
+          selector.appendChild(BX.create('option',
+            { 
+              attrs: { value: 'test1' }, 
+              text: 'test1' 
+            }
+          ));
+
+          selector.appendChild(BX.create('option',
+            { 
+              attrs: { value: 'test2' }, 
+              text: 'test2' 
+            }
+          ));
+
+
+          // Extend MonthView
+          let monthView = this.calendar.getView("month");
+
+          monthView.rowHeight = 500;
+          monthView.slotHeight = 40;
+          let cellHeight = 33;
+
+          monthView.slotsCount = Math.floor((monthView.rowHeight - monthView.eventHolderTopOffset) / monthView.slotHeight);
+
+          monthView.monthRows.forEach(c => {
+            c.style.height = `${monthView.rowHeight}px`;
+          });
+
+          // monthView.displayEntries();
+
+          document.querySelectorAll('.calendar-event-line-text').forEach(c => c.style.lineHeight = `${cellHeight}px`);
         }
 
         // ! INJECTED METHODS
@@ -1556,12 +1606,16 @@ function documentCompleteHandler() {
     if (document.querySelector('.aug-filter-container')) {
       document.querySelector('.aug-filter-container').remove();
     }
+
     window.AUG.Calendar.createCustomFilter();
 
+    // Initiate Mutation Observers
     AUG.Observer.getMutationObserver();
     AUG.Observer.getColorChangeObserver();
     AUG.Observer.startMutationObserver();
-    // <-- End of create custom AUG filter
+
+    // Extend Calendar Cell
+    // window.AUG.Calendar.calendarExtend();
     // ------------------------------------------
 
   } catch (error) {
