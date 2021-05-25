@@ -1133,6 +1133,7 @@ function documentCompleteHandler() {
 
               // Adjusting rows height to the height of the view
               if (this.monthRows.length > 0) {
+                if(!this.rowHeight) this.rowHeight = 144
                 this.slotsCount = Math.floor((this.rowHeight - this.eventHolderTopOffset) / this.slotHeight);
                 for (i = 0; i < this.monthRows.length; i++) {
                   this.monthRows[i].style.height = this.rowHeight + 'px';
@@ -1179,7 +1180,9 @@ function documentCompleteHandler() {
               let _index = params.eventType.map(function (c) { return c.color })
                 .indexOf(entry.color.toUpperCase());
 
-              return _index <= -1 ? false : params.eventType[_index].active;
+              if (!params.eventType[7].active) return _index <= -1 ? false : params.eventType[_index].active;
+              else return _index <= -1 ? true : params.eventType[_index].active;
+              
             } catch (e) {
               console.log(e);
               return false;
@@ -1672,6 +1675,7 @@ function documentCompleteHandler() {
 
     // Extend Calendar Cell
     AUG.Calendar.calendarSizeModule();
+    AUG.Calendar.calendar.getView().show();
     // ------------------------------------------
 
   } catch (error) {
