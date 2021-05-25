@@ -16,13 +16,16 @@ function documentCompleteHandler() {
         }
         )(window);
 
-        // ------------------------------------------
+
+        // --------Calendar--------------------------
         (function (window) {
 
             class Calendar {
                 constructor() {
                     this.name = "AUG_Calendar";
+
                     this.calendar = this.getCalendarInstance(window.BXEventCalendar);
+
                     this.eventType = [{
                         name: 'augTravel',
                         color: '#86B100',
@@ -178,14 +181,9 @@ function documentCompleteHandler() {
                         checkbox.checked = !this.calendar.sectionController.getHiddenSections().includes(c.id);
 
                         checkbox.addEventListener('change', e => {
-                            let hiddenSections = this.calendar.sectionController.getHiddenSections();
-                            let _sectionId = checkbox.parentElement.dataset.section;
-                            let _index = hiddenSections.indexOf(_sectionId);
-
-                            if (checkbox.checked && _index >= 0) hiddenSections.splice(_index);
-                            if (!checkbox.checked && _index < 0) hiddenSections.push(_sectionId);
-
-                            this.calendar.sectionController.setHiddenSections(hiddenSections);
+                            let _section = this.calendar.sectionController.getSection(checkbox.parentElement.dataset.section);
+                            if (checkbox.checked && !_section.isShown()) _section.show();
+                            if (!checkbox.checked && _section.isShown()) _section.hide();
                             this.refreshCalendarDisplay();
                         })
                     })
@@ -295,16 +293,21 @@ function documentCompleteHandler() {
                 }
 
                 // @ Description: Handler for SHOW USER TASK button, toggle showUserTask flag
+                //              : _this object is quick access to AUG.Calendar, main object of the script
+                //              : this object refer to the button itself.
                 showUserTaskButtonHandler(e) {
-                    this.showUserTask = !this.showUserTask;
-                    let hiddenSections = this.calendar.sectionController.getHiddenSections();
-                    if (this.showUserTask && hiddenSections.includes("tasks")) {
+                    let _this = AUG.Calendar;
+                    _this.showUserTask = !_this.showUserTask;
+                    let hiddenSections = _this.calendar.sectionController.getHiddenSections();
+                    if (_this.showUserTask && hiddenSections.includes("tasks")) {
                         hiddenSections.splice(hiddenSections.indexOf("tasks"));
-                    } else if (!this.showUserTask && !hiddenSections.includes("tasks")) {
+                        this.innerHTML = "Hide Task";
+                    } else if (!_this.showUserTask && !hiddenSections.includes("tasks")) {
                         hiddenSections.push("tasks");
+                        this.innerHTML = "Show Task";
                     }
-                    this.calendar.sectionController.setHiddenSections(hiddenSections);
-                    this.refreshCalendarDisplay();
+                    _this.calendar.sectionController.setHiddenSections(hiddenSections);
+                    _this.refreshCalendarDisplay();
                 }
 
                 // * ===================================
@@ -363,7 +366,7 @@ function documentCompleteHandler() {
                             text: 'Show Task'
                         }));
 
-                    showUserTaskButton.addEventListener('click', this.showUserTaskButtonHandler.bind(this));
+                    showUserTaskButton.addEventListener('click', this.showUserTaskButtonHandler);
                     // * -----------------------------------------
                 }
 
@@ -508,6 +511,41 @@ function documentCompleteHandler() {
                     }
 
                     return augFilterPopup;
+                }
+
+                // @ Description: Extend calendar cell and entry holder
+                calendarSizeModule() {
+                    // new buildDaysGrid
+                    this.assignAUGbuildDaysGrid();
+                    this.assignAUGshow();
+
+                    // Generate Size Selector
+                    let wrap = document.querySelector('.calendar-view-switcher-list');
+
+                    wrap.appendChild(BX.create('label',
+                        { attrs: { for: 'calSize', class: 'calendar-counter-title' }, text: 'Calendar Size:' }
+                    ));
+
+                    let selectTag = BX.create('select', { attrs: { name: 'calSize', d: 'calSize' } });
+                    selectTag.appendChild(BX.create('option', { attrs: { value: 'compact' }, text: 'Compact' }));
+                    selectTag.appendChild(BX.create('option', { attrs: { value: 'comfort' }, text: 'Comfortable' }));
+                    selectTag.appendChild(BX.create('option', { attrs: { value: 'medium' }, text: 'Medium' }));
+                    wrap.appendChild(selectTag);
+                    // ---- 
+
+                    // Handler
+                    selectTag.addEventListener('change', e => {
+                        let monthView = this.calendar.getView('month');
+                        if (e.target.value == 'compact') {
+                            monthView.rowHeight = 144; monthView.slotHeight = 20;
+                        } else if (e.target.value == 'comfort') {
+                            monthView.rowHeight = 664; monthView.slotHeight = 40;
+                        } else if (e.target.value == 'medium') {
+                            monthView.rowHeight = 464; monthView.slotHeight = 40;
+                        }
+                        monthView.slotsCount = Math.floor((this.rowHeight - this.eventHolderTopOffset) / this.slotHeight);
+                        monthView.show();
+                    });
                 }
 
                 // ! INJECTED METHODS
@@ -1037,6 +1075,95 @@ function documentCompleteHandler() {
                     }
                 }
 
+                assignAUGbuildDaysGrid() {
+                    window.BXEventCalendar.instances[Object.keys(BXEventCalendar.instances)[0]]
+                        .getView('month').buildDaysGrid = function (params) {
+                            if (!params)
+                                params = {};
+
+                            var
+                                i, dayOffset,
+                                grid = params.grid || this.grid,
+                                viewRangeDate = this.calendar.getViewRangeDate(),
+                                year = viewRangeDate.getFullYear(),
+                                month = viewRangeDate.getMonth(),
+                                height = this.util.getViewHeight(),
+                                displayedRange = BX.clone(this.getViewRange(), true),
+                                date = new Date();
+
+                            BX.cleanNode(grid);
+                            date.setFullYear(year, month, 1);
+
+                            this.dayIndex = {};
+                            this.days = [];
+                            this.entryHolders = [];
+
+                            this.currentMonthRow = false;
+                            this.monthRows = [];
+
+                            if (this.util.getWeekStart() != this.util.getWeekDayByInd(date.getDay())) {
+                                dayOffset = this.util.getWeekDayOffset(this.util.getWeekDayByInd(date.getDay()));
+                                date.setDate(date.getDate() - dayOffset);
+
+                                displayedRange.start = new Date(date.getTime());
+                                displayedRange.start.setHours(0, 0, 0, 0);
+
+                                for (i = 0; i < dayOffset; i++) {
+                                    this.buildDayCell({ date: date, month: 'previous', grid: grid });
+                                    date.setDate(date.getDate() + 1);
+                                }
+                            }
+
+                            date.setFullYear(year, month, 1);
+                            while (date.getMonth() == month) {
+                                this.buildDayCell({ date: date, grid: grid });
+                                date.setDate(date.getDate() + 1);
+                            }
+
+                            if (this.util.getWeekStart() != this.util.getWeekDayByInd(date.getDay())) {
+                                dayOffset = this.util.getWeekDayOffset(this.util.getWeekDayByInd(date.getDay()));
+                                date.setFullYear(year, month + 1, 1);
+                                for (i = dayOffset; i < 7; i++) {
+                                    this.buildDayCell({ date: date, month: 'next', grid: grid });
+                                    date.setDate(date.getDate() + 1);
+                                }
+
+                                displayedRange.end = new Date(date.getTime());
+                                displayedRange.end.setHours(23, 59, 59, 59);
+                            }
+
+                            this.calendar.setDisplayedViewRange(displayedRange);
+
+                            // Adjusting rows height to the height of the view
+                            if (this.monthRows.length > 0) {
+                                this.slotsCount = Math.floor((this.rowHeight - this.eventHolderTopOffset) / this.slotHeight);
+                                for (i = 0; i < this.monthRows.length; i++) {
+                                    this.monthRows[i].style.height = this.rowHeight + 'px';
+                                }
+                            }
+                        };
+                }
+
+                assignAUGshow() {
+                    BXEventCalendar.instances[Object.keys(BXEventCalendar.instances)[0]].getView("month").show =
+
+                        function () {
+                            window.BXEventCalendarView.prototype.show.apply(this, arguments);
+
+                            this.buildDaysTitle();
+                            this.buildDaysGrid();
+
+                            if (this.calendar.navCalendar)
+                                this.calendar.navCalendar.hide();
+
+                            this.displayEntries();
+
+                            this.calendar.initialViewShow = false;
+                            this.gridWrap.style.height = '';
+                            this.gridWrap.style.overflow = '';
+                        };
+                }
+
                 // @ Description: injected method into displayEntries of each view
                 //              : _this parameter is to pass the current context 
                 //              : (which is the context of displayEntries) into this method.
@@ -1083,7 +1210,7 @@ function documentCompleteHandler() {
 
 
 
-        // ------------------------------------------
+        // ------Utility--------------------------
         (function (window) {
             let Utility = {
 
@@ -1123,7 +1250,7 @@ function documentCompleteHandler() {
 
 
 
-        // ------------------------------------------
+        // -------Observer------------------------------
         (function (window) {
 
             let Observer = {
@@ -1211,7 +1338,7 @@ function documentCompleteHandler() {
                                     if (eachM.addedNodes.length > 0) {
 
                                         // Main popup added handler
-                                        if (eachM.addedNodes[0].className.includes('popup-window calendar-simple-view-popup')) {
+                                        if (eachM.addedNodes[0].className && eachM.addedNodes[0].className.includes('popup-window calendar-simple-view-popup')) {
 
                                             // console.log("simple event editor popup added");
                                             // console.log(eachM);
@@ -1223,7 +1350,7 @@ function documentCompleteHandler() {
                                         }
 
                                         // Color Selector popup added handler
-                                        if (eachM.addedNodes[0].id.includes('menu-popup-color-select')) {
+                                        if (eachM.addedNodes[0].id && eachM.addedNodes[0].id.includes('menu-popup-color-select')) {
 
                                             // console.log("color selector popup added");
                                             // console.log(eachM);
@@ -1327,12 +1454,12 @@ function documentCompleteHandler() {
                                         }
 
                                         // Section Selector Popup Handler
-                                        if (eachM.addedNodes[0].id.includes('menu-popup-section-select')) {
+                                        if (eachM.addedNodes[0].id && eachM.addedNodes[0].id.includes('menu-popup-section-select')) {
                                             this.sectionSelectorFlag = true; // <-- currently unused
                                         }
 
                                         // Full editor Popup Handler
-                                        if (eachM.addedNodes[0].className.includes('side-panel side-panel-overlay side-panel-overlay-open')) {
+                                        if (eachM.addedNodes[0].className && eachM.addedNodes[0].className.includes('side-panel side-panel-overlay side-panel-overlay-open')) {
 
                                             // console.log('setup tempObs');
                                             this.tempObs = new MutationObserver(
@@ -1448,7 +1575,7 @@ function documentCompleteHandler() {
                                                     // console.log("==========");
                                                     // console.log("tempObs2");
                                                     for (const eachM of m) {
-                                                        if (eachM.removedNodes[0].id.includes('menu-popup-section-select')) {
+                                                        if (eachM.removedNodes.length > 0 && eachM.removedNodes[0].id.includes('menu-popup-section-select')) {
                                                             let clickTarget = this.Utility.defaultColors.indexOf(this.fullEventEditorColor) + 1;
                                                             eachM.target.querySelector(`li:nth-child(${clickTarget})`).click();
                                                         }
@@ -1470,7 +1597,7 @@ function documentCompleteHandler() {
                                     if (eachM.removedNodes.length > 0) {
 
                                         // Main popup removed handler
-                                        if (eachM.removedNodes[0].className.includes('popup-window calendar-simple-view-popup')) {
+                                        if (eachM.removedNodes[0].className && eachM.removedNodes[0].className.includes('popup-window calendar-simple-view-popup')) {
                                             // console.log("popup removed");
                                             // console.log(eachM);
 
@@ -1479,7 +1606,7 @@ function documentCompleteHandler() {
                                         }
 
                                         // Side Panel / Full Event Editor removed handler
-                                        if (eachM.removedNodes[0].className.includes('side-panel side-panel-overlay side-panel-overlay-open')) {
+                                        if (eachM.removedNodes[0].className && eachM.removedNodes[0].className.includes('side-panel side-panel-overlay side-panel-overlay-open')) {
 
                                             // console.log('side-panel / full event editor removed');
 
@@ -1538,12 +1665,16 @@ function documentCompleteHandler() {
         if (document.querySelector('.aug-filter-container')) {
             document.querySelector('.aug-filter-container').remove();
         }
+
         window.AUG.Calendar.createCustomFilter();
 
+        // Initiate Mutation Observers
         AUG.Observer.getMutationObserver();
         AUG.Observer.getColorChangeObserver();
         AUG.Observer.startMutationObserver();
-        // <-- End of create custom AUG filter
+
+        // Extend Calendar Cell
+        AUG.Calendar.calendarSizeModule();
         // ------------------------------------------
 
     } catch (error) {
