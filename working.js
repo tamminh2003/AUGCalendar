@@ -523,22 +523,37 @@ function documentCompleteHandler() {
             { attrs: { for: 'calSize', class: 'calendar-counter-title' }, text: 'Calendar Size:' }
           ));
 
-          let selectTag = BX.create('select', { attrs: { name: 'calSize', d: 'calSize' } });
-          selectTag.appendChild(BX.create('option', { attrs: { value: 'compact' }, text: 'Compact' }));
-          selectTag.appendChild(BX.create('option', { attrs: { value: 'comfort' }, text: 'Comfortable' }));
-          selectTag.appendChild(BX.create('option', { attrs: { value: 'medium' }, text: 'Medium' }));
+          let selectTag = BX.create('select', { attrs: { name: 'calSize', id: 'calSize' } });
+          selectTag.appendChild(BX.create('option', { attrs: { value: 0 }, text: 'Compact' }));
+          selectTag.appendChild(BX.create('option', { attrs: { value: 1 }, text: 'Medium' }));
+          selectTag.appendChild(BX.create('option', { attrs: { value: 2 }, text: 'Comfortable' }));
+          selectTag.appendChild(BX.create('option', { attrs: { value: 3 }, text: 'Large' }));
+          selectTag.appendChild(BX.create('option', { attrs: { value: 4 }, text: 'Maximum' }));
           wrap.appendChild(selectTag);
           // ---- 
 
           // Handler
           selectTag.addEventListener('change', e => {
             let monthView = this.calendar.getView('month');
-            if (e.target.value == 'compact') {
-              monthView.rowHeight = 144; monthView.slotHeight = 20;
-            } else if (e.target.value == 'comfort') {
-              monthView.rowHeight = 664; monthView.slotHeight = 40;
-            } else if (e.target.value == 'medium') {
-              monthView.rowHeight = 464; monthView.slotHeight = 40;
+            switch (e.target.value) {
+              case '0':
+                monthView.rowHeight = 144; monthView.slotHeight = 20;
+                break;
+              case '1':
+                monthView.rowHeight = 224; monthView.slotHeight = 20;
+                break;
+              case '2':
+                monthView.rowHeight = 544; monthView.slotHeight = 40;
+                break;
+              case '3':
+                monthView.rowHeight = 664; monthView.slotHeight = 40;
+                break;
+              case '4':
+                monthView.rowHeight = 784; monthView.slotHeight = 40;
+                break;
+              default:
+                monthView.rowHeight = 144; monthView.slotHeight = 20;
+                break;
             }
             monthView.slotsCount = Math.floor((this.rowHeight - this.eventHolderTopOffset) / this.slotHeight);
             monthView.show();
@@ -1133,7 +1148,7 @@ function documentCompleteHandler() {
 
               // Adjusting rows height to the height of the view
               if (this.monthRows.length > 0) {
-                if(!this.rowHeight) this.rowHeight = 144
+                if (!this.rowHeight) this.rowHeight = 144;
                 this.slotsCount = Math.floor((this.rowHeight - this.eventHolderTopOffset) / this.slotHeight);
                 for (i = 0; i < this.monthRows.length; i++) {
                   this.monthRows[i].style.height = this.rowHeight + 'px';
@@ -1182,7 +1197,7 @@ function documentCompleteHandler() {
 
               if (!params.eventType[7].active) return _index <= -1 ? false : params.eventType[_index].active;
               else return _index <= -1 ? true : params.eventType[_index].active;
-              
+
             } catch (e) {
               console.log(e);
               return false;
