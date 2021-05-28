@@ -2,6 +2,7 @@
 
 console.log("-----------------------------------");
 console.log("     AUG_Calendar custom script    ");
+console.log("           Ver. 0.1.0528           ");
 console.log("-----------------------------------");
 
 function documentCompleteHandler() {
@@ -65,6 +66,8 @@ function documentCompleteHandler() {
             title: 'Others'
           }];
 
+          this.eventSlotSize = 0; // 0 = small, 1 = large
+
           this.companyCalendar = this.getAvailableSection().filter(function (section) {
             return section.type == "company_calendar"
           });
@@ -99,6 +102,33 @@ function documentCompleteHandler() {
         // @ Description: Call displayEntries() of current View
         refreshCalendarDisplay() {
           this.calendar.getView().displayEntries();
+        }
+
+        // @ Description: Set event slot height
+        setSlotHeight() {
+          if (this.eventSlotSize) {
+            document.querySelectorAll('.calendar-event-line-wrap').forEach(c => {
+              c.classList.add('aug-event-slot-large');
+            })
+          } else {
+            document.querySelectorAll('.calendar-event-line-wrap').forEach(c => {
+              c.classList.add('aug-event-slot-small')
+            })
+          }
+        }
+
+        // @ Description: Hide Calendar Size Module if not in MonthView
+        toggleCalendarSizeModule() {
+          document.querySelector('div.calendar-view-switcher-list:nth-child(1)')
+            .addEventListener('click',
+              (e) => {
+                console.log(e);
+                if (e.target.innerHTML && e.target.innerHTML != 'Month') {
+                  document.querySelector('#calSize').disabled = true;
+                } else if (e.target.innerHTML && e.target.innerHTML == 'Month') {
+                  document.querySelector('#calSize').disabled = false;
+                }
+              })
         }
 
         // @ Description: Generate eventType checkboxes using following structure:
@@ -298,10 +328,10 @@ function documentCompleteHandler() {
           let hiddenSections = _this.calendar.sectionController.getHiddenSections();
           if (_this.showUserTask && hiddenSections.includes("tasks")) {
             hiddenSections.splice(hiddenSections.indexOf("tasks"));
-            this.innerHTML = "Hide Task";
+            this.innerHTML = "Hide Tasks";
           } else if (!_this.showUserTask && !hiddenSections.includes("tasks")) {
             hiddenSections.push("tasks");
-            this.innerHTML = "Show Task";
+            this.innerHTML = "Show Tasks";
           }
           _this.calendar.sectionController.setHiddenSections(hiddenSections);
           _this.refreshCalendarDisplay();
@@ -340,9 +370,8 @@ function documentCompleteHandler() {
             popupButton = filterContainer.appendChild(BX.create('button', {
               attrs: {
                 class: "aug-filter-popup-button ui-btn ui-btn-themes ui-btn-xs ui-btn-primary ui-btn-round",
-                style: "margin: 10px"
               },
-              text: 'Filter Options'
+              text: window.innerWidth <= 1280 ? 'Options' : 'Filter Options'
             }));
 
           popupButton.addEventListener('click', this.popupButtonHandler);
@@ -360,7 +389,7 @@ function documentCompleteHandler() {
               attrs: {
                 class: "aug-show-user-task-button ui-btn ui-btn-themes ui-btn-xs ui-btn-primary ui-btn-round"
               },
-              text: 'Show Task'
+              text: 'Show Tasks'
             }));
 
           showUserTaskButton.addEventListener('click', this.showUserTaskButtonHandler);
@@ -520,49 +549,48 @@ function documentCompleteHandler() {
           let wrap = document.querySelector('.calendar-view-switcher-list');
 
           wrap.appendChild(BX.create('label',
-            { attrs: { for: 'calSize', class: 'calendar-counter-title' }, text: 'Calendar Size:' }
+            {
+              attrs: { for: 'calSize', class: 'calendar-counter-title' },
+              text: window.innerWidth > 1280 ? 'Calendar Size:' : 'Size'
+            }
           ));
 
+          let selectValues = [];
+
+          if (window.innerWidth <= 1280) {
+            selectValues = ['Min', 'Sml', 'Med', 'Lrg', 'Max'];
+          } else {
+            selectValues = ['Minimum', 'Small', 'Medium', 'Large', 'Maximum'];
+          }
+
           let selectTag = BX.create('select', { attrs: { name: 'calSize', id: 'calSize' } });
-          selectTag.appendChild(BX.create('option', { attrs: { value: 0 }, text: 'Compact' }));
-          selectTag.appendChild(BX.create('option', { attrs: { value: 1 }, text: 'Medium' }));
-          selectTag.appendChild(BX.create('option', { attrs: { value: 2 }, text: 'Comfortable' }));
-          selectTag.appendChild(BX.create('option', { attrs: { value: 3 }, text: 'Large' }));
-          selectTag.appendChild(BX.create('option', { attrs: { value: 4 }, text: 'Maximum' }));
+          for (let tagIndex = 0; tagIndex <= 4; tagIndex++) {
+            selectTag.appendChild(BX.create('option', { attrs: { value: tagIndex.toString() }, text: selectValues[tagIndex] }));
+          }
+
           wrap.appendChild(selectTag);
           // ---- 
 
           // Handler
+          let selectSlotHeight = [20, 20, 40, 40, 40];
+          let selectRowHeight = [144, 224, 544, 664, 784]
           selectTag.addEventListener('change', e => {
             let monthView = this.calendar.getView('month');
-            switch (e.target.value) {
-              case '0':
-                monthView.rowHeight = 144; monthView.slotHeight = 20;
-                break;
-              case '1':
-                monthView.rowHeight = 224; monthView.slotHeight = 20;
-                break;
-              case '2':
-                monthView.rowHeight = 544; monthView.slotHeight = 40;
-                break;
-              case '3':
-                monthView.rowHeight = 664; monthView.slotHeight = 40;
-                break;
-              case '4':
-                monthView.rowHeight = 784; monthView.slotHeight = 40;
-                break;
-              default:
-                monthView.rowHeight = 144; monthView.slotHeight = 20;
-                break;
+            monthView.rowHeight = selectRowHeight[parseInt(e.target.value)];
+            monthView.slotHeight = selectSlotHeight[parseInt(e.target.value)];
+            monthView.slotsCount = Math.floor((monthView.rowHeight - monthView.eventHolderTopOffset) / monthView.slotHeight);
+            if (parseInt(e.target.value) > 1) {
+              this.eventSlotSize = 1;
+            } else {
+              this.eventSlotSize = 0;
             }
-            monthView.slotsCount = Math.floor((this.rowHeight - this.eventHolderTopOffset) / this.slotHeight);
             monthView.show();
           });
         }
 
         // ! INJECTED METHODS
 
-        // @ Desription: INJECT METHODS INTO BX.CALENDAR
+        // @ Desription: INJECT displayEntries METHODS INTO EACH VIEW INTO BX.CALENDAR
         assignAUGdisplayEntries() {
           if (!window.BXEventCalendar) {
             console.log('No BXEventCalendar. Terminate.');
@@ -737,6 +765,7 @@ function documentCompleteHandler() {
 
             var workTime = this.util.getWorkTime();
             this.checkTimelineScroll(!this.collapseOffHours || (workTime.end - workTime.start) * this.gridLineHeight + 20 > this.util.getViewHeight());
+
           }
 
           // ! assign WeekView displayEntries
@@ -1084,9 +1113,12 @@ function documentCompleteHandler() {
             }
 
             BX.addClass(this.gridMonthContainer, "calendar-events-holder-show");
+
+            AUG.Calendar.setSlotHeight();
           }
         }
 
+        // @ Description: INJECT buildDaysGrid METHOD INTO MONTHVIEW
         assignAUGbuildDaysGrid() {
           window.BXEventCalendar.instances[Object.keys(BXEventCalendar.instances)[0]]
             .getView('month').buildDaysGrid = function (params) {
@@ -1157,6 +1189,7 @@ function documentCompleteHandler() {
             };
         }
 
+        // @ Description: INJECT  show METHOD INTO MONTHVIEW
         assignAUGshow() {
           BXEventCalendar.instances[Object.keys(BXEventCalendar.instances)[0]].getView("month").show =
 
@@ -1690,7 +1723,16 @@ function documentCompleteHandler() {
 
     // Extend Calendar Cell
     AUG.Calendar.calendarSizeModule();
-    AUG.Calendar.calendar.getView().show();
+
+    let monthView = AUG.Calendar.calendar.getView('month');
+    monthView.rowHeight = 144; monthView.slotHeight = 20;
+    monthView.slotsCount = Math.floor((monthView.rowHeight - monthView.eventHolderTopOffset) / monthView.slotHeight);
+    AUG.Calendar.eventSlotSize = 0;
+    monthView.show();
+    monthView = undefined
+    delete monthView;
+
+    AUG.Calendar.toggleCalendarSizeModule();
     // ------------------------------------------
 
   } catch (error) {
