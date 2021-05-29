@@ -76,7 +76,6 @@ function documentCompleteHandler() {
             return section.type == "group"
           });
 
-          this.showUserTask = !this.calendar.sectionController.getHiddenSections().includes("tasks"); // <== showUserTask flag ? true => show user task : false => hide user task
         }
 
 
@@ -285,8 +284,6 @@ function documentCompleteHandler() {
 
         // @ Description: Hide AUG Calendar Filter if "click" outside filter container.
         checkOutsideFilterPopup(e) {
-          // console.log(e);
-
           let selectedPopup = document.querySelector('.aug-filter-popup.aug-popup-show');
 
           if (!selectedPopup) {
@@ -324,16 +321,15 @@ function documentCompleteHandler() {
         //              : this object refer to the button itself.
         showUserTaskButtonHandler(e) {
           let _this = AUG.Calendar;
-          _this.showUserTask = !_this.showUserTask;
-          let hiddenSections = _this.calendar.sectionController.getHiddenSections();
-          if (_this.showUserTask && hiddenSections.includes("tasks")) {
-            hiddenSections.splice(hiddenSections.indexOf("tasks"));
-            this.innerHTML = "Hide Tasks";
-          } else if (!_this.showUserTask && !hiddenSections.includes("tasks")) {
-            hiddenSections.push("tasks");
+          let taskSection = _this.calendar.sectionController.getSection('tasks');
+          if (taskSection.isShown()) {
+            taskSection.hide();
             this.innerHTML = "Show Tasks";
+          } else {
+            taskSection.show();
+            this.innerHTML = "Hide Tasks";
           }
-          _this.calendar.sectionController.setHiddenSections(hiddenSections);
+
           _this.refreshCalendarDisplay();
         }
 
@@ -369,7 +365,7 @@ function documentCompleteHandler() {
           if (!popupButton)
             popupButton = filterContainer.appendChild(BX.create('button', {
               attrs: {
-                class: "aug-filter-popup-button ui-btn ui-btn-themes ui-btn-xs ui-btn-primary ui-btn-round",
+                class: "aug-filter-popup-button ui-btn ui-btn-primary ui-btn-xs ui-btn-round ui-btn-themes",
               },
               text: window.innerWidth <= 1280 ? 'Options' : 'Filter Options'
             }));
@@ -387,9 +383,9 @@ function documentCompleteHandler() {
           if (!showUserTaskButton)
             showUserTaskButton = filterContainer.appendChild(BX.create('button', {
               attrs: {
-                class: "aug-show-user-task-button ui-btn ui-btn-themes ui-btn-xs ui-btn-primary ui-btn-round"
+                class: "aug-show-user-task-button ui-btn ui-btn-primary ui-btn-xs ui-btn-round ui-btn-themes"
               },
-              text: 'Show Tasks'
+              text: this.calendar.sectionController.getSection('tasks').isShown() ? 'Hide Tasks' : 'Show Tasks'
             }));
 
           showUserTaskButton.addEventListener('click', this.showUserTaskButtonHandler);
