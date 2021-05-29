@@ -38,4 +38,8 @@ div.aug-event-slot-large > div > div > .calendar-event-line-dot {
   border-radius: 0 var(--ui-border-radius) var(--ui-border-radius) 0;
 }
 
+.aug-popup-show {
+  display: block !important;
+}
+
 /* --------------- End Calendar ------------ */
