@@ -546,46 +546,78 @@ function documentCompleteHandler() {
           this.assignAUGshow();
 
           // Generate Size Selector
-          let wrap = document.querySelector('.calendar-view-switcher-list');
+          let wrap = BX.create('div', { attrs: { class: 'ui-btn-split ui-btn-primary ui-btn-xs' } });
+          document.querySelector('.calendar-view-switcher-list').appendChild(wrap);
 
           wrap.appendChild(BX.create('label',
             {
-              attrs: { for: 'calSize', class: 'calendar-counter-title' },
-              text: window.innerWidth > 1280 ? 'Calendar Size:' : 'Size'
+              attrs: { for: 'calSize', class: 'ui-btn-main ui-btn-round-lft' },
+              text: window.innerWidth > 1280 ? 'Calendar Size' : 'Size'
             }
           ));
 
-          let selectValues = [];
+          let extraBtn = wrap.appendChild(BX.create('div',
+            {
+              attrs: { class: 'ui-btn-extra ui-btn-round-rgt' }
+            }
+          ));
 
-          if (window.innerWidth <= 1280) {
-            selectValues = ['Min', 'Sml', 'Med', 'Lrg', 'Max'];
-          } else {
-            selectValues = ['Minimum', 'Small', 'Medium', 'Large', 'Maximum'];
-          }
+          let popupWindow = BX.create('div', { attrs: { class: 'popup-window' } });
 
-          let selectTag = BX.create('select', { attrs: { name: 'calSize', id: 'calSize' } });
-          for (let tagIndex = 0; tagIndex <= 4; tagIndex++) {
-            selectTag.appendChild(BX.create('option', { attrs: { value: tagIndex.toString() }, text: selectValues[tagIndex] }));
-          }
+          let popupWindowContent = popupWindow.appendChild(BX.create('div', { attrs: { class: 'popup-window-content' } }));
+          popupWindow.appendChild(BX.create('div', { attrs: { class: 'popup-window-angly popup-window-angly-top', style: 'left: 33px' } }));
 
-          wrap.appendChild(selectTag);
+          let menuPopup = popupWindowContent.appendChild(BX.create('div', { attrs: { class: 'menu-popup' } }));
+          let menuPopupItems = menuPopup.appendChild(BX.create('div', { attrs: { class: 'menu-popup-items' } }));
+          let calendarSizes = ['Minimum', 'Small', 'Medium', 'Large', 'Maximum'];
+          let menuPopupItem = [];
+          calendarSizes.forEach(sizeText => {
+            menuPopupItem.push(menuPopupItems.appendChild(BX.create('span', { attrs: { class: 'menu-popup-item menu-popup-item-text' }, text: sizeText })));
+          });
+
+          console.log(extraBtn);
+          console.log(popupWindow);
+          extraBtn.addEventListener('click', (e) => {
+            let targetDim = e.target.getBoundingClientRect();
+            let top = (targetDim.top + targetDim.height + 11).toString() + 'px';
+            let left = (targetDim.x + targetDim.width / 2 - 101 / 2).toString() + 'px';
+            document.querySelector('body').appendChild(popupWindow);
+            popupWindow.style.top = top;
+            popupWindow.style.left = left;
+            popupWindow.style.position = 'absolute';
+          });
+
+          // let selectValues = [];
+
+          // if (window.innerWidth <= 1280) {
+          //   selectValues = ['Min', 'Sml', 'Med', 'Lrg', 'Max'];
+          // } else {
+          //   selectValues = 
+          // }
+
+          // let selectTag = BX.create('select', { attrs: { name: 'calSize', id: 'calSize' } });
+          // for (let tagIndex = 0; tagIndex <= 4; tagIndex++) {
+          //   selectTag.appendChild(BX.create('option', { attrs: { value: tagIndex.toString() }, text: selectValues[tagIndex] }));
+          // }
+
+          // wrap.appendChild(selectTag);
           // ---- 
 
           // Handler
-          let selectSlotHeight = [20, 20, 40, 40, 40];
-          let selectRowHeight = [144, 224, 544, 664, 784]
-          selectTag.addEventListener('change', e => {
-            let monthView = this.calendar.getView('month');
-            monthView.rowHeight = selectRowHeight[parseInt(e.target.value)];
-            monthView.slotHeight = selectSlotHeight[parseInt(e.target.value)];
-            monthView.slotsCount = Math.floor((monthView.rowHeight - monthView.eventHolderTopOffset) / monthView.slotHeight);
-            if (parseInt(e.target.value) > 1) {
-              this.eventSlotSize = 1;
-            } else {
-              this.eventSlotSize = 0;
-            }
-            monthView.show();
-          });
+          // let selectSlotHeight = [20, 20, 40, 40, 40];
+          // let selectRowHeight = [144, 224, 544, 664, 784]
+          // selectTag.addEventListener('change', e => {
+          //   let monthView = this.calendar.getView('month');
+          //   monthView.rowHeight = selectRowHeight[parseInt(e.target.value)];
+          //   monthView.slotHeight = selectSlotHeight[parseInt(e.target.value)];
+          //   monthView.slotsCount = Math.floor((monthView.rowHeight - monthView.eventHolderTopOffset) / monthView.slotHeight);
+          //   if (parseInt(e.target.value) > 1) {
+          //     this.eventSlotSize = 1;
+          //   } else {
+          //     this.eventSlotSize = 0;
+          //   }
+          //   monthView.show();
+          // });
         }
 
         // ! INJECTED METHODS
@@ -1700,6 +1732,24 @@ function documentCompleteHandler() {
     // ------------------------------------------
 
 
+
+
+
+    // --------Popup Manager------------------------
+    // @ Description: The purpose of this module is to manage popups
+    (function() {
+      let PopupManager = {
+        show: (popupElement) => { // <== show popup
+          popupElement.classList.add('aug-popup-show');
+        },
+        hide: (popupElement) => { // <== hide popup
+          popupElement.classList.remove('aug-popup-show');
+        }
+      }
+
+      window.AUG.PopupManager = PopupManager;
+    })();
+    // ------------------------------------------
 
 
 

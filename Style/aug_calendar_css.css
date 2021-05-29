@@ -26,6 +26,16 @@ div.aug-event-slot-large > div > div > .calendar-event-line-dot {
 
 .aug-show-user-task-button {
   margin-right: 10px;
-} 
+}
+
+.ui-btn-round-lft {
+  --ui-border-radius: calc(var(--ui-btn-height) / 2);
+  border-radius: var(--ui-border-radius) 0 0 var(--ui-border-radius);
+}
+
+.ui-btn-round-rgt {
+  --ui-border-radius: calc(var(--ui-btn-height) / 2);
+  border-radius: 0 var(--ui-border-radius) var(--ui-border-radius) 0;
+}
 
 /* --------------- End Calendar ------------ */
