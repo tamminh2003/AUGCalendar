@@ -116,20 +116,6 @@ function documentCompleteHandler() {
           }
         }
 
-        // @ Description: Hide Calendar Size Module if not in MonthView
-        toggleCalendarSizeModule() {
-          document.querySelector('div.calendar-view-switcher-list:nth-child(1)')
-            .addEventListener('click',
-              (e) => {
-                console.log(e);
-                if (e.target.innerHTML && e.target.innerHTML != 'Month') {
-                  document.querySelector('#calSize').disabled = true;
-                } else if (e.target.innerHTML && e.target.innerHTML == 'Month') {
-                  document.querySelector('#calSize').disabled = false;
-                }
-              })
-        }
-
         // @ Description: Generate eventType checkboxes using following structure:
         //             optionContainer => checkboxContainer => checkbox
         //                                                  => label
@@ -542,7 +528,10 @@ function documentCompleteHandler() {
           this.assignAUGshow();
 
           // Generate Size Selector Button
-          let wrap = BX.create('div', { attrs: { class: 'ui-btn-split ui-btn-primary ui-btn-xs' } });
+          let wrap = document.querySelector('.aug-calendar-size-module');
+          if(wrap) wrap.remove(); // <== clear element
+
+          wrap = BX.create('div', { attrs: { class: 'aug-calendar-size-module ui-btn-split ui-btn-primary ui-btn-xs' } });
           document.querySelector('.calendar-view-switcher-list').appendChild(wrap);
 
           wrap.appendChild(BX.create('label',
