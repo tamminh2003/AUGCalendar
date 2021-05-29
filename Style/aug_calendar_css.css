@@ -42,4 +42,29 @@ div.aug-event-slot-large > div > div > .calendar-event-line-dot {
   display: block !important;
 }
 
+.aug-checkbox-container.calendar-list-slider-item {
+  padding: 0px;
+  /* max-width: 200px; */
+}
+
+.aug-option-container {
+  height: fit-content;
+  margin: 10px;
+}
+
+span.aug-option-name.calendar-list-slider-item-name {
+  transition: unset;
+  max-width: 200px;
+}
+
+.calendar-list-slider-item:hover span.aug-option-name.calendar-list-slider-item-name {
+  max-width: 200px;
+}
+
+
+.aug-filter-container {
+  display: flex;
+  padding: 0px;
+}
+
 /* --------------- End Calendar ------------ */
