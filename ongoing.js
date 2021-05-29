@@ -127,7 +127,7 @@ function documentCompleteHandler() {
 						)); // <== Outer div of checkbox
 
 						let checkbox = checkboxContainer.appendChild(BX.create('input',
-							{ attrs: { type: 'checkbox' } }
+							{ attrs: { type: 'checkbox', class: 'calendar-list-slider-item-checkbox', style: `background-color: ${c.color}` } }
 						)); // <== Checkbox
 
 						checkboxContainer.appendChild(BX.create('span',
@@ -139,6 +139,8 @@ function documentCompleteHandler() {
 							let _index = this.eventType.map((c) => { return c.name; })
 								.indexOf(_name);
 							if (_index > -1) this.eventType[_index].active = checkbox.checked;
+							if (checkbox.checked) checkbox.classList.add('calendar-list-slider-item-checkbox-checked');
+							else checkbox.classList.remove('calendar-list-slider-item-checkbox-checked');
 							this.refreshCalendarDisplay();
 						} //<== checkboxHandler
 
@@ -156,7 +158,13 @@ function documentCompleteHandler() {
 					})); // <== select all button
 
 					buttonSelectAll.addEventListener('click', (e) => {
-						optionSectionContainer.querySelectorAll('input').forEach(c => c.checked = true)
+						let checkbox = optionSectionContainer.querySelectorAll('input');
+						checkbox.forEach(c => {
+							c.checked = true;
+							if(!c.classList.contains('calendar-list-slider-item-checkbox-checked')) {
+								c.classList.add('calendar-list-slider-item-checkbox-checked');
+							}
+						});
 						this.eventType.forEach(c => c.active = true);
 						this.refreshCalendarDisplay();
 					}); //<== Select All Button Handler
@@ -167,7 +175,13 @@ function documentCompleteHandler() {
 					}));
 
 					buttonDeselectAll.addEventListener('click', e => {
-						optionSectionContainer.querySelectorAll('input').forEach(c => c.checked = false);
+						optionSectionContainer.querySelectorAll('input').forEach(c => {
+							c.checked = false;
+							if(c.classList.contains('calendar-list-slider-item-checkbox-checked')) {
+								c.classList.remove('calendar-list-slider-item-checkbox-checked');
+							}
+						});
+
 						this.eventType.forEach(c => c.active = false);
 						this.refreshCalendarDisplay();
 					});
@@ -183,7 +197,7 @@ function documentCompleteHandler() {
 						})); // <== Outer div of checkbox
 
 						let checkbox = checkboxContainer.appendChild(BX.create('input', {
-							attrs: { type: 'checkbox' }
+							attrs: { type: 'checkbox', class: 'calendar-list-slider-item-checkbox' }
 						})); // <== Checkbox
 
 						checkboxContainer.appendChild(BX.create('span', {
@@ -194,8 +208,14 @@ function documentCompleteHandler() {
 
 						checkbox.addEventListener('change', e => {
 							let _section = this.calendar.sectionController.getSection(checkbox.parentElement.dataset.section);
-							if (checkbox.checked && !_section.isShown()) _section.show();
-							if (!checkbox.checked && _section.isShown()) _section.hide();
+							if (checkbox.checked && !_section.isShown()) {
+								_section.show();
+								checkbox.classList.add('calendar-list-slider-item-checkbox-checked');
+							}
+							if (!checkbox.checked && _section.isShown()) {
+								_section.hide();
+								checkbox.classList.remove('calendar-list-slider-item-checkbox-checked');
+							}
 							this.refreshCalendarDisplay();
 						})
 					})
@@ -348,7 +368,7 @@ function documentCompleteHandler() {
 
 					popupButton.addEventListener('click', (e) => {
 						let popupButtonDim = popupButton.getBoundingClientRect();
-						let top = (popupButtonDim.top + popupButtonDim.height + 11).toString() + 'px';
+						let top = (popupButtonDim.top + popupButtonDim.height + 11 + window.pageYOffset).toString() + 'px';
 						let left = (popupButtonDim.x + popupButtonDim.width / 2 - 101 / 2).toString() + 'px';
 
 						popupWindow.style.top = top;
@@ -532,7 +552,7 @@ function documentCompleteHandler() {
 					extraBtn.addEventListener('click', (e) => {
 						if (this.calendar.getView().name == 'month') {
 							let extraBtnDim = extraBtn.getBoundingClientRect();
-							let top = (extraBtnDim.top + extraBtnDim.height + 11).toString() + 'px';
+							let top = (extraBtnDim.top + extraBtnDim.height + 11 + window.pageYOffset).toString() + 'px';
 							let left = (extraBtnDim.x + extraBtnDim.width / 2 - 101 / 2).toString() + 'px';
 
 							popupWindow.style.top = top;

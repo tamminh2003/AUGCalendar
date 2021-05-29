@@ -1,19 +1,19 @@
 /* --------------- Calendar ---------------- */
 
 
-div.aug-event-slot-large > div.calendar-event-line-inner-container {
-    height: 38px;
-  }
-  
-div.aug-event-slot-large > div > div > span.calendar-event-line-text {
-    overflow: clip;
-    text-overflow: inherit;
-    white-space: normal;
-    height: 30px;
+div.aug-event-slot-large>div.calendar-event-line-inner-container {
+  height: 38px;
 }
 
-div.aug-event-slot-large > div > div > .calendar-event-line-dot {
-    top: 10px;
+div.aug-event-slot-large>div>div>span.calendar-event-line-text {
+  overflow: clip;
+  text-overflow: inherit;
+  white-space: normal;
+  height: 30px;
+}
+
+div.aug-event-slot-large>div>div>.calendar-event-line-dot {
+  top: 10px;
 }
 
 .pagetitle-container.calendar-counter {
@@ -61,10 +61,13 @@ span.aug-option-name.calendar-list-slider-item-name {
   max-width: 200px;
 }
 
-
 .aug-filter-container {
   display: flex;
   padding: 0px;
+}
+
+input[type="checkbox"] {
+  appearance: none;
 }
 
 /* --------------- End Calendar ------------ */
