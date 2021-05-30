@@ -230,13 +230,18 @@ function documentCompleteHandler() {
 						let arrayCheckbox = optionSectionContainer.querySelectorAll('input')
 
 						arrayCheckbox.forEach(c => {
-							let hiddenSections = this.calendar.sectionController.getHiddenSections();
+							// let hiddenSections = this.calendar.sectionController.getHiddenSections();
 							let _sectionId = c.parentElement.dataset.section;
-							let _index = hiddenSections.indexOf(_sectionId);
+							// let _index = hiddenSections.indexOf(_sectionId);
+							let _section = this.calendar.sectionController.getSection(_sectionId);
 
 							c.checked = true;
-							if (_index >= 0) hiddenSections.splice(_index);
-							this.calendar.sectionController.setHiddenSections(hiddenSections);
+							if(!c.classList.contains('calendar-list-slider-item-checkbox-checked')) {
+								c.classList.add('calendar-list-slider-item-checkbox-checked');
+							}
+							// if (_index >= 0) hiddenSections.splice(_index);
+							// this.calendar.sectionController.setHiddenSections(hiddenSections);
+							_section.show();
 							this.refreshCalendarDisplay();
 						});
 					});
@@ -249,13 +254,19 @@ function documentCompleteHandler() {
 						let arrayCheckbox = optionSectionContainer.querySelectorAll('input')
 
 						arrayCheckbox.forEach(c => {
-							let hiddenSections = this.calendar.sectionController.getHiddenSections();
+							// let hiddenSections = this.calendar.sectionController.getHiddenSections();
 							let _sectionId = c.parentElement.dataset.section;
-							let _index = hiddenSections.indexOf(_sectionId);
+							// let _index = hiddenSections.indexOf(_sectionId);
+							let _section = this.calendar.sectionController.getSection(_sectionId);
 
 							c.checked = false;
-							if (_index < 0) hiddenSections.push(_sectionId);
-							this.calendar.sectionController.setHiddenSections(hiddenSections);
+							if(c.classList.contains('calendar-list-slider-item-checkbox-checked')) {
+								c.classList.remove('calendar-list-slider-item-checkbox-checked');
+							}
+
+							// if (_index < 0) hiddenSections.push(_sectionId);
+							// this.calendar.sectionController.setHiddenSections(hiddenSections);
+							_section.hide();
 							this.refreshCalendarDisplay();
 						});
 					});
