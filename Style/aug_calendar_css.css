@@ -48,6 +48,7 @@ div.aug-event-slot-large>div>div>.calendar-event-line-dot {
 .aug-option-container {
   height: fit-content;
   margin: 10px;
+  padding: 0px;
 }
 
 span.aug-option-name.calendar-list-slider-item-name {
@@ -59,7 +60,7 @@ span.aug-option-name.calendar-list-slider-item-name {
   max-width: 200px;
 }
 
-.aug-filter-container {
+.aug-filter-container.calendar-list-slider-card-widget {
   display: flex;
   padding: 0px;
 }
@@ -68,7 +69,8 @@ input[type="checkbox"] {
   appearance: none;
 }
 
-.aug-checkboxes-container {
-    margin-bottom: 10px;
+.aug-checkboxes-container.calendar-list-slider-container {
+  margin-bottom: 10px;
 }
+
 /* --------------- End Calendar ------------ */

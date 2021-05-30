@@ -115,20 +115,24 @@ function documentCompleteHandler() {
 				//                                                  => label
 				createEventTypeCheckbox(optionContainer) {
 					this.eventType.forEach((c) => {
-
+						// <== Outer div of checkbox
 						let checkboxContainer = optionContainer.appendChild(BX.create('div',
 							{ attrs: { class: 'aug-checkbox-container calendar-list-slider-item', 'data-name': c.name } }
-						)); // <== Outer div of checkbox
+						));
 
+						// <== Checkbox
 						let checkbox = checkboxContainer.appendChild(BX.create('input',
-							{ attrs: { type: 'checkbox', class: 'calendar-list-slider-item-checkbox', style: `background-color: ${c.color}` } }
-						)); // <== Checkbox
+							{ attrs: { type: 'checkbox', class: 'calendar-list-slider-item-checkbox calendar-list-slider-item-checkbox-checked', style: `background-color: ${c.color}` } }
+						));
+						checkbox.checked = true;
 
+						// <== Checkbox's label
 						checkboxContainer.appendChild(BX.create('span',
 							{ attrs: { class: 'aug-option-name calendar-list-slider-item-name' }, text: c.title }
-						)); // <== Checkbox's label
+						));
 
-						let checkboxHandler = (e) => {
+						// <== Checkbox handler
+						checkbox.addEventListener('change', (e) => {
 							let _name = checkbox.parentElement.dataset.name;
 							let _index = this.eventType.map((c) => { return c.name; })
 								.indexOf(_name);
@@ -136,9 +140,7 @@ function documentCompleteHandler() {
 							if (checkbox.checked) checkbox.classList.add('calendar-list-slider-item-checkbox-checked');
 							else checkbox.classList.remove('calendar-list-slider-item-checkbox-checked');
 							this.refreshCalendarDisplay();
-						} //<== checkboxHandler
-
-						checkbox.addEventListener('change', checkboxHandler); // <== assign checkboxHandler 
+						});
 
 					})
 				}
@@ -196,8 +198,13 @@ function documentCompleteHandler() {
 							attrs: { class: 'aug-option-name calendar-list-slider-item-name' }, text: c.name
 						})); // <== Checkbox's label
 
+						// <== Set checked status
 						checkbox.checked = !this.calendar.sectionController.getHiddenSections().includes(c.id);
+						if (checkbox.checked) {
+							checkbox.classList.add('calendar-list-slider-item-checkbox-checked');
+						}
 
+						// <== Checkbox Handler
 						checkbox.addEventListener('change', e => {
 							let _section = this.calendar.sectionController.getSection(checkbox.parentElement.dataset.section);
 							if (checkbox.checked && !_section.isShown()) {
@@ -347,8 +354,9 @@ function documentCompleteHandler() {
 					popupButton = wrap.appendChild(BX.create('button', {
 						attrs: {
 							class: "aug-filter-popup-button ui-btn ui-btn-primary ui-btn-xs ui-btn-round ui-btn-themes",
+							id: "aug-filter-popup"
 						},
-						text: window.innerWidth <= 1280 ? 'Options' : 'Filter Options'
+						text: 'Filter Options'
 					}));
 
 					let popupWindow = this.buildPopup(popupButton);
@@ -519,7 +527,7 @@ function documentCompleteHandler() {
 					let calendarSizes = ['Minimum', 'Small', 'Medium', 'Large', 'Maximum'];
 					let menuPopupItem = [];
 
-					let popupWindow = BX.create('div', { attrs: { class: 'popup-window' } });
+					let popupWindow = BX.create('div', { attrs: { class: 'popup-window', id: 'aug-calsize-popup' } });
 					popupWindow.appendChild(BX.create('div', { attrs: { class: 'popup-window-angly popup-window-angly-top', style: 'left: 33px' } }));
 
 					let popupWindowContent = popupWindow.appendChild(BX.create('div', { attrs: { class: 'popup-window-content' } }));
@@ -530,7 +538,7 @@ function documentCompleteHandler() {
 					});
 
 					extraBtn.addEventListener('click', (e) => {
-						if (this.calendar.getView().name == 'month' && window.AUG.Popup.isShown(popupWindow)) {
+						if (this.calendar.getView().name == 'month') {
 							this.Popup.setPopupPosition(extraBtn, popupWindow);
 
 							if (this.Popup.isShown(popupWindow)) {
@@ -1665,18 +1673,21 @@ function documentCompleteHandler() {
 		// @ Description: The purpose of this module is to manage popups
 		(function () {
 			let Popup = {
-				show: (popupElement) => { // <== show popup
+				popupArray: [],
+				show: function (popupElement) { // <== show popup
 					document.querySelector('body').appendChild(popupElement);
 					popupElement.classList.add('aug-popup-show');
+					this.popupArray.push(popupElement);
 				},
-				hide: (popupElement) => { // <== hide popup
+				hide: function (popupElement) { // <== hide popup
 					popupElement.classList.remove('aug-popup-show');
 					popupElement.remove();
+					this.popupArray.splice(this.popupArray.indexOf(popupElement), 1);
 				},
-				isShown: (popupElement) => {
+				isShown: function (popupElement) {
 					return popupElement.classList.contains('aug-popup-show');
 				},
-				setPopupPosition: (popupButton, popupWindow) => {
+				setPopupPosition: function (popupButton, popupWindow) {
 					let popupButtonDim = popupButton.getBoundingClientRect();
 					let top = (popupButtonDim.top + popupButtonDim.height + 11 + window.pageYOffset).toString() + 'px';
 					let left = (popupButtonDim.x + popupButtonDim.width / 2 - 101 / 2).toString() + 'px';
@@ -1685,6 +1696,7 @@ function documentCompleteHandler() {
 					popupWindow.style.position = 'absolute';
 					popupWindow.style.display = 'none';
 				}
+
 			}
 
 			window.AUG.Popup = Popup;
