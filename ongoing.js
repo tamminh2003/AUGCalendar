@@ -179,7 +179,7 @@ function documentCompleteHandler() {
 
 						this.eventType.forEach(c => c.active = false);
 						this.refreshCalendarDisplay();
-					});
+					}); // <== DeSelect All Button Handler
 					// <==========================
 				}
 
@@ -226,6 +226,7 @@ function documentCompleteHandler() {
 					let buttonSelectAll = buttonContainer.appendChild(BX.create('button', {
 						attrs: { class: 'aug-select-all-button ui-btn ui-btn-primary ui-btn-xs' }, text: 'Select All'
 					}));
+
 					buttonSelectAll.addEventListener('click', e => {
 						let arrayCheckbox = optionSectionContainer.querySelectorAll('input')
 
@@ -234,7 +235,7 @@ function documentCompleteHandler() {
 							let _section = this.calendar.sectionController.getSection(_sectionId);
 
 							c.checked = true;
-							if(!c.classList.contains('calendar-list-slider-item-checkbox-checked')) {
+							if (!c.classList.contains('calendar-list-slider-item-checkbox-checked')) {
 								c.classList.add('calendar-list-slider-item-checkbox-checked');
 							}
 							_section.show();
@@ -246,6 +247,7 @@ function documentCompleteHandler() {
 					let buttonDeselectAll = buttonContainer.appendChild(BX.create('button', {
 						attrs: { class: 'aug-deselect-all-button ui-btn ui-btn-primary ui-btn-xs' }, text: 'Deselect All'
 					}));
+
 					buttonDeselectAll.addEventListener('click', e => {
 						let arrayCheckbox = optionSectionContainer.querySelectorAll('input')
 
@@ -254,7 +256,7 @@ function documentCompleteHandler() {
 							let _section = this.calendar.sectionController.getSection(_sectionId);
 
 							c.checked = false;
-							if(c.classList.contains('calendar-list-slider-item-checkbox-checked')) {
+							if (c.classList.contains('calendar-list-slider-item-checkbox-checked')) {
 								c.classList.remove('calendar-list-slider-item-checkbox-checked');
 							}
 
@@ -268,7 +270,7 @@ function documentCompleteHandler() {
 
 				// * AUG CALENDAR HANDLER
 
-				// @ Description: Show/Hide AUG Calendar Filter
+				// @ Description: Show/Hide AUG Calendar Filter -- OBSOLETE
 				popupButtonHandler(e) {
 					let augFilterPopup = document.querySelector('.aug-filter-popup');
 
@@ -285,7 +287,7 @@ function documentCompleteHandler() {
 					}
 				}
 
-				// @ Description: Hide AUG Calendar Filter if "click" outside filter container.
+				// TODO @ Description: Hide AUG Calendar Filter if "click" outside filter container.
 				checkOutsideFilterPopup(e) {
 					let selectedPopup = document.querySelector('.aug-filter-popup.aug-popup-show');
 
@@ -346,11 +348,10 @@ function documentCompleteHandler() {
 
 					this.assignAUGdisplayEntries(); // * <== Call assignAUGdisplayEntries to inject entries filtering into Bitrix displayEntries methods.
 
-
-					// * Create div.aug-filter-container -----------
+					// Create div.aug-filter-container -----------
 					let wrap = document.querySelector('.calendar-view-switcher-list');
 
-					//  * Add POPUP button -----------------------
+					//  Add POPUP button -----------------------
 					let popupButton = document.querySelector('.aug-filter-popup-button');
 					if (popupButton) popupButton.remove(); // <== clean element
 
@@ -371,9 +372,8 @@ function documentCompleteHandler() {
 							this.Popup.hide(popupWindow);
 						} else this.Popup.show(popupWindow);
 					});
-					// * -----------------------------------------
 
-					//  * Add SHOW USER TASK button -----------------------
+					//  Add SHOW USER TASK button -----------------------
 					let showUserTaskButton = document.querySelector('.aug-show-user-task-button');
 
 					if (!showUserTaskButton)
@@ -385,7 +385,7 @@ function documentCompleteHandler() {
 						}));
 
 					showUserTaskButton.addEventListener('click', this.showUserTaskButtonHandler);
-					// * -----------------------------------------
+
 				}
 
 				// @ Description: Create the popup div.aug-filter-popup
@@ -500,46 +500,51 @@ function documentCompleteHandler() {
 					// * <== End of Workgroup Filter -------------------------
 				}
 
-
 				// @ Description: Extend calendar cell and entry holder
 				calendarSizeModule() {
 					// injecting new buildDaysGrid() and show()
 					this.assignAUGbuildDaysGrid();
 					this.assignAUGshow();
 
-					// Generate Size Selector Button
+					let calendarSizes = ['Minimum', 'Small', 'Medium', 'Large', 'Maximum'];
+					let menuPopupItem = [];
+
+					// Build Calendar Size Module
 					let wrap = document.querySelector('.aug-calendar-size-module');
 					if (wrap) wrap.remove(); // <== clear element
-
 					wrap = BX.create('div', { attrs: { class: 'aug-calendar-size-module ui-btn-split ui-btn-primary ui-btn-xs' } });
 					document.querySelector('.calendar-view-switcher-list').appendChild(wrap);
 
+					// Calendar Size Button
 					wrap.appendChild(BX.create('label',
 						{
 							attrs: { for: 'calSize', class: 'ui-btn-main ui-btn-round-lft' },
 							text: 'Calendar Size'
 						}
 					));
-
+					
+					// Popup Button
 					let extraBtn = wrap.appendChild(BX.create('div',
 						{
 							attrs: { class: 'ui-btn-extra ui-btn-round-rgt' }
 						}
 					));
 
-					let calendarSizes = ['Minimum', 'Small', 'Medium', 'Large', 'Maximum'];
-					let menuPopupItem = [];
-
+					// Build Popup Window
 					let popupWindow = BX.create('div', { attrs: { class: 'popup-window', id: 'aug-calsize-popup' } });
 					popupWindow.appendChild(BX.create('div', { attrs: { class: 'popup-window-angly popup-window-angly-top', style: 'left: 33px' } }));
 
+					// Popup menu items
 					let popupWindowContent = popupWindow.appendChild(BX.create('div', { attrs: { class: 'popup-window-content' } }));
 					let menuPopup = popupWindowContent.appendChild(BX.create('div', { attrs: { class: 'menu-popup' } }));
 					let menuPopupItems = menuPopup.appendChild(BX.create('div', { attrs: { class: 'menu-popup-items' } }));
+
 					calendarSizes.forEach(sizeText => {
 						menuPopupItem.push(menuPopupItems.appendChild(BX.create('span', { attrs: { class: 'menu-popup-item menu-popup-item-text' }, text: sizeText })));
 					});
+					// <== End of Build Popup Window
 
+					// <== Button Handler
 					extraBtn.addEventListener('click', (e) => {
 						if (this.calendar.getView().name == 'month') {
 							this.Popup.setPopupPosition(extraBtn, popupWindow);
@@ -549,7 +554,8 @@ function documentCompleteHandler() {
 							} else this.Popup.show(popupWindow);
 						}
 					});
-					// <== End of generating button 
+					// <== End of Button Handler
+					// <== End of Calendar Size Button 
 
 					// Menu Item Handler
 					let selectSlotHeight = [20, 20, 40, 40, 40];
@@ -1270,7 +1276,7 @@ function documentCompleteHandler() {
 		// ------------------------------------------
 
 
-		// -------Observer------------------------------
+		// ! Don't touch -------Observer----------------
 		(function (window) {
 
 			let Observer = {
@@ -1708,7 +1714,7 @@ function documentCompleteHandler() {
 		// ------------------------------------------
 
 
-		// ------------------------------------------
+		// ! Main Procedure-----------------------------
 		// Create custom AUG filter
 		if (document.querySelector('.aug-filter-container')) {
 			document.querySelector('.aug-filter-container').remove();
