@@ -1,6 +1,4 @@
 /* --------------- Calendar ---------------- */
-
-
 div.aug-event-slot-large>div.calendar-event-line-inner-container {
   height: 38px;
 }
@@ -70,4 +68,7 @@ input[type="checkbox"] {
   appearance: none;
 }
 
+.aug-checkboxes-container {
+    margin-bottom: 10px;
+}
 /* --------------- End Calendar ------------ */
