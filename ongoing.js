@@ -287,40 +287,6 @@ function documentCompleteHandler() {
 					}
 				}
 
-				// TODO @ Description: Hide AUG Calendar Filter if "click" outside filter container.
-				checkOutsideFilterPopup(e) {
-					let selectedPopup = document.querySelector('.aug-filter-popup.aug-popup-show');
-
-					if (!selectedPopup) {
-						return;
-					}
-
-					if (!selectedPopup.className.includes("aug-popup-show")) {
-						return;
-					} else {
-						for (const eachElem of e.path) {
-
-							if (!eachElem.className) {
-								if (eachElem.className == "")
-									continue;
-								else
-									break;
-							}
-
-							if (eachElem.className.includes("aug-filter-popup-button")) {
-								return;
-							}
-
-							if (eachElem.className.includes("aug-filter-popup aug-popup-show")) {
-								return;
-							}
-						}
-
-						selectedPopup.classList.remove('aug-popup-show');
-						selectedPopup.style.visibility = "hidden";
-					}
-				}
-
 				// @ Description: Handler for SHOW USER TASK button, toggle showUserTask flag
 				//              : _this object is quick access to AUG.Calendar, main object of the script
 				//              : this object refer to the button itself.
@@ -370,8 +336,10 @@ function documentCompleteHandler() {
 
 						if (this.Popup.isShown(popupWindow)) {
 							this.Popup.hide(popupWindow);
-						} else this.Popup.show(popupWindow);
-					});
+						} else this.Popup.show(popupWindow, popupButton);
+
+						e.stopPropagation();
+					}, true);
 
 					//  Add SHOW USER TASK button -----------------------
 					let showUserTaskButton = document.querySelector('.aug-show-user-task-button');
@@ -522,7 +490,7 @@ function documentCompleteHandler() {
 							text: 'Calendar Size'
 						}
 					));
-					
+
 					// Popup Button
 					let extraBtn = wrap.appendChild(BX.create('div',
 						{
@@ -551,9 +519,11 @@ function documentCompleteHandler() {
 
 							if (this.Popup.isShown(popupWindow)) {
 								this.Popup.hide(popupWindow);
-							} else this.Popup.show(popupWindow);
+							} else this.Popup.show(popupWindow, extraBtn);
+
+							e.stopPropagation();
 						}
-					});
+					}, true);
 					// <== End of Button Handler
 					// <== End of Calendar Size Button 
 
@@ -1276,7 +1246,7 @@ function documentCompleteHandler() {
 		// ------------------------------------------
 
 
-		// ! Don't touch -------Observer----------------
+		// ! Don't change -------Observer----------------
 		(function (window) {
 
 			let Observer = {
@@ -1682,20 +1652,29 @@ function documentCompleteHandler() {
 		// @ Description: The purpose of this module is to manage popups
 		(function () {
 			let Popup = {
+				// @ Stores currently Shown Popups
 				popupArray: [],
-				show: function (popupElement) { // <== show popup
-					document.querySelector('body').appendChild(popupElement);
-					popupElement.classList.add('aug-popup-show');
-					this.popupArray.push(popupElement);
+
+				// @ Shows popupElement
+				show: function (popupWindow, popupButton) { // <== show popup
+					document.querySelector('body').appendChild(popupWindow);
+					popupWindow.classList.add('aug-popup-show');
+					this.popupArray.push({ popupWindow, popupButton });
 				},
-				hide: function (popupElement) { // <== hide popup
-					popupElement.classList.remove('aug-popup-show');
-					popupElement.remove();
-					this.popupArray.splice(this.popupArray.indexOf(popupElement), 1);
+
+				// @ Hides popupElement
+				hide: function (popupWindow) { // <== hide popup
+					popupWindow.classList.remove('aug-popup-show');
+					popupWindow.remove();
+					this.popupArray.splice(this.popupArray.map(c => c.popupWindow).indexOf(popupWindow), 1);
 				},
+
+				// @ Return shown status of popupElement
 				isShown: function (popupElement) {
 					return popupElement.classList.contains('aug-popup-show');
 				},
+
+				// @ Sets position of popup
 				setPopupPosition: function (popupButton, popupWindow) {
 					let popupButtonDim = popupButton.getBoundingClientRect();
 					let top = (popupButtonDim.top + popupButtonDim.height + 11 + window.pageYOffset).toString() + 'px';
@@ -1704,6 +1683,24 @@ function documentCompleteHandler() {
 					popupWindow.style.left = left;
 					popupWindow.style.position = 'absolute';
 					popupWindow.style.display = 'none';
+				},
+
+				// @ Description: Hide AUG Calendar Filter if "click" outside popup container.
+				clickOutsidePopup: function (e) {
+					if (this.popupArray.length > 0) {
+						for (const popup of this.popupArray) {
+							if (e.path.includes(popup.popupWindow) || e.path.includes(popup.popupButton)) break;
+							this.hide(popup.popupWindow);
+						}
+					}
+				},
+
+				escClosePopup: function (e) {
+					if (this.popupArray.length > 0 && e.keyCode == 27) {
+						this.popupArray.forEach(popup => {
+							this.hide(popup.popupWindow);
+						});
+					}
 				}
 
 			}
@@ -1728,6 +1725,11 @@ function documentCompleteHandler() {
 
 		// Selecting Calendar Size Button
 		AUG.Calendar.calendarSizeModule();
+
+		// Auxilary Features
+		// Close popup when click outside
+		document.addEventListener('click', AUG.Popup.clickOutsidePopup.bind(AUG.Popup), true);
+		document.addEventListener('keydown', AUG.Popup.escClosePopup.bind(AUG.Popup));
 		// ------------------------------------------
 
 	} catch (error) {
