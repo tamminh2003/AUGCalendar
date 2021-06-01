@@ -2,7 +2,7 @@
 
 console.log("-----------------------------------");
 console.log("     AUG_Calendar custom script    ");
-console.log("           Ver. 0.1.0601           ");
+console.log("          Ver. 0.1.0601.02         ");
 console.log("-----------------------------------");
 
 function documentCompleteHandler() {
