@@ -1298,6 +1298,8 @@ function documentCompleteHandler() {
 
 						// * get max entries per month && set slotsCount to maxEntries of month
 						_this.slotsCount = Math.max(...maxEntriesWeek);
+						_this.rowHeight = Math.max(_this.slotHeight * (_this.slotsCount + 1) - 1
+						+ _this.eventHolderTopOffset, minRowHeight);
 
 						// * set height of week.
 						_this.monthRows.forEach((row, rowIndex) => {
