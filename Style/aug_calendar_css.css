@@ -47,7 +47,7 @@ div.aug-event-slot-large>div>div>.calendar-event-line-dot {
 
 .aug-option-container {
   height: fit-content;
-  margin: 10px;
+  margin: 21px;
   padding: 0px;
 }
 
@@ -65,7 +65,7 @@ span.aug-option-name.calendar-list-slider-item-name {
   padding: 0px;
 }
 
-input[type="checkbox"] {
+.aug-popup-show input[type="checkbox"] {
   appearance: none;
 }
 
