@@ -2,7 +2,7 @@
 
 console.log("-----------------------------------");
 console.log("     AUG_Calendar custom script    ");
-console.log("           Ver. 0.1.0529           ");
+console.log("           Ver. 0.1.0601           ");
 console.log("-----------------------------------");
 
 function documentCompleteHandler() {
@@ -14,6 +14,52 @@ function documentCompleteHandler() {
 		}
 		)(window);
 
+		// ------Utility--------------------------
+		(function (window) {
+			let Utility = {
+
+				rgbToHex: function (rgbstring) {
+					rgbArray = rgbstring.match(/[0-9]*/g).filter(function (element) {
+						return element !== '';
+					})
+					hexArray = rgbArray.map(function (element) {
+						let x = parseInt(element).toString(16);
+						if (x.length < 2) x = '0' + x;
+						return x;
+					});
+					return `#${hexArray[0]}${hexArray[1]}${hexArray[2]}`;
+				},
+
+				defaultColors: ["#86B100", "#0092CC", "#00AFC7", "#DA9100", "#00B38C", "#DE2B24", "#BD7AC9", "#838FA0"],
+
+				getCalendar: function getCalendar() {
+					let key = Object.keys(window.BXEventCalendar.instances);
+
+					return window.BXEventCalendar.instances[key];
+				},
+
+				getSdPnBkgrClr: function () {
+					for (const e of document.styleSheets) {
+						if (e.href.includes('kernel_sidepanel_v1.css')) {
+							for (const t of e.rules) {
+								if (t.selectorText == '.side-panel-container') {
+									return t.style.backgroundColor;
+								}
+							}
+						}
+					}
+				}
+
+
+
+			}
+
+			window.AUG.Utility = Utility;
+
+		}
+		)(window);
+		// ------------------------------------------
+
 
 		// --------Calendar--------------------------
 		(function (window) {
@@ -22,6 +68,7 @@ function documentCompleteHandler() {
 				constructor() {
 					this.name = "AUG_Calendar";
 					this.calendar = this.getCalendarInstance(window.BXEventCalendar);
+					this.util = AUG.Utility;
 					this.eventType = [{
 						name: 'augTravel',
 						color: '#86B100',
@@ -330,6 +377,8 @@ function documentCompleteHandler() {
 					}));
 
 					let popupWindow = this.buildPopup(popupButton);
+					popupWindow.style.backgroundColor = this.util.getSdPnBkgrClr();
+					popupWindow.style.padding = '21px';
 
 					popupButton.addEventListener('click', (e) => {
 						this.Popup.setPopupPosition(popupButton, popupWindow);
@@ -487,7 +536,7 @@ function documentCompleteHandler() {
 					wrap.appendChild(BX.create('label',
 						{
 							attrs: { for: 'calSize', class: 'ui-btn-main ui-btn-round-lft' },
-							text: 'Calendar Size'
+							text: window.innerWidth >= 1920 ? 'Calendar Size' : 'Size'
 						}
 					));
 
@@ -510,16 +559,18 @@ function documentCompleteHandler() {
 					calendarSizes.forEach(sizeText => {
 						menuPopupItem.push(menuPopupItems.appendChild(BX.create('span', { attrs: { class: 'menu-popup-item menu-popup-item-text' }, text: sizeText })));
 					});
+
+					let autoOption = menuPopupItems.appendChild(BX.create('span', { attrs: { class: 'menu-popup-item menu-popup-item-text' }, text: 'Auto' }))
 					// <== End of Build Popup Window
 
 					// <== Button Handler
-					extraBtn.addEventListener('click', (e) => {
+					wrap.addEventListener('click', (e) => {
 						if (this.calendar.getView().name == 'month') {
 							this.Popup.setPopupPosition(extraBtn, popupWindow);
 
 							if (this.Popup.isShown(popupWindow)) {
 								this.Popup.hide(popupWindow);
-							} else this.Popup.show(popupWindow, extraBtn);
+							} else this.Popup.show(popupWindow, wrap);
 
 							e.stopPropagation();
 						}
@@ -529,7 +580,7 @@ function documentCompleteHandler() {
 
 					// Menu Item Handler
 					let selectSlotHeight = [20, 20, 40, 40, 40];
-					let selectRowHeight = [144, 224, 544, 664, 784]
+					let selectRowHeight = [144, 224, 544, 664, 784];
 
 					menuPopupItem.forEach((menuPopupItem, index) => {
 						menuPopupItem.addEventListener('click', (e) => {
@@ -544,9 +595,38 @@ function documentCompleteHandler() {
 								this.eventSlotSize = 0;
 							}
 							monthView.show();
-						})
-					})
+						});
+					});
 					// <== End of Menu Item Handler
+
+					// <== Auto Option Handler
+					autoOption.addEventListener('click', e => {
+						AUG.Popup.hide(popupWindow);
+						let monthView = AUG.Calendar.calendar.getView("month");
+
+						let entriesPerDay = monthView.days.map(c => c.entries.list.length);
+						let maxEntriesPerDay = Math.max(...entriesPerDay);
+				
+						monthView.rowHeight = monthView.slotHeight * maxEntriesPerDay 
+																				+ monthView.slotHeight - 1 + monthView.eventHolderTopOffset;
+				
+						monthView.slotsCount = Math.floor((this.rowHeight - this.eventHolderTopOffset) / this.slotHeight);
+				
+						monthView.show();
+					});
+
+					// <== Disable Calendar Module in views other than MonthView
+					document.querySelector('div.calendar-view-switcher-list>div>div').addEventListener('click', function (e) {
+						let calendarSizeModule = document.querySelector('.aug-calendar-size-module');
+						let chosenView = document.querySelector('.calendar-view-switcher-list-item-active').innerHTML;
+						if (chosenView == 'Month') {
+							calendarSizeModule.classList.remove('ui-btn-main-disabled');
+							calendarSizeModule.classList.remove('ui-btn-extra-disabled');
+						} else {
+							calendarSizeModule.classList.add('ui-btn-main-disabled');
+							calendarSizeModule.classList.add('ui-btn-extra-disabled');
+						}
+					});
 				}
 
 				// ! INJECTED METHODS ==========================
@@ -1210,42 +1290,6 @@ function documentCompleteHandler() {
 		)(window);
 		// ------------------------------------------
 
-
-		// ------Utility--------------------------
-		(function (window) {
-			let Utility = {
-
-				rgbToHex: function (rgbstring) {
-					rgbArray = rgbstring.match(/[0-9]*/g).filter(function (element) {
-						return element !== '';
-					})
-					hexArray = rgbArray.map(function (element) {
-						let x = parseInt(element).toString(16);
-						if (x.length < 2) x = '0' + x;
-						return x;
-					});
-					return `#${hexArray[0]}${hexArray[1]}${hexArray[2]}`;
-				},
-
-				defaultColors: ["#86B100", "#0092CC", "#00AFC7", "#DA9100", "#00B38C", "#DE2B24", "#BD7AC9", "#838FA0"],
-
-				getCalendar: function getCalendar() {
-					let key = Object.keys(window.BXEventCalendar.instances);
-
-					return window.BXEventCalendar.instances[key];
-				}
-
-
-
-			}
-
-			window.AUG.Utility = Utility;
-
-		}
-		)(window);
-		// ------------------------------------------
-
-
 		// ! Don't change -------Observer----------------
 		(function (window) {
 
@@ -1485,8 +1529,8 @@ function documentCompleteHandler() {
 
 																label = eachM.addedNodes[0].appendChild(document.createElement('DIV'));
 																label.style.position = 'absolute';
-																label.style.left = '30px';
-																label.style.top = '6px';
+																// label.style.left = '30px';
+																label.style.top = '27px';
 																label.style.width = 'max-content';
 
 																switch (eachM.addedNodes[0].dataset.bxCalendarColor) {
@@ -1498,7 +1542,7 @@ function documentCompleteHandler() {
 																		break;
 																	case "#00AFC7":
 																		eventName = 'Marketing Promotion';
-																		label.style.top = '0px';
+																		label.style.top = '27px';
 																		label.style.width = 'min-content';
 																		break;
 																	case "#DA9100":
