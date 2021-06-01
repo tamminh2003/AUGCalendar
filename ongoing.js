@@ -38,6 +38,7 @@ function documentCompleteHandler() {
 					return window.BXEventCalendar.instances[key];
 				},
 
+				// ? Short for getSidePanelBackgroundColor <-- Long ==> Hence, getSdPnBkgrClr
 				getSdPnBkgrClr: function () {
 					for (const e of document.styleSheets) {
 						if (e.href.includes('kernel_sidepanel_v1.css')) {
@@ -49,8 +50,6 @@ function documentCompleteHandler() {
 						}
 					}
 				}
-
-
 
 			}
 
@@ -69,6 +68,16 @@ function documentCompleteHandler() {
 					this.name = "AUG_Calendar";
 					this.calendar = this.getCalendarInstance(window.BXEventCalendar);
 					this.util = AUG.Utility;
+					this.eventSlotSize = 0; // 0 = small, 1 = large
+
+					this.companyCalendar = this.getAvailableSection().filter(function (section) {
+						return section.type == "company_calendar"
+					});
+
+					this.workgroupCalendar = this.getAvailableSection().filter(function (section) {
+						return section.type == "group"
+					});
+
 					this.eventType = [{
 						name: 'augTravel',
 						color: '#86B100',
@@ -110,15 +119,7 @@ function documentCompleteHandler() {
 						active: true,
 						title: 'Others'
 					}];
-					this.eventSlotSize = 0; // 0 = small, 1 = large
-					this.companyCalendar = this.getAvailableSection().filter(function (section) {
-						return section.type == "company_calendar"
-					});
-					this.workgroupCalendar = this.getAvailableSection().filter(function (section) {
-						return section.type == "group"
-					});
 				}
-
 
 				// * AUG CALENDAR UTILITY
 
@@ -149,11 +150,11 @@ function documentCompleteHandler() {
 					if (this.eventSlotSize) {
 						document.querySelectorAll('.calendar-event-line-wrap').forEach(c => {
 							c.classList.add('aug-event-slot-large');
-						})
+						});
 					} else {
 						document.querySelectorAll('.calendar-event-line-wrap').forEach(c => {
-							c.classList.add('aug-event-slot-small')
-						})
+							c.classList.add('aug-event-slot-small');
+						});
 					}
 				}
 
@@ -181,15 +182,14 @@ function documentCompleteHandler() {
 						// <== Checkbox handler
 						checkbox.addEventListener('change', (e) => {
 							let _name = checkbox.parentElement.dataset.name;
-							let _index = this.eventType.map((c) => { return c.name; })
-								.indexOf(_name);
+							let _index = this.eventType.map((c) => { return c.name; }).indexOf(_name);
 							if (_index > -1) this.eventType[_index].active = checkbox.checked;
 							if (checkbox.checked) checkbox.classList.add('calendar-list-slider-item-checkbox-checked');
 							else checkbox.classList.remove('calendar-list-slider-item-checkbox-checked');
 							this.refreshCalendarDisplay();
 						});
 
-					})
+					});
 				}
 
 				// @ Description: Generate Select All and Deselect All button
@@ -258,7 +258,7 @@ function documentCompleteHandler() {
 								_section.show();
 								checkbox.classList.add('calendar-list-slider-item-checkbox-checked');
 							}
-							if (!checkbox.checked && _section.isShown()) {
+							else if (!checkbox.checked && _section.isShown()) {
 								_section.hide();
 								checkbox.classList.remove('calendar-list-slider-item-checkbox-checked');
 							}
@@ -275,7 +275,7 @@ function documentCompleteHandler() {
 					}));
 
 					buttonSelectAll.addEventListener('click', e => {
-						let arrayCheckbox = optionSectionContainer.querySelectorAll('input')
+						let arrayCheckbox = optionSectionContainer.querySelectorAll('input');
 
 						arrayCheckbox.forEach(c => {
 							let _sectionId = c.parentElement.dataset.section;
@@ -285,6 +285,7 @@ function documentCompleteHandler() {
 							if (!c.classList.contains('calendar-list-slider-item-checkbox-checked')) {
 								c.classList.add('calendar-list-slider-item-checkbox-checked');
 							}
+
 							_section.show();
 							this.refreshCalendarDisplay();
 						});
@@ -296,7 +297,7 @@ function documentCompleteHandler() {
 					}));
 
 					buttonDeselectAll.addEventListener('click', e => {
-						let arrayCheckbox = optionSectionContainer.querySelectorAll('input')
+						let arrayCheckbox = optionSectionContainer.querySelectorAll('input');
 
 						arrayCheckbox.forEach(c => {
 							let _sectionId = c.parentElement.dataset.section;
@@ -312,27 +313,10 @@ function documentCompleteHandler() {
 						});
 					});
 				}
+
 				// * ================================
 
-
 				// * AUG CALENDAR HANDLER
-
-				// @ Description: Show/Hide AUG Calendar Filter -- OBSOLETE
-				popupButtonHandler(e) {
-					let augFilterPopup = document.querySelector('.aug-filter-popup');
-
-					if (!augFilterPopup.classList.contains('aug-popup-show')) {
-						document.querySelector('.page-header').style.opacity = 1;
-						augFilterPopup.classList.add('aug-popup-show');
-						augFilterPopup.style.visibility = 'visible';
-						// augFilterPopup.style.top = (11 - ((parseInt(window.getComputedStyle(augFilterPopup).height) / 2))).toString() + 'px';
-					} else {
-						document.querySelector('.page-header').style.opacity = 0.96;
-						augFilterPopup.classList.remove('aug-popup-show');
-						augFilterPopup.style.visibility = 'collapse';
-
-					}
-				}
 
 				// @ Description: Handler for SHOW USER TASK button, toggle showUserTask flag
 				//              : _this object is quick access to AUG.Calendar, main object of the script
@@ -438,7 +422,7 @@ function documentCompleteHandler() {
 						let optionTitleContainer = eventTypeOptionContainer.appendChild(BX.create('div', {
 							attrs: { class: 'aug-option-title calendar-list-slider-card-widget-title calendar-list-slider-card-widget-title-text' }
 						}));
-						optionTitleContainer.innerHTML = 'Event Type' // todo FORMAT TITLE
+						optionTitleContainer.innerHTML = 'Event Type';
 
 						// Checkbox container
 						let optionContainer = eventTypeOptionContainer.appendChild(BX.create('div', {
@@ -450,8 +434,7 @@ function documentCompleteHandler() {
 						let buttonContainer = eventTypeOptionContainer.appendChild(BX.create('div', {
 							attrs: { class: 'aug-select-button-container' }
 						}));
-						this.createEventTypeSelectAllButton(buttonContainer, eventTypeOptionContainer); // todo FORMAT BUTTON
-
+						this.createEventTypeSelectAllButton(buttonContainer, eventTypeOptionContainer);
 						// Make all checkboxes active 
 						// eventTypeOptionContainer.querySelectorAll('input').forEach(c => c.checked = true);
 
@@ -469,7 +452,7 @@ function documentCompleteHandler() {
 							let optionTitleContainer = companyCalendarOptionContainer.appendChild(BX.create('div', {
 								attrs: { class: 'aug-option-title calendar-list-slider-card-widget-title calendar-list-slider-card-widget-title-text' }
 							}));
-							optionTitleContainer.innerHTML = 'Company Calendar' // todo FORMAT TITLE
+							optionTitleContainer.innerHTML = 'Company Calendar';
 
 							// Checkbox container
 							let optionContainer = companyCalendarOptionContainer.appendChild(BX.create('div', {
@@ -481,7 +464,7 @@ function documentCompleteHandler() {
 							let buttonContainer = companyCalendarOptionContainer.appendChild(BX.create('div', {
 								attrs: { class: 'aug-select-button-container' }
 							}));
-							this.createSelectAllButton(buttonContainer, companyCalendarOptionContainer); // todo FORMAT BUTTON
+							this.createSelectAllButton(buttonContainer, companyCalendarOptionContainer);
 
 						}
 					}
@@ -499,7 +482,7 @@ function documentCompleteHandler() {
 							let optionTitleContainer = companyCalendarOptionContainer.appendChild(BX.create('div', {
 								attrs: { class: 'aug-option-title calendar-list-slider-card-widget-title calendar-list-slider-card-widget-title-text' }
 							}));
-							optionTitleContainer.innerHTML = 'Workgroup Calendar' // todo FORMAT TITLE
+							optionTitleContainer.innerHTML = 'Workgroup Calendar';
 
 							// Checkbox container
 							let optionContainer = companyCalendarOptionContainer.appendChild(BX.create('div', {
@@ -511,7 +494,7 @@ function documentCompleteHandler() {
 							let buttonContainer = companyCalendarOptionContainer.appendChild(BX.create('div', {
 								attrs: { class: 'aug-select-button-container' }
 							}));
-							this.createSelectAllButton(buttonContainer, companyCalendarOptionContainer); // todo FORMAT BUTTON
+							this.createSelectAllButton(buttonContainer, companyCalendarOptionContainer);
 						}
 					}
 					// * <== End of Workgroup Filter -------------------------
@@ -560,7 +543,22 @@ function documentCompleteHandler() {
 						menuPopupItem.push(menuPopupItems.appendChild(BX.create('span', { attrs: { class: 'menu-popup-item menu-popup-item-text' }, text: sizeText })));
 					});
 
-					let autoOption = menuPopupItems.appendChild(BX.create('span', { attrs: { class: 'menu-popup-item menu-popup-item-text' }, text: 'Auto' }))
+					// <== Auto Size option
+					let autoOption = menuPopupItems.appendChild(BX.create('span', {
+						attrs: { class: 'menu-popup-item menu-popup-item-text' },
+						text: window.AUG.Calendar.autoHeight ? 'Auto ON' : 'Auto OFF'
+					}));
+
+					// <== Auto Option Handler
+					autoOption.addEventListener('click', e => {
+						AUG.Popup.hide(popupWindow);
+						let monthView = AUG.Calendar.calendar.getView("month");
+
+						window.AUG.Calendar.autoHeight = !window.AUG.Calendar.autoHeight;
+						autoOption.innerHTML = window.AUG.Calendar.autoHeight ? 'Auto ON' : 'Auto OFF';
+
+						monthView.show();
+					});
 					// <== End of Build Popup Window
 
 					// <== Button Handler
@@ -585,35 +583,20 @@ function documentCompleteHandler() {
 					menuPopupItem.forEach((menuPopupItem, index) => {
 						menuPopupItem.addEventListener('click', (e) => {
 							AUG.Popup.hide(popupWindow);
+
 							let monthView = this.calendar.getView('month');
+
 							monthView.rowHeight = selectRowHeight[index];
 							monthView.slotHeight = selectSlotHeight[index];
 							monthView.slotsCount = Math.floor((monthView.rowHeight - monthView.eventHolderTopOffset) / monthView.slotHeight);
-							if (index > 1) {
-								this.eventSlotSize = 1;
-							} else {
-								this.eventSlotSize = 0;
-							}
+
+							if (index > 1) this.eventSlotSize = 1;
+							else this.eventSlotSize = 0;
+
 							monthView.show();
 						});
 					});
 					// <== End of Menu Item Handler
-
-					// <== Auto Option Handler
-					autoOption.addEventListener('click', e => {
-						AUG.Popup.hide(popupWindow);
-						let monthView = AUG.Calendar.calendar.getView("month");
-
-						let entriesPerDay = monthView.days.map(c => c.entries.list.length);
-						let maxEntriesPerDay = Math.max(...entriesPerDay);
-				
-						monthView.rowHeight = monthView.slotHeight * maxEntriesPerDay 
-																				+ monthView.slotHeight - 1 + monthView.eventHolderTopOffset;
-				
-						monthView.slotsCount = Math.floor((this.rowHeight - this.eventHolderTopOffset) / this.slotHeight);
-				
-						monthView.show();
-					});
 
 					// <== Disable Calendar Module in views other than MonthView
 					document.querySelector('div.calendar-view-switcher-list>div>div').addEventListener('click', function (e) {
@@ -996,7 +979,7 @@ function documentCompleteHandler() {
 							});
 						}
 
-						// ! -------- Injected code to manipulate the entries before display
+						// ! -------- INJECT ENTRY FILTER
 
 						window.AUG.Calendar.entryFilter(params, this);
 
@@ -1072,6 +1055,12 @@ function documentCompleteHandler() {
 						for (i = 0; i < partsStorage.length; i++) {
 							this.displayEntryPiece(partsStorage[i]);
 						}
+
+						// ! INJECT AUTO HEIGHT
+
+						window.AUG.Calendar.autoSetRowHeight(this);
+
+						// ! ==================
 
 						// Final arrangement on the grid
 						for (dayPos = 0; dayPos < this.days.length; dayPos++) {
@@ -1219,13 +1208,14 @@ function documentCompleteHandler() {
 
 							this.calendar.setDisplayedViewRange(displayedRange);
 
-							// Adjusting rows height to the height of the view
+							// ! Adjusting rows height to the height of the view
 							if (this.monthRows.length > 0) {
-								if (!this.rowHeight) this.rowHeight = 144;
+								if (!this.rowHeight || this.rowHeight < 144) this.rowHeight = 144;
 								this.slotsCount = Math.floor((this.rowHeight - this.eventHolderTopOffset) / this.slotHeight);
 								for (i = 0; i < this.monthRows.length; i++) {
 									this.monthRows[i].style.height = this.rowHeight + 'px';
 								}
+
 							}
 						};
 				}
@@ -1250,6 +1240,8 @@ function documentCompleteHandler() {
 							this.gridWrap.style.overflow = '';
 						};
 				}
+
+				// ! METHODS GOT INJECTED INTO BITRIX
 
 				// @ Description: injected method into displayEntries of each view
 				//              : _this parameter is to pass the current context 
@@ -1280,6 +1272,40 @@ function documentCompleteHandler() {
 					})
 
 					_this.entries = tempArray;
+				}
+
+				// @ Description: injected autoHeight method into displayEntries of MonthView
+				autoSetRowHeight(_this) {
+					if (window.AUG.Calendar.autoHeight) {
+						let weeks = [];
+						let maxEntriesWeek = [];
+						let weekIndex = -1;
+						let minRowHeight = 144;
+
+						// * get days in week
+						_this.days.forEach(c => {
+							if (_this.util.getWeekDayByInd(c.date.getDay()) == _this.util.getWeekStart()) {
+								weekIndex++;
+								weeks.push([c]);
+							} else weeks[weekIndex].push(c);
+						});
+
+						// * get max entries per week
+						weeks.forEach(week => {
+							let maxEntries = Math.max(...week.map(day => day.entries.list.length));
+							maxEntriesWeek.push(maxEntries);
+						});
+
+						// * get max entries per month && set slotsCount to maxEntries of month
+						_this.slotsCount = Math.max(...maxEntriesWeek);
+
+						// * set height of week.
+						_this.monthRows.forEach((row, rowIndex) => {
+							let rowHeight = Math.max(_this.slotHeight * (maxEntriesWeek[rowIndex] + 1) - 1
+								+ _this.eventHolderTopOffset, minRowHeight);
+							row.style.height = rowHeight + 'px';
+						});
+					}
 				}
 
 			}
