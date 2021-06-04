@@ -1733,7 +1733,7 @@ function documentCompleteHandler() {
 				clickOutsidePopup: function (e) {
 					if (this.popupArray.length > 0) {
 						for (const popup of this.popupArray) {
-							if (e.path.includes(popup.popupWindow) || e.path.includes(popup.popupButton)) break;
+							if (e.composedPath().includes(popup.popupWindow) || e.composedPath().includes(popup.popupButton)) break;
 							this.hide(popup.popupWindow);
 						}
 					}
