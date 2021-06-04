@@ -546,17 +546,14 @@ function documentCompleteHandler() {
 					// <== Auto Size option
 					let autoOption = menuPopupItems.appendChild(BX.create('span', {
 						attrs: { class: 'menu-popup-item menu-popup-item-text' },
-						text: window.AUG.Calendar.autoHeight ? 'Auto ON' : 'Auto OFF'
+						text: 'Auto'
 					}));
 
 					// <== Auto Option Handler
 					autoOption.addEventListener('click', e => {
 						AUG.Popup.hide(popupWindow);
 						let monthView = AUG.Calendar.calendar.getView("month");
-
-						window.AUG.Calendar.autoHeight = !window.AUG.Calendar.autoHeight;
-						autoOption.innerHTML = window.AUG.Calendar.autoHeight ? 'Auto ON' : 'Auto OFF';
-
+						window.AUG.Calendar.autoHeight = true;
 						monthView.show();
 					});
 					// <== End of Build Popup Window
@@ -1281,6 +1278,9 @@ function documentCompleteHandler() {
 						let maxEntriesWeek = [];
 						let weekIndex = -1;
 						let minRowHeight = 144;
+
+						// * toggle autoHeight flag
+						window.AUG.Calendar.autoHeight = false;
 
 						// * get days in week
 						_this.days.forEach(c => {
