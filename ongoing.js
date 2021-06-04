@@ -515,8 +515,13 @@ function documentCompleteHandler() {
 					wrap = BX.create('div', { attrs: { class: 'aug-calendar-size-module ui-btn-split ui-btn-primary ui-btn-xs' } });
 					document.querySelector('.calendar-view-switcher-list').appendChild(wrap);
 
+					if(this.calendar.getView().name != 'month') {
+						wrap.classList.add('ui-btn-main-disabled');
+						wrap.classList.add('ui-btn-extra-disabled');
+					};
+
 					// Calendar Size Button
-					wrap.appendChild(BX.create('label',
+					let labelBtn = wrap.appendChild(BX.create('label',
 						{
 							attrs: { for: 'calSize', class: 'ui-btn-main ui-btn-round-lft' },
 							text: window.innerWidth >= 1920 ? 'Calendar Size' : 'Size'
