@@ -2,7 +2,7 @@
 
 console.log("-----------------------------------");
 console.log("     AUG_Calendar custom script    ");
-console.log("         Ver. 0.1.0604             ");
+console.log("      Ver. 0.1.0608.autoHeight     ");
 console.log("-----------------------------------");
 
 function documentCompleteHandler() {
@@ -69,6 +69,7 @@ function documentCompleteHandler() {
 					this.calendar = this.getCalendarInstance(window.BXEventCalendar);
 					this.util = AUG.Utility;
 					this.eventSlotSize = 0; // 0 = small, 1 = large
+					this.autoHeight = true;
 
 					this.companyCalendar = this.getAvailableSection().filter(function (section) {
 						return section.type == "company_calendar"
@@ -506,7 +507,7 @@ function documentCompleteHandler() {
 					this.assignAUGbuildDaysGrid();
 					this.assignAUGshow();
 
-					let calendarSizes = ['Minimum', 'Small', 'Medium', 'Large', 'Maximum'];
+					let calendarSizes = ['Small', 'Large'];
 					let menuPopupItem = [];
 
 					// Build Calendar Size Module
@@ -515,7 +516,7 @@ function documentCompleteHandler() {
 					wrap = BX.create('div', { attrs: { class: 'aug-calendar-size-module ui-btn-split ui-btn-primary ui-btn-xs' } });
 					document.querySelector('.calendar-view-switcher-list').appendChild(wrap);
 
-					if(this.calendar.getView().name != 'month') {
+					if (this.calendar.getView().name != 'month') {
 						wrap.classList.add('ui-btn-main-disabled');
 						wrap.classList.add('ui-btn-extra-disabled');
 					};
@@ -524,7 +525,7 @@ function documentCompleteHandler() {
 					let labelBtn = wrap.appendChild(BX.create('label',
 						{
 							attrs: { for: 'calSize', class: 'ui-btn-main ui-btn-round-lft' },
-							text: window.innerWidth >= 1920 ? 'Calendar Size' : 'Size'
+							text: window.innerWidth >= 1920 ? 'Event Size' : 'Size'
 						}
 					));
 
@@ -549,18 +550,19 @@ function documentCompleteHandler() {
 					});
 
 					// <== Auto Size option
-					let autoOption = menuPopupItems.appendChild(BX.create('span', {
-						attrs: { class: 'menu-popup-item menu-popup-item-text' },
-						text: 'Auto'
-					}));
+					// let autoOption = menuPopupItems.appendChild(BX.create('span', {
+					// 	attrs: { class: 'menu-popup-item menu-popup-item-text' },
+					// 	text: window.AUG.Calendar.autoHeight ? 'Auto ON' : 'Auto OFF'
+					// }));
 
 					// <== Auto Option Handler
-					autoOption.addEventListener('click', e => {
-						AUG.Popup.hide(popupWindow);
-						let monthView = AUG.Calendar.calendar.getView("month");
-						window.AUG.Calendar.autoHeight = true;
-						monthView.show();
-					});
+					// autoOption.addEventListener('click', e => {
+					// 	AUG.Popup.hide(popupWindow);
+					// 	let monthView = AUG.Calendar.calendar.getView("month");
+					// 	window.AUG.Calendar.autoHeight = !windFow.AUG.Calendar.autoHeight;
+					// 	autoOption.innerHTML = window.AUG.Calendar.autoHeight ? 'Auto ON' : 'Auto OFF';
+					// 	monthView.show();
+					// });
 					// <== End of Build Popup Window
 
 					// <== Button Handler
@@ -579,8 +581,8 @@ function documentCompleteHandler() {
 					// <== End of Calendar Size Button 
 
 					// Menu Item Handler
-					let selectSlotHeight = [20, 20, 40, 40, 40];
-					let selectRowHeight = [144, 224, 544, 664, 784];
+					let selectSlotHeight = [20, 40];
+					// let selectRowHeight = [144, 224, 544, 664, 784];
 
 					menuPopupItem.forEach((menuPopupItem, index) => {
 						menuPopupItem.addEventListener('click', (e) => {
@@ -588,11 +590,11 @@ function documentCompleteHandler() {
 
 							let monthView = this.calendar.getView('month');
 
-							monthView.rowHeight = selectRowHeight[index];
+							// monthView.rowHeight = selectRowHeight[index];
 							monthView.slotHeight = selectSlotHeight[index];
-							monthView.slotsCount = Math.floor((monthView.rowHeight - monthView.eventHolderTopOffset) / monthView.slotHeight);
+							// monthView.slotsCount = Math.floor((monthView.rowHeight - monthView.eventHolderTopOffset) / monthView.slotHeight);
 
-							if (index > 1) this.eventSlotSize = 1;
+							if (index > 0) this.eventSlotSize = 1;
 							else this.eventSlotSize = 0;
 
 							monthView.show();
@@ -1002,7 +1004,11 @@ function documentCompleteHandler() {
 							};
 						});
 
-						if (this.entries === false || !this.entries || !this.entries.length)
+						// if (this.entries === false || !this.entries || !this.entries.length)
+						// 	return;
+
+						// Set Calendar Size even when there is no entries
+						if (this.entries === false || !this.entries)
 							return;
 
 						// Prepare for arrangement
@@ -1285,7 +1291,7 @@ function documentCompleteHandler() {
 						let minRowHeight = 144;
 
 						// * toggle autoHeight flag
-						window.AUG.Calendar.autoHeight = false;
+						// window.AUG.Calendar.autoHeight = false;
 
 						// * get days in week
 						_this.days.forEach(c => {
@@ -1304,7 +1310,7 @@ function documentCompleteHandler() {
 						// * get max entries per month && set slotsCount to maxEntries of month
 						_this.slotsCount = Math.max(...maxEntriesWeek);
 						_this.rowHeight = Math.max(_this.slotHeight * (_this.slotsCount + 1) - 1
-						+ _this.eventHolderTopOffset, minRowHeight);
+							+ _this.eventHolderTopOffset, minRowHeight);
 
 						// * set height of week.
 						_this.monthRows.forEach((row, rowIndex) => {
@@ -1807,6 +1813,11 @@ function documentCompleteHandler() {
 		// Close popup when click outside
 		document.addEventListener('click', AUG.Popup.clickOutsidePopup.bind(AUG.Popup), true);
 		document.addEventListener('keydown', AUG.Popup.escClosePopup.bind(AUG.Popup));
+
+		// Reset calendar size when switching from other views.
+		document.querySelector('span.calendar-view-switcher-list-item:nth-child(3)').addEventListener('click', (e) => {
+			setTimeout(() => { AUG.Calendar.calendar.getView('month').displayEntries() }, 1000);
+		});
 		// ------------------------------------------
 
 	} catch (error) {
