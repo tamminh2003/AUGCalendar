@@ -1,0 +1,96 @@
+<!--'start_frame_cache_b6FSBG'-->
+<script src="/bitrix/components/bitrix/main.ui.selector/templates/.default/script.js"></script>
+<script>
+    BX.ready(function () {
+        var f = function (params) {
+            var selectorId = 'RESPONSIBLE_ID';
+            var inputId = (BX.type.isNotEmptyObject(params) && BX.type.isNotEmptyString(params.inputId) ?
+                params.inputId : false);
+            var inputBoxId = false;
+            var inputContainerId = false;
+            var containerId = (typeof params != 'undefined' && params.containerId != 'undefined' ? params
+                .containerId : false);
+            var bindId = (containerId ? containerId : inputId);
+            var openDialogWhenInit = (typeof params == 'undefined' || typeof params.openDialogWhenInit ==
+                'undefined' || !!params.openDialogWhenInit);
+            var fieldName = false;
+            if (BX.type.isNotEmptyObject(params) && typeof params.id != 'undefined' && params.id !=
+                selectorId) {
+                return;
+            }
+            BX.Main.SelectorV2.create({
+                apiVersion: 2,
+                id: selectorId,
+                fieldName: fieldName,
+                pathToAjax: '/bitrix/components/bitrix/main.ui.selector/ajax.php',
+                inputId: inputId,
+                inputBoxId: inputBoxId,
+                inputContainerId: inputContainerId,
+                bindId: bindId,
+                containerId: containerId,
+                tagId: BX(''),
+                openDialogWhenInit: openDialogWhenInit,
+                bindNode: BX(''),
+                options: {
+                    'multiple': false,
+                    'eventInit': 'BX.Filter.DestinationSelector:openInit',
+                    'eventOpen': 'BX.Filter.DestinationSelector:open',
+                    'context': 'CRM_WIDGET_FILTER_RESPONSIBLE_ID',
+                    'popupAutoHide': 'N',
+                    'useSearch': 'N',
+                    'userNameTemplate': '#NAME# #LAST_NAME#',
+                    'useClientDatabase': 'Y',
+                    'enableLast': 'Y',
+                    'enableUsers': 'Y',
+                    'enableDepartments': 'Y',
+                    'allowAddUser': 'N',
+                    'allowAddCrmContact': 'N',
+                    'allowAddSocNetGroup': 'N',
+                    'allowSearchCrmEmailUsers': 'N',
+                    'allowSearchNetworkUsers': 'N',
+                    'useNewCallback': 'Y',
+                    'focusInputOnSelectItem': 'N',
+                    'focusInputOnSwitchTab': 'N',
+                    'landing': 'N',
+                    'contextCode': 'U',
+                    'enableAll': 'N',
+                    'enableSonetgroups': 'N',
+                    'allowEmailInvitation': 'N',
+                    'allowSearchEmailUsers': 'N',
+                    'departmentSelectDisable': 'Y',
+                    'isNumeric': 'Y',
+                    'prefix': 'U'
+                },
+                callback: {
+                    select: BX.Filter.DestinationSelectorManager.onSelect.bind(null, 'Y', 'U'),
+                    unSelect: null,
+                    openDialog: BX.Filter.DestinationSelectorManager.onDialogOpen,
+                    closeDialog: BX.Filter.DestinationSelectorManager.onDialogClose,
+                    openSearch: null,
+                    closeSearch: BX.Filter.DestinationSelectorManager.onDialogClose,
+                    openEmailAdd: null,
+                    closeEmailAdd: null
+                },
+                callbackBefore: {
+                    select: null,
+                    openDialog: null,
+                    context: null,
+                },
+                items: {
+                    selected: [],
+                    undeletable: [],
+                    hidden: []
+                },
+                entities: {
+                    users: '',
+                    groups: '',
+                    sonetgroups: '',
+                    department: ''
+                }
+            });
+            BX.removeCustomEvent(window, "BX.Filter.DestinationSelector:openInit", arguments.callee);
+        };
+        BX.addCustomEvent(window, "BX.Filter.DestinationSelector:openInit", f);
+    });
+</script>
+<!--'end_frame_cache_b6FSBG'-->
