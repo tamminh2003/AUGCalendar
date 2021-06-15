@@ -16,8 +16,15 @@ function documentCompleteHandler() {
 
 		// ------Utility--------------------------
 		(function (window) {
+
+			/** @type {AUG.Utility} */
 			let Utility = {
 
+				/**
+				 * Convert rgb color string to hex color
+				 * @param {string} rgbstring
+				 * @return {string} 
+				 */
 				rgbToHex: function (rgbstring) {
 					rgbArray = rgbstring.match(/[0-9]*/g).filter(function (element) {
 						return element !== '';
@@ -32,6 +39,10 @@ function documentCompleteHandler() {
 
 				defaultColors: ["#86B100", "#0092CC", "#00AFC7", "#DA9100", "#00B38C", "#DE2B24", "#BD7AC9", "#838FA0"],
 
+				/**
+				 * Return current BXEventCalendar instance.
+				 * @return {BXEventCalendar.instance} 
+				 */
 				getCalendar: function getCalendar() {
 					let key = Object.keys(window.BXEventCalendar.instances);
 
@@ -39,6 +50,10 @@ function documentCompleteHandler() {
 				},
 
 				// ? Short for getSidePanelBackgroundColor <-- Long ==> Hence, getSdPnBkgrClr
+				/**
+				 * Get background color of side-panel
+				 * @return {string} 
+				 */
 				getSdPnBkgrClr: function () {
 					for (const e of document.styleSheets) {
 						if (e.href.includes('kernel_sidepanel_v1.css')) {
@@ -63,7 +78,12 @@ function documentCompleteHandler() {
 		// --------Calendar--------------------------
 		(function (window) {
 
+			/**
+			 * Main class containing methods modifying Bitrix Calendar
+			 * @class Calendar
+			 */
 			class Calendar {
+
 				constructor() {
 					this.name = "AUG_Calendar";
 					this.calendar = this.getCalendarInstance(window.BXEventCalendar);
@@ -124,13 +144,21 @@ function documentCompleteHandler() {
 
 				// * AUG CALENDAR UTILITY
 
-				// @ Description: get current BXEventCalendar.instances.
-				//                BXEventCalendar.instances is created anew everytime the module is loaded.
+				/**
+				 * Get current BXEventCalendar.instances
+				 * @param {BXEventCalendar} calendarObject
+				 * @return {BXEventCalendar.instance} 
+				 * @memberof Calendar
+				 */
 				getCalendarInstance(calendarObject) {
 					return calendarObject.instances[Object.keys(calendarObject.instances)[0]];
 				}
 
-				// @ Description: return array of EventType
+				/**
+				 * Return eventType array of AUG.Calendar
+				 * @return {array} eventType
+				 * @memberof Calendar
+				 */
 				getEventTypeList() {
 					return this.eventType;
 				}
