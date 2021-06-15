@@ -9,6 +9,10 @@ function documentCompleteHandler() {
 	try {
 
 		(function (window) {
+			/**
+			 * AUG Main Object
+			 * @namespace AUG
+			 */
 			window.AUG = {};
 			// AUG is the base object containing all the injected modules for Bitrix's Calendar Module.
 		}
@@ -17,13 +21,19 @@ function documentCompleteHandler() {
 		// ------Utility--------------------------
 		(function (window) {
 
-			/** @type {AUG.Utility} */
+			/**
+			 * Utility Object containing frequently used methods and variable not directly related to AUG.Calendar.
+			 * @namespace Utility
+			 * @memberof AUG 
+			 */
 			let Utility = {
 
 				/**
 				 * Convert rgb color string to hex color
-				 * @param {string} rgbstring
-				 * @return {string} 
+				 * @function #rgbToHex
+				 * @param {string} rgbstring - Color in RGB format
+				 * @return {string} Color in HEX format
+				 * @memberof AUG.Utility
 				 */
 				rgbToHex: function (rgbstring) {
 					rgbArray = rgbstring.match(/[0-9]*/g).filter(function (element) {
@@ -37,11 +47,17 @@ function documentCompleteHandler() {
 					return `#${hexArray[0]}${hexArray[1]}${hexArray[2]}`;
 				},
 
+				/** List of defaults color for event types
+				 * @member {Array} #defaultColors
+				 * @memberof AUG.Utility
+				 */
 				defaultColors: ["#86B100", "#0092CC", "#00AFC7", "#DA9100", "#00B38C", "#DE2B24", "#BD7AC9", "#838FA0"],
 
 				/**
 				 * Return current BXEventCalendar instance.
-				 * @return {BXEventCalendar.instance} 
+				 * @function #getCalendar
+				 * @return {BXEventCalendar.instance} Current BXEventCalendar instance
+				 * @memberof AUG.Utility
 				 */
 				getCalendar: function getCalendar() {
 					let key = Object.keys(window.BXEventCalendar.instances);
@@ -52,7 +68,9 @@ function documentCompleteHandler() {
 				// ? Short for getSidePanelBackgroundColor <-- Long ==> Hence, getSdPnBkgrClr
 				/**
 				 * Get background color of side-panel
-				 * @return {string} 
+				 * @function #getSdPnBkgrClr
+				 * @return {string} backgroundColor style string
+				 * @memberof AUG.Utility
 				 */
 				getSdPnBkgrClr: function () {
 					for (const e of document.styleSheets) {
@@ -79,26 +97,70 @@ function documentCompleteHandler() {
 		(function (window) {
 
 			/**
-			 * Main class containing methods modifying Bitrix Calendar
-			 * @class Calendar
+			 * @class AUG.Calendar
+			 * @classdesc Main class containing methods modifying Bitrix Calendar
 			 */
 			class Calendar {
 
 				constructor() {
+					/** 
+					 * Name of Class
+					 * @member {string} #name
+					 * @memberof AUG.Calendar
+					 */
 					this.name = "AUG_Calendar";
+
+					/** 
+					 * BXEventCalendar instance
+					 * @member {BXEventCalendar.instance} #calendar
+					 * @memberof AUG.Calendar 
+					 */
 					this.calendar = this.getCalendarInstance(window.BXEventCalendar);
+
+					/** 
+					 * AUG.Utility instance
+					 * @member {AUG.Utility} #util
+					 * @memberof AUG.Calendar
+					 */
 					this.util = AUG.Utility;
+
+					/** 
+					 * Property determining the size of event slots - 0 = small, 1 = large
+					 * @member {number}  #eventSlotSize
+					 * @memberof AUG.Calendar
+					 */
 					this.eventSlotSize = 0; // 0 = small, 1 = large
+
+					/** 
+					 * Flag determining autoHeight mode
+					 * @member {boolean} #autoHeight
+					 * @memberof AUG.Calendar
+					 */
 					this.autoHeight = true;
 
+					/** 
+					 * Calendar Sections containing company calendar sections
+					 * @member {Array} #companyCalendar
+					 * @memberof AUG.Calendar
+					 */
 					this.companyCalendar = this.getAvailableSection().filter(function (section) {
 						return section.type == "company_calendar"
 					});
 
+					/** 
+					 * Calendar Sections containing workgroup calendar sections
+					 * @member {BXEventCalendar.Section} #workgroupCalendar
+					 * @memberof AUG.Calendar
+					 */
 					this.workgroupCalendar = this.getAvailableSection().filter(function (section) {
 						return section.type == "group"
 					});
 
+					/** 
+					 * Array containing details of event type
+					 * @member {Array} #eventType
+					 * @memberof AUG.Calendar
+					 */
 					this.eventType = [{
 						name: 'augTravel',
 						color: '#86B100',
@@ -146,9 +208,10 @@ function documentCompleteHandler() {
 
 				/**
 				 * Get current BXEventCalendar.instances
+				 * @function #getCalendarInstance
 				 * @param {BXEventCalendar} calendarObject
 				 * @return {BXEventCalendar.instance} 
-				 * @memberof Calendar
+				 * @memberof AUG.Calendar
 				 */
 				getCalendarInstance(calendarObject) {
 					return calendarObject.instances[Object.keys(calendarObject.instances)[0]];
@@ -156,25 +219,38 @@ function documentCompleteHandler() {
 
 				/**
 				 * Return eventType array of AUG.Calendar
+				 * @function #getEventTypeList
 				 * @return {array} eventType
-				 * @memberof Calendar
+				 * @memberof AUG.Calendar
 				 */
 				getEventTypeList() {
 					return this.eventType;
 				}
 
-				// @ Description: return array of available calendars.
-				//                BXEventCalendar defines different calendars as section.
+				/**
+				 * Return available calendar sections of current user
+				 * @function #getAvailableSection
+				 * @return {BXEventCalendar.Section} 
+				 * @memberof AUG.Calendar
+				 */
 				getAvailableSection() {
 					return this.calendar.sectionController.sections;
 				}
 
-				// @ Description: Call displayEntries() of current View
+				/**
+				 * Return and call the displayEntries() of current view
+				 * @function #refreshCalendarDisplay
+				 * @memberof AUG.Calendar
+				 */
 				refreshCalendarDisplay() {
 					this.calendar.getView().displayEntries();
 				}
 
-				// @ Description: Set event slot height
+				/**
+				 * Set height of event slot according to {@link AUG.Calendar#eventSlotSize}
+				 * @function #setSlotHeight
+				 * @memberof AUG.Calendar
+				 */
 				setSlotHeight() {
 					if (this.eventSlotSize) {
 						document.querySelectorAll('.calendar-event-line-wrap').forEach(c => {
@@ -187,9 +263,14 @@ function documentCompleteHandler() {
 					}
 				}
 
-				// @ Description: Generate eventType checkboxes using following structure:
-				//             optionContainer => checkboxContainer => checkbox
-				//                                                  => label
+				/**
+				 * Generate eventType checkboxes using following structure:
+				 *          optionContainer => checkboxContainer => checkbox
+				 *                                               => label
+				 * @function #createEventTypeCheckbox
+				 * @param {Node} - EventType container
+				 * @memberof AUG.Calendar
+				 */
 				createEventTypeCheckbox(optionContainer) {
 					this.eventType.forEach((c) => {
 						// <== Outer div of checkbox
