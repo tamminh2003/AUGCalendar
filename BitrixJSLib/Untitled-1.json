@@ -1,0 +1,600 @@
+{
+  "defaultEntityType": "DEAL",
+  "entityTypes": [
+    "DEAL"
+  ],
+  "layout": "L50R50",
+  "rows": [
+    {
+      "cells": [
+        {
+          "controls": [
+            {
+              "title": "Sales funnel for deals",
+              "typeName": "funnel",
+              "entityTypeName": "DEAL"
+            }
+          ],
+          "data": [
+            {
+              "items": [
+                {
+                  "ID": "NEW",
+                  "NAME": "Applied",
+                  "TOTAL": 4
+                }
+              ],
+              "valueField": "TOTAL",
+              "titleField": "NAME"
+            }
+          ]
+        },
+        {
+          "controls": [
+            {
+              "typeName": "number",
+              "layout": "tiled",
+              "configs": [
+                {
+                  "name": "sum1",
+                  "title": "Total value of deals",
+                  "dataPreset": "DEAL_SUM_STATS::OVERALL_SUM",
+                  "dataSource": "DEAL_SUM_STATS",
+                  "select": {
+                    "name": "SUM_TOTAL",
+                    "aggregate": "SUM"
+                  },
+                  "format": {
+                    "isCurrency": "Y",
+                    "enableDecimals": "N"
+                  }
+                },
+                {
+                  "name": "sum2",
+                  "title": "Total of deals won",
+                  "dataPreset": "DEAL_SUM_STATS::OVERALL_SUM",
+                  "dataSource": "DEAL_SUM_STATS",
+                  "select": {
+                    "name": "SUM_TOTAL",
+                    "aggregate": "SUM"
+                  },
+                  "format": {
+                    "isCurrency": "Y",
+                    "enableDecimals": "N"
+                  }
+                },
+                {
+                  "name": "diff",
+                  "title": "Total of deals in progress",
+                  "dataSource": {
+                    "name": "EXPRESSION",
+                    "operation": "diff",
+                    "arguments": [
+                      "%sum1%",
+                      "%sum2%"
+                    ]
+                  },
+                  "format": {
+                    "isCurrency": "Y",
+                    "enableDecimals": "N"
+                  }
+                }
+              ]
+            }
+          ],
+          "data": [
+            {
+              "items": [
+                {
+                  "name": "sum1",
+                  "title": "Total value of deals",
+                  "value": 228602,
+                  "format": {
+                    "isCurrency": "Y",
+                    "enableDecimals": "N"
+                  },
+                  "html": "$228,602",
+                  "url": "/crm/deal/list/?WG=Y&DS=DEAL_SUM_STATS&page=1&FIELD=SUM_TOTAL&PERIOD=M0"
+                },
+                {
+                  "name": "sum2",
+                  "title": "Total of deals won",
+                  "value": 228602,
+                  "format": {
+                    "isCurrency": "Y",
+                    "enableDecimals": "N"
+                  },
+                  "html": "$228,602",
+                  "url": "/crm/deal/list/?WG=Y&DS=DEAL_SUM_STATS&page=1&FIELD=SUM_TOTAL&PERIOD=M0"
+                },
+                {
+                  "name": "diff",
+                  "title": "Total of deals in progress",
+                  "value": 0,
+                  "format": {
+                    "isCurrency": "Y",
+                    "enableDecimals": "N"
+                  },
+                  "html": "$0"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "height": 380
+    },
+    {
+      "cells": [
+        {
+          "controls": [
+            {
+              "title": "Ranking by deals won",
+              "typeName": "rating",
+              "group": "USER",
+              "nominee": 15,
+              "configs": [
+                {
+                  "name": "sum1",
+                  "dataPreset": "DEAL_SUM_STATS::OVERALL_SUM",
+                  "dataSource": "DEAL_SUM_STATS",
+                  "select": {
+                    "name": "SUM_TOTAL",
+                    "aggregate": "SUM"
+                  },
+                  "filter": {
+                    "semanticID": "S"
+                  },
+                  "format": {
+                    "isCurrency": "Y",
+                    "enableDecimals": "N"
+                  }
+                }
+              ]
+            }
+          ],
+          "data": [
+            {
+              "items": [
+                {
+                  "name": "sum1",
+                  "title": "sum1",
+                  "nomineeId": 15,
+                  "positions": [
+                    {
+                      "id": 12,
+                      "value": 1,
+                      "legend": "$0",
+                      "legendType": "html"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "height": 180
+    },
+    {
+      "cells": [
+        {
+          "controls": [
+            {
+              "typeName": "number",
+              "layout": "tiled",
+              "configs": [
+                {
+                  "name": "sum1",
+                  "title": "Total of invoiced sales",
+                  "dataPreset": "DEAL_INVOICE_STATS::OVERALL_SUM",
+                  "dataSource": "DEAL_INVOICE_STATS",
+                  "select": {
+                    "name": "TOTAL_INVOICE_SUM",
+                    "aggregate": "SUM"
+                  },
+                  "filter": {
+                    "semanticID": "S"
+                  },
+                  "format": {
+                    "isCurrency": "Y",
+                    "enableDecimals": "N"
+                  }
+                },
+                {
+                  "name": "sum2",
+                  "title": "Total of uninvoiced sales",
+                  "dataPreset": "DEAL_INVOICE_STATS::OVERALL_OWED_SUM",
+                  "dataSource": "DEAL_INVOICE_STATS",
+                  "select": {
+                    "name": "TOTAL_OWED",
+                    "aggregate": "SUM"
+                  },
+                  "filter": {
+                    "semanticID": "S"
+                  },
+                  "format": {
+                    "isCurrency": "Y",
+                    "enableDecimals": "N"
+                  }
+                },
+                {
+                  "name": "sum3",
+                  "title": "Total of deals won",
+                  "dataPreset": "DEAL_SUM_STATS::OVERALL_SUM",
+                  "dataSource": "DEAL_SUM_STATS",
+                  "select": {
+                    "name": "SUM_TOTAL",
+                    "aggregate": "SUM"
+                  },
+                  "filter": {
+                    "semanticID": "S"
+                  },
+                  "format": {
+                    "isCurrency": "Y",
+                    "enableDecimals": "N"
+                  }
+                }
+              ]
+            }
+          ],
+          "data": [
+            {
+              "items": [
+                {
+                  "name": "sum1",
+                  "title": "Total of invoiced sales",
+                  "value": 0,
+                  "format": {
+                    "isCurrency": "Y",
+                    "enableDecimals": "N"
+                  },
+                  "html": "$0",
+                  "url": "/crm/deal/list/?WG=Y&DS=DEAL_INVOICE_STATS&page=1&FIELD=TOTAL_INVOICE_SUM&PERIOD=M0&SEMANTIC_ID=S"
+                },
+                {
+                  "name": "sum2",
+                  "title": "Total of uninvoiced sales",
+                  "value": 0,
+                  "format": {
+                    "isCurrency": "Y",
+                    "enableDecimals": "N"
+                  },
+                  "html": "$0",
+                  "url": "/crm/deal/list/?WG=Y&DS=DEAL_INVOICE_STATS&page=1&FIELD=TOTAL_OWED&PERIOD=M0&SEMANTIC_ID=S"
+                },
+                {
+                  "name": "sum3",
+                  "title": "Total of deals won",
+                  "value": 0,
+                  "format": {
+                    "isCurrency": "Y",
+                    "enableDecimals": "N"
+                  },
+                  "html": "$0",
+                  "url": "/crm/deal/list/?WG=Y&DS=DEAL_SUM_STATS&page=1&FIELD=SUM_TOTAL&PERIOD=M0&SEMANTIC_ID=S"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "controls": [
+            {
+              "title": "Payment control for deals won",
+              "typeName": "bar",
+              "group": "DATE",
+              "context": "F",
+              "combineData": "Y",
+              "enableStack": "Y",
+              "format": {
+                "isCurrency": "Y"
+              },
+              "configs": [
+                {
+                  "name": "sum1",
+                  "title": "Total of invoiced sales",
+                  "dataPreset": "DEAL_INVOICE_STATS::OVERALL_SUM",
+                  "dataSource": "DEAL_INVOICE_STATS",
+                  "select": {
+                    "name": "TOTAL_INVOICE_SUM",
+                    "aggregate": "SUM"
+                  },
+                  "filter": {
+                    "semanticID": "S"
+                  },
+                  "display": {
+                    "graph": {
+                      "clustered": "N"
+                    },
+                    "colorScheme": "green"
+                  }
+                },
+                {
+                  "name": "sum2",
+                  "title": "Total of uninvoiced sales",
+                  "dataPreset": "DEAL_INVOICE_STATS::OVERALL_OWED_SUM",
+                  "dataSource": "DEAL_INVOICE_STATS",
+                  "select": {
+                    "name": "TOTAL_OWED",
+                    "aggregate": "SUM"
+                  },
+                  "filter": {
+                    "semanticID": "S"
+                  },
+                  "display": {
+                    "graph": {
+                      "clustered": "N"
+                    },
+                    "colorScheme": "red"
+                  }
+                }
+              ]
+            }
+          ],
+          "data": [
+            {
+              "items": [
+                {
+                  "graphs": [
+                    {
+                      "name": "sum1",
+                      "title": "Total of invoiced sales",
+                      "selectField": "SUM1_TOTAL_INVOICE_SUM",
+                      "display": {
+                        "graph": {
+                          "clustered": "N"
+                        },
+                        "colorScheme": "green"
+                      }
+                    },
+                    {
+                      "name": "sum2",
+                      "title": "Total of uninvoiced sales",
+                      "selectField": "SUM2_TOTAL_OWED",
+                      "display": {
+                        "graph": {
+                          "clustered": "N"
+                        },
+                        "colorScheme": "red"
+                      }
+                    }
+                  ],
+                  "groupField": "DATE",
+                  "values": [
+                    {
+                      "DATE": "2021-06-15",
+                      "SUM1_TOTAL_INVOICE_SUM": 0,
+                      "SUM2_TOTAL_OWED": 0
+                    }
+                  ]
+                }
+              ],
+              "dateFormat": "YYYY-MM-DD"
+            }
+          ]
+        }
+      ],
+      "height": 380
+    },
+    {
+      "cells": [
+        {
+          "controls": [
+            {
+              "title": "Deals in progress",
+              "typeName": "graph",
+              "group": "DATE",
+              "context": "E",
+              "combineData": "Y",
+              "configs": [
+                {
+                  "name": "qty1",
+                  "title": "Number of deals in progress",
+                  "dataPreset": "DEAL_IN_WORK::OVERALL_COUNT",
+                  "dataSource": "DEAL_IN_WORK",
+                  "select": {
+                    "name": "COUNT"
+                  }
+                },
+                {
+                  "name": "qty2",
+                  "title": "Number of calls",
+                  "dataPreset": "DEAL_ACTIVITY_STATS::CALL_OVERALL_COUNT",
+                  "dataSource": "DEAL_ACTIVITY_STATS",
+                  "select": {
+                    "name": "CALL_QTY",
+                    "aggregate": "SUM"
+                  }
+                },
+                {
+                  "name": "qty3",
+                  "title": "Activity count",
+                  "dataPreset": "DEAL_ACTIVITY_STATS::OVERALL_COUNT",
+                  "dataSource": "DEAL_ACTIVITY_STATS",
+                  "select": {
+                    "name": "TOTAL",
+                    "aggregate": "SUM"
+                  }
+                }
+              ]
+            }
+          ],
+          "data": [
+            {
+              "items": [
+                {
+                  "graphs": [
+                    {
+                      "name": "qty1",
+                      "title": "Number of deals in progress",
+                      "selectField": "QTY1_COUNT"
+                    },
+                    {
+                      "name": "qty2",
+                      "title": "Number of calls",
+                      "selectField": "QTY2_CALL_QTY"
+                    },
+                    {
+                      "name": "qty3",
+                      "title": "Activity count",
+                      "selectField": "QTY3_TOTAL"
+                    }
+                  ],
+                  "groupField": "DATE",
+                  "values": [
+                    {
+                      "DATE": "2021-06-15",
+                      "QTY1_COUNT": 9
+                    },
+                    {
+                      "DATE": "2021-06-16",
+                      "QTY1_COUNT": 2
+                    }
+                  ]
+                }
+              ],
+              "dateFormat": "YYYY-MM-DD"
+            }
+          ]
+        },
+        {
+          "controls": [
+            {
+              "typeName": "number",
+              "layout": "tiled",
+              "configs": [
+                {
+                  "name": "qty1",
+                  "title": "Number of deals in progress",
+                  "dataPreset": "DEAL_IN_WORK::OVERALL_COUNT",
+                  "dataSource": "DEAL_IN_WORK",
+                  "select": {
+                    "name": "COUNT"
+                  }
+                },
+                {
+                  "name": "qty2",
+                  "title": "Activity count",
+                  "dataPreset": "DEAL_ACTIVITY_STATS::OVERALL_COUNT",
+                  "dataSource": "DEAL_ACTIVITY_STATS",
+                  "select": {
+                    "name": "TOTAL",
+                    "aggregate": "SUM"
+                  }
+                },
+                {
+                  "name": "qty3",
+                  "title": "Number of calls",
+                  "dataPreset": "DEAL_ACTIVITY_STATS::CALL_OVERALL_COUNT",
+                  "dataSource": "DEAL_ACTIVITY_STATS",
+                  "select": {
+                    "name": "CALL_QTY",
+                    "aggregate": "SUM"
+                  }
+                }
+              ]
+            }
+          ],
+          "data": [
+            {
+              "items": [
+                {
+                  "name": "qty1",
+                  "title": "Number of deals in progress",
+                  "value": 11,
+                  "url": "/crm/deal/list/?WG=Y&DS=DEAL_IN_WORK&page=1&FIELD=COUNT&PERIOD=M0"
+                },
+                {
+                  "name": "qty2",
+                  "title": "Activity count",
+                  "value": 0,
+                  "url": "/crm/deal/list/?WG=Y&DS=DEAL_ACTIVITY_STATS&page=1&FIELD=TOTAL&PERIOD=M0"
+                },
+                {
+                  "name": "qty3",
+                  "title": "Number of calls",
+                  "value": 0,
+                  "url": "/crm/deal/list/?WG=Y&DS=DEAL_ACTIVITY_STATS&page=1&FIELD=CALL_QTY&PERIOD=M0"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "height": 380
+    },
+    {
+      "cells": [
+        {
+          "controls": [
+            {
+              "typeName": "number",
+              "configs": [
+                {
+                  "name": "qty1",
+                  "title": "Number of deals on hold",
+                  "dataPreset": "DEAL_IDLE::OVERALL_COUNT",
+                  "dataSource": "DEAL_IDLE",
+                  "select": {
+                    "name": "COUNT"
+                  }
+                }
+              ]
+            }
+          ],
+          "data": [
+            {
+              "items": [
+                {
+                  "name": "qty1",
+                  "title": "Number of deals on hold",
+                  "value": 7,
+                  "url": "/crm/deal/list/?WG=Y&DS=DEAL_IDLE&page=1&FIELD=COUNT&PERIOD=M0"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "height": 180
+    }
+  ],
+  "prefix": "deal_category_widget",
+  "containerId": "deal_category_widget_container",
+  "settingButtonId": "deal_category_widget_settings",
+  "serviceUrl": "/bitrix/components/bitrix/crm.widget_panel/settings.php?sessid=ba53132c18059262801a27f1d699a23f",
+  "listUrl": "/bitrix/services/main/ajax.php",
+  "widgetUrl": "/bitrix/services/main/ajax.php",
+  "currencyFormat": {
+    "CURRENCY": "AUD",
+    "LID": "en",
+    "FORMAT_STRING": "$#",
+    "FULL_NAME": "Australian Dollar",
+    "DEC_POINT": ".",
+    "THOUSANDS_SEP": ",",
+    "DECIMALS": 2,
+    "THOUSANDS_VARIANT": "C",
+    "HIDE_ZERO": "Y",
+    "CREATED_BY": 1,
+    "DATE_CREATE": "2020-11-11 09:12:59",
+    "MODIFIED_BY": 1,
+    "TIMESTAMP_X": "2020-11-11 09:12:59",
+    "TEMPLATE": {
+      "SINGLE": "$#",
+      "PARTS": [
+        "$",
+        "#"
+      ],
+      "VALUE_INDEX": 1
+    }
+  },
+  "maxGraphCount": 6,
+  "maxWidgetCount": 15,
+  "isDemoMode": false,
+  "useDemoMode": true,
+  "demoModeInfoContainerId": "deal_category_widget_demo_info",
+  "disableDemoModeButtonId": "deal_category_widget_disable_demo",
+  "demoModeInfoCloseButtonId": "deal_category_widget_demo_info_close",
+  "isAjaxMode": false
+}
