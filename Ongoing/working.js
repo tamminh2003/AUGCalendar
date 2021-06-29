@@ -1,14 +1,39 @@
 (function augBuildBranchSelectField_Report() {
+    let augBranchSelect = {};
 
-    const augBranchSelect = {
-        "Australia": ["AUG Adelaide", "AUG Brisbane", "AUG Melbourne", "AUG Perth", "AUG Sydney"],
-        "Malaysia": ["AUG Ipoh", "AUG Johor Bahru", "AUG Kota Bharu", "AUG Kuala Lumpur", "AUG Kuantan", "AUG Kuching", "AUG Melaka", "AUG Nilai", "AUG Penang", "AUG Segamat", "AUG Subang Jaya"],
-        "Indonesia": ["AUG Bandung", "AUG Jakarta", "AUG Surabaya"],
-        "Singapore": ["AUG Singapore"],
-        "China": ["AUG Beijing"],
-        "Hong Kong SAR": ["AUG Hong Kong"],
-        "Philippines": ["AUG Manila"]
+    /**
+     * Function to build select options based on authentication and department this will affect augBranchSelect variable declared above
+     * @function augBuildBranchSelectObject
+     * @param {String} crmRole - crm Role
+     * @param {Array} crmDepartment - crm Department this is array of String
+     */
+    function augBuildBranchSelectObject(crmRole, crmDepartment) {
+        const augBranchSelectTemplate = {
+            "Australia": ["AUG Adelaide", "AUG Brisbane", "AUG Melbourne", "AUG Perth", "AUG Sydney"],
+            "Malaysia": ["AUG Ipoh", "AUG Johor Bahru", "AUG Kota Bharu", "AUG Kuala Lumpur", "AUG Kuantan", "AUG Kuching", "AUG Melaka", "AUG Nilai", "AUG Penang", "AUG Segamat", "AUG Subang Jaya"],
+            "Indonesia": ["AUG Bandung", "AUG Jakarta", "AUG Surabaya"],
+            "Singapore": ["AUG Singapore"],
+            "China": ["AUG Beijing"],
+            "Hong Kong SAR": ["AUG Hong Kong"],
+            "Philippines": ["AUG Manila"]
+        };
+
+        if (crmRole == "Administrator") {
+            augBranchSelect = augBranchSelectTemplate;
+            return;
+        }
+
+        for (let [country, offices] of Object.entries(augBranchSelectTemplate)) {
+            for (let [id, department] of Object.entries(crmDepartment)) {
+                if (offices.includes(department)) {
+                    if (!augBranchSelect[country]) augBranchSelect[country] = [];
+                    augBranchSelect[country].push(department);
+                }
+            }
+        }
     }
+
+    if (userDepartments && userCrmRoleName) augBuildBranchSelectObject(userCrmRoleName, userDepartments);
 
     let selectBranchCountry, selectBranchOffice;
 
@@ -41,6 +66,7 @@
         let countrySelectHandler = function (e) {
             this.value = country;
             augSetBranchCountry(country);
+            dropdownContainer.style.visibility = "hidden";
             e.preventDefault();
         }
         countrySelect.addEventListener("click", countrySelectHandler.bind(textField));
@@ -53,48 +79,69 @@
             let officeSelectHandler = function (e) {
                 this.value = office;
                 augSetOfficeBranch(office);
+                dropdownContainer.style.visibility = "hidden";
                 e.preventDefault();
             }
             officeSelect.addEventListener("click", officeSelectHandler.bind(textField));
         });
     });
-
     newSelectDiv.appendChild(dropdownContainer); //<== Add dropdown menu to new select span
 
+    // Auxilary Functions
+    let dropdownContainerMouse;
+
+    textField.addEventListener("focus", (e) => {
+        dropdownContainer.style.visibility = "visible";
+    });
+
+    textField.addEventListener("blur", (e) => {
+        if (!dropdownContainerMouse) {
+            dropdownContainer.style.visibility = "hidden";
+        }
+    });
+
+    dropdownContainer.addEventListener("mouseenter", (e) => {
+        dropdownContainerMouse = true;
+    });
+
+    dropdownContainer.addEventListener("mouseleave", (e) => {
+        dropdownContainerMouse = false;
+    });
+
+    /**
+     * Local function for handling textField event
+     * @function textFieldHandler
+     * @param {Event} e - Event passed in by EventListener
+     * @returns nothing
+     */
     function textFieldHandler(e) {
         let searchText = e.target.value.toUpperCase();
         let countryContainerArray = this.querySelectorAll(".country-container");
         let officeContainerArray = this.querySelectorAll(".office-container");
-        let optionArray = this.querySelectorAll("a");
 
         if (!searchText) {
-            optionArray.forEach(option => option.style.display = "block"); // <== Set all the option visible if text field empty.
-            officeContainerArray.forEach(officeContainer => officeContainer.style.display = "block");
+            this.querySelectorAll("a").forEach(option => option.style.display = "block"); // <== Set all the option visible if text field empty.
             countryContainerArray.forEach(countryContainer => countryContainer.style.display = "block");
             return;
         }
 
-        optionArray.forEach(option => option.style.display = "none"); // <== Set all the option visible if text field empty.
-        officeContainerArray.forEach(officeContainer => officeContainer.style.display = "none");
+        this.querySelectorAll("a").forEach(option => option.style.display = "none");
         countryContainerArray.forEach(countryContainer => countryContainer.style.display = "none");
 
-        // let matchingCountry = Object.keys(augBranchSelect)
-        //                             .map(country => country.toUpperCase())
-        //                             .reduce((accu, curr) => accu || (curr.includes(searchText)), false);
+        let matchingCountry = Object.keys(augBranchSelect)
+            .map(country => country.toUpperCase())
+            .reduce((accu, curr) => accu || (curr.includes(searchText)), false);
 
-        // if (matchingCountry) { // <== Matching country
+        if (matchingCountry) { // <== Matching country
             countryContainerArray.forEach(countryContainer => {
                 if (countryContainer.querySelector("a").innerText.toUpperCase().includes(searchText)) {
                     countryContainer.style.display = "block";
-                    countryContainer.querySelector(".office-container").style.display = "block";
                     countryContainer.querySelectorAll("a").forEach(option => option.style.display = "block");
                     return;
                 }
-            })
-            
-        // }
-
-        officeContainerArray.forEach(officeContainer => officeContainer.style.display = "none");
+            });
+            return;
+        }
 
         officeContainerArray.forEach(officeContainer => {
             let optionArray = officeContainer.querySelectorAll("a");
@@ -103,19 +150,10 @@
                     option.style.display = "block";
                     officeContainer.style.display = "block";
                     officeContainer.parentElement.style.display = "block";
-                } else {
-                    option.style.display = "none";
+                    officeContainer.parentElement.querySelector("a").style.display = "block";
                 }
             });
         })
-
-        // optionArray.forEach((option) => {
-        //     if (option.innerText.includes(searchText)) {
-        //         option.style.display = "block";
-        //     } else {
-        //         option.style.display = "none";
-        //     }
-        // });
     }
     textField.addEventListener("keyup", textFieldHandler.bind(dropdownContainer));
 
