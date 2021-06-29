@@ -255,41 +255,11 @@
                      * @function augBuildBranchSelectField_Report
                      */
                     (function augBuildBranchSelectField_Report() {
-                        let augBranchSelect = {};
+                        let augBranchSelect;
 
-                        /**
-                         * Function to build select options based on authentication and department this will affect augBranchSelect variable declared above
-                         * @function augBuildBranchSelectObject
-                         * @param {String} crmRole - crm Role
-                         * @param {Array} crmDepartment - crm Department this is array of String
-                         */
-                        function augBuildBranchSelectObject(crmRole, crmDepartment) {
-                            const augBranchSelectTemplate = {
-                                "Australia": ["AUG Adelaide", "AUG Brisbane", "AUG Melbourne", "AUG Perth", "AUG Sydney"],
-                                "Malaysia": ["AUG Ipoh", "AUG Johor Bahru", "AUG Kota Bharu", "AUG Kuala Lumpur", "AUG Kuantan", "AUG Kuching", "AUG Melaka", "AUG Nilai", "AUG Penang", "AUG Segamat", "AUG Subang Jaya"],
-                                "Indonesia": ["AUG Bandung", "AUG Jakarta", "AUG Surabaya"],
-                                "Singapore": ["AUG Singapore"],
-                                "China": ["AUG Beijing"],
-                                "Hong Kong SAR": ["AUG Hong Kong"],
-                                "Philippines": ["AUG Manila"]
-                            };
-
-                            if (crmRole == "Administrator") {
-                                augBranchSelect = augBranchSelectTemplate;
-                                return;
-                            }
-
-                            for (let [country, offices] of Object.entries(augBranchSelectTemplate)) {
-                                for (let [id, department] of Object.entries(crmDepartment)) {
-                                    if (offices.includes(department)) {
-                                        if (!augBranchSelect[country]) augBranchSelect[country] = [];
-                                        augBranchSelect[country].push(department);
-                                    }
-                                }
-                            }
+                        if (userDepartments && userCrmRoleName) {
+                            augBranchSelect = augBuildBranchSelectObject(userCrmRoleName, userDepartments);
                         }
-
-                        if (userDepartments && userCrmRoleName) augBuildBranchSelectObject(userCrmRoleName, userDepartments);
 
                         let selectBranchCountry, selectBranchOffice;
 
@@ -309,7 +279,7 @@
                         // Add new select field
                         let newSelectFieldContainer = filterContainer.appendChild(templateSelectField.cloneNode(true));
                         newSelectFieldContainer.querySelector("label").innerHTML = "Branch Office";
-                        let newSelectDiv = newSelectFieldContainer.appendChild(BX.create("span", { "attrs": { "class": "report-filter-vcc" }, "style": { "position": "relative" } }));
+                        let newSelectDiv = newSelectFieldContainer.appendChild(BX.create("span", { "attrs": { "class": "" }, "style": { "position": "relative" } }));
                         let textField = newSelectDiv.appendChild(BX.create("input", { "attrs": { "type": "text" } }));
 
                         // Build dropdown
@@ -469,7 +439,179 @@
                             selectBranchOffice.querySelector("select").value = selectTable[office];
                         }
 
-                    })()
+                    })();
+
+                    /**
+                     * Modify Current Status Field
+                     * @function augBuildCurrentStatusField_Report
+                     */
+                    (function augBuildCurrentStatusField_Report() {
+                        let field;
+                        document.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum").forEach((element) => {
+                            if (element.querySelector("label").innerText.toUpperCase().includes("CURRENT STATUS")) {
+                                field = element;
+                                return;
+                            }
+                        });
+                        augBuildSelectField_Report(field, "Current Status");
+                    })();
+
+                    /**
+                     * Modify Applied Institution Field
+                     * @function augBuildAppliedInstitutionField_Report
+                     */
+                    (function augBuildAppliedInstitutionField_Report() {
+                        let field;
+                        document.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum").forEach((element) => {
+                            if (element.querySelector("label").innerText.toUpperCase().includes("APPLIED INSTITUTION")) {
+                                field = element;
+                                return;
+                            }
+                        });
+                        augBuildSelectField_Report(field, "Applied Institution");
+                    })();
+
+                    /**
+                     * Modify Result Table
+                     * @function augModifyResultTable
+                     */
+                    (function augModifyResultTable() {
+                        let resultTable = document.querySelector("#report-result-table");
+                        let tableRows = resultTable.querySelectorAll(".reports-list-item");
+
+                        let color = "white" // Toggle this between red and blue
+
+                        let pointer1 = 0, pointer2 = 1;
+                        do {
+                            let data1 = getTableData(tableRows[pointer1])[0];
+                            let data2 = getTableData(tableRows[pointer2])[0];
+                            while (data1 == data2) {
+                                pointer2++;
+                                if (pointer2 >= tableRows.length) break;
+                                data2 = getTableData(tableRows[pointer2])[0];
+                            }
+                            console.log("pointer1 = " + pointer1);
+                            console.log("pointer2 = " + (pointer2 - 1));
+
+                            for (let i = pointer1; i <= pointer2 - 1; i++) {
+                                tableRows[i].querySelectorAll("td").forEach((cell, index) => {
+                                    if (index >= 0 && index <= 2 && i != pointer1) {
+                                        cell.innerText = "";
+                                    }
+                                    cell.style.backgroundColor = color
+                                });
+                            }
+
+                            color = (color != "white") ? "white" : "#ededed";
+
+                            pointer1 = pointer2;
+                            pointer2 = pointer1 + 1;
+                        } while (pointer2 < tableRows.length)
+                    })();
+
+                    function getTableData(tableRow) {
+                        let resultArray = [];
+                        tableRow.querySelectorAll("td").forEach((content) => resultArray.push(content.innerText));
+                        return resultArray;
+                    };
+
+                    /** @var _selectFieldCounter - internal private counter of the module*/
+                    var _selectFieldCounter = 0;
+                    /**
+                    * Modify and rebuild the Branch Country and Branch Select Fields
+                    * @function augBuildSelectField_Report
+                    * @param {String} selectFieldContainer - bitrix report select field to be changed
+                    * @param {String} newLabel - new label for the select field
+                    */
+                    function augBuildSelectField_Report(selectFieldContainer, newLabel) {
+                        _selectFieldCounter++;
+
+                        // Build DataList
+                        let temp = [];
+                        for (let each of selectFieldContainer.querySelectorAll("option").values()) {
+                            temp.push(each);
+                        }
+                        let dataList = temp.map((each) => {
+                            return { "value": each.value, "text": each.text };
+                        });
+
+                        let templateSelectField = document.querySelector("#report-chfilter-examples > div.filter-field.filter-field-crm.chfilter-field-enum");
+                        let filterContainer = document.querySelector("#report-filter-chfilter");
+
+                        // Hide the original bitrix field
+                        selectFieldContainer.style.display = "none";
+
+                        // Add new select field
+                        let newSelectFieldContainer = filterContainer.insertBefore(templateSelectField.cloneNode(true), selectFieldContainer.nextElementSibling);
+                        newSelectFieldContainer.querySelector("label").innerHTML = newLabel;
+
+                        let newSelectDiv = newSelectFieldContainer.appendChild(BX.create("span", { "attrs": { "class": "" }, "style": { "position": "relative" } }));
+                        let textField = newSelectDiv.appendChild(BX.create("input", { "attrs": { "type": "text", "value": dataList[0].text } }));
+
+                        // Build dropdown
+                        let dropdownContainer = BX.create("div", { "attrs": { "class": `aug-dropdown-container-${_selectFieldCounter}` }, "style": { "visibility": "hidden", "position": "absolute", "height": "10em", "overflowY": "scroll", "backgroundColor": "white" } });
+
+                        dataList.forEach(item => {
+                            let itemSelect = dropdownContainer.appendChild(BX.create("a", { "attrs": { "class": "itemSelect", "href": "#" }, "style": { "display": "block" }, "text": item.text }));
+
+                            let itemSelectHandler = function (e) {
+                                this.value = item.text;
+                                selectFieldContainer.querySelector("select").value = item.value;
+                                dropdownContainer.style.visibility = "hidden";
+                                e.preventDefault();
+                            }
+                            itemSelect.addEventListener("click", itemSelectHandler.bind(textField));
+                        });
+
+                        newSelectDiv.appendChild(dropdownContainer); //<== Add dropdown menu to new select span
+
+                        // Auxilary Functions
+                        let dropdownContainerMouse;
+
+                        textField.addEventListener("focus", (e) => {
+                            dropdownContainer.style.visibility = "visible";
+                        });
+
+                        textField.addEventListener("blur", (e) => {
+                            if (!dropdownContainerMouse) {
+                                dropdownContainer.style.visibility = "hidden";
+                            }
+                        });
+
+                        dropdownContainer.addEventListener("mouseenter", (e) => {
+                            dropdownContainerMouse = true;
+                        });
+
+                        dropdownContainer.addEventListener("mouseleave", (e) => {
+                            dropdownContainerMouse = false;
+                        });
+
+                        /**
+                         * Local function for handling textField event
+                         * @function textFieldHandler
+                         * @param {Event} e - Event passed in by EventListener
+                         * @returns nothing
+                         */
+                        function textFieldHandler(e) {
+                            let searchText = e.target.value.toUpperCase();
+                            let itemArray = this.querySelectorAll("a");
+
+                            if (!searchText) {
+                                this.querySelectorAll("a").forEach(option => option.style.display = "block"); // <== Set all the option visible if text field empty.
+                                return;
+                            }
+
+                            itemArray.forEach(option => option.style.display = "none");
+
+                            itemArray.forEach(item => {
+                                if (item.innerText.toUpperCase().includes(searchText)) {
+                                    item.style.display = "block";
+                                }
+                            })
+                        }
+                        textField.addEventListener("keyup", textFieldHandler.bind(dropdownContainer));
+                    };
+
 
                     /**
                      * Local function to reduce code repetition
@@ -561,6 +703,45 @@
                             }
                         }
                     }
+
+                    /**
+                     * Function to build select options based on authentication and department this will affect augBranchSelect variable declared above
+                     * @function augBuildBranchSelectObject
+                     * @param {String} crmRole - crm Role
+                     * @param {Array} crmDepartment - crm Department this is array of String
+                     * @return {Object} augBranchSelect
+                     */
+                    function augBuildBranchSelectObject(crmRole, crmDepartment) {
+                        let augBranchSelect = {};
+
+                        const augBranchSelectTemplate = {
+                            "Australia": ["AUG Adelaide", "AUG Brisbane", "AUG Melbourne", "AUG Perth", "AUG Sydney"],
+                            "Malaysia": ["AUG Ipoh", "AUG Johor Bahru", "AUG Kota Bharu", "AUG Kuala Lumpur", "AUG Kuantan", "AUG Kuching", "AUG Melaka", "AUG Nilai", "AUG Penang", "AUG Segamat", "AUG Subang Jaya"],
+                            "Indonesia": ["AUG Bandung", "AUG Jakarta", "AUG Surabaya"],
+                            "Singapore": ["AUG Singapore"],
+                            "China": ["AUG Beijing"],
+                            "Hong Kong SAR": ["AUG Hong Kong"],
+                            "Philippines": ["AUG Manila"]
+                        };
+
+                        if (crmRole == "Administrator") {
+                            augBranchSelect = augBranchSelectTemplate;
+                            return augBranchSelect;
+                        }
+
+                        for (let [country, offices] of Object.entries(augBranchSelectTemplate)) {
+                            for (let [id, department] of Object.entries(crmDepartment)) {
+                                if (offices.includes(department)) {
+                                    if (!augBranchSelect[country]) augBranchSelect[country] = [];
+                                    augBranchSelect[country].push(department);
+                                }
+                            }
+                        }
+
+                        return augBranchSelect;
+                    }
+
+
 
                 } catch (e) {
                     console.log(e);

@@ -1,0 +1,33 @@
+span.augBranchSelect {
+    position: relative;
+    width: -webkit-fill-available;
+    width: -moz-available;
+    width: fill-available;
+}
+
+span.augBranchSelect input {
+    width: -webkit-fill-available;
+    width: -moz-available;
+    width: fill-available;
+}
+
+span.augBranchSelect div {
+    width: -webkit-fill-available;
+    width: -moz-available;
+    width: fill-available;
+}
+
+.country-container {
+    margin-bottom: 10px;
+}
+
+.office-container {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    margin-left: 10px;
+}
+
+.dropdown-container {
+    max-height: 15em;
+    height: fit-content;
+}
