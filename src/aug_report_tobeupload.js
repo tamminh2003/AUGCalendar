@@ -862,5 +862,5 @@
 	document.addEventListener("readystatechange", documentReadyHandler);
 
 	// Remove this in production
-	window.documentReadyHandler = documentReadyHandler();
+	// window.documentReadyHandler = documentReadyHandler();
 })();
