@@ -1,3 +1,7 @@
+/**
+ * aug_report.js version 0.1.0706
+ */
+
 // Using bitrix ready function
 // From js -> crm -> report -> filterselectors -> init.js
 ; (function () {
