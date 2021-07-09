@@ -1,5 +1,5 @@
 /**
- * aug_report.js version 0.1.0706
+ * aug_report.js version 0.1.0709
  */
 
 // Using bitrix ready function
@@ -9,6 +9,9 @@
 		if (document.readyState !== "complete") return;
 
 		BX.ready(function () {
+			/** @var _selectFieldCounter - internal private counter of the module*/
+			var _selectFieldCounter = 0;
+
 			// Id value for new Application and Reporting intake user fields
 			var applicationId = "aug-report-select-input-field-application-intake";
 			var reportingId = "aug-report-select-input-field-reporting-intake";
@@ -135,58 +138,111 @@
 					// Main Functions to Modify Report Form
 					// Modifying Student Application Status List
 
+
 					/**
-					 * Function to modify 2 Application Date filters: "more than and equal" and "less than and equal" into one.
-					 * @function augBuildApplicationDateDualField_Report
+					 * Function to crawl through main filter container and processes all date filter
+					 * @function augBuildAllDateField_Report
+					 * @param {Element} filterContainer - main filter container of report page, #report-filter-chfilter 
 					 */
-					(function augBuildApplicationDateDualField_Report() {
-						let fromDateField, toDateField;
+					(function augBuildAllDateField_Report(filterContainer) {
+						// ? VARIABLES
+						// uniqueFields contains names of filter of a field
+						// e.g. There usually are two filter fields for a data field Application Date; "more than or equal to" and "less than or equal to"
+						let uniqueFields = {};
 
-						let filterContainer = document.querySelector("#report-filter-chfilter");
-						let sampleDateFilter = document.querySelector(".filter-field.chfilter-field-datetime");
 
-						// Select 2 Applicaiton Date filters containers.
-						document.querySelectorAll('.chfilter-field-datetime').forEach((element) => {
-							let labelText = element.querySelector('label').innerText;
-							if (!labelText || !labelText.includes("Application Date")) return;
-							if (labelText.includes("more than or equal")) {
-								fromDateField = element;
-							} else if (labelText.includes("less than or equal")) {
-								toDateField = element;
+						// Get all date filter in filter container
+						let filterFields = filterContainer.querySelectorAll(".filter-field.chfilter-field-datetime");
+						if (!filterFields) {
+							console.warn("No date filter field in this report.");
+							return;
+						}
+
+						// ? LOCAL FUNCTION
+
+						// ? MAIN BODY
+						// Get iterate through filterFields to get uniqueFields
+						filterFields.forEach((filterField) => {
+							let label = filterField.querySelector("label").innerText;
+							let uniqueFieldName = label.substring(0, label.indexOf("\"") - 1); // <== Get the field name
+							if (!Object.keys(uniqueFields).includes(uniqueFieldName)) {
+								uniqueFields[uniqueFieldName] = {};
+								uniqueFields[uniqueFieldName].fieldName = uniqueFieldName;
+								uniqueFields[uniqueFieldName].fromTo = "init";
+								if (label.includes("more than or equal to") || label.includes("less than or equal to")) {
+									uniqueFields[uniqueFieldName].fromTo = "pending";
+									uniqueFields[uniqueFieldName][label.includes("more") ? "fromDiv" : "toDiv"] = filterField;
+								}
+							} else if (uniqueFields[uniqueFieldName].fromTo == "pending" && (label.includes("more than or equal to") || label.includes("less than or equal to"))) {
+								uniqueFields[uniqueFieldName].fromTo = "ready";
+								uniqueFields[uniqueFieldName][label.includes("more") ? "fromDiv" : "toDiv"] = filterField;
 							}
 						});
 
-						// Clone inputs from these two filters
-						let toInput = toDateField.querySelector("input");
-						let toA = toDateField.querySelector("a");
-						let fromInput = fromDateField.querySelector("input");
-						let fromA = fromDateField.querySelector("a");
+						// console.log(uniqueFields);
 
-						// Hide 2 Application Date filter containers.
-						toDateField.style.display = "none";
-						fromDateField.style.display = "none";
-						toDateField.remove();
-						fromDateField.remove();
+						// Iterate through uniqueFields and processing date filter fields.
+						for (let [fieldName, fieldObject] of Object.entries(uniqueFields)) {
+							if (fieldObject.fromTo !== "ready") {
+								console.warn(`Found only one for field ${fieldName}, ignoring the field.`);
+								continue;
+							} else if (fieldObject.fieldName == "Reporting Intake" || fieldObject.fieldName == "Application Intake") {
+								console.warn(`Found ${fieldObject.fieldName}, processed by previous program version, ignoring the field.`);
+								continue;
+							}
+
+							augBuildDateFromToField_Report(filterContainer, fieldObject);
+
+						}
+					})();
+
+					/**
+					 * Function to combine "more than and equal" and "less than and equal" into one
+					 * @function augBuildDateFromToField_Report
+					 * @param {Element} filterContainer - main filter container
+					 * @param {Object} fieldObject - field Object containing ref to the 2 from / to div 
+					 */
+					function augBuildDateFromToField_Report(filterContainer, fieldObject) {
+						// ? VARIABLES
+						let fieldName = fieldObject.fieldName;
+						let toDiv = fieldObject.toDiv;
+						let fromDiv = fieldObject.fromDiv;
+						let radioName = fieldName.toLowerCase().replace(' ', '_');
+
+						// ? MAIN BODY
+
+						// Sample date filter field used to clone new date filter field
+						let sampleDateFilter = document.querySelector(".filter-field.chfilter-field-datetime");
+
+						// Clone inputs from these two filters
+						let toInput = toDiv.querySelector("input");
+						let toA = toDiv.querySelector("a");
+						let fromInput = fromDiv.querySelector("input");
+						let fromA = fromDiv.querySelector("a");
+
+						// Hide 2 Date filter containers.
+						toDiv.style.display = "none";
+						fromDiv.style.display = "none";
 
 						// Adding new Date filter
 						let newDateFilter = sampleDateFilter.cloneNode(true);
 
 						// Adding new Date Filter before the first filter
-						filterContainer.insertBefore(newDateFilter, filterContainer.querySelectorAll(".filter-field")[0]);
-						newDateFilter.querySelector("label").innerText = "Application Date"
+						toDiv.insertAdjacentElement("afterend", newDateFilter)
+						newDateFilter.querySelector("label").innerText = fieldName;
 
 						// Clear content of new Date Filter
 						newDateFilter.querySelector("input").remove();
 						newDateFilter.querySelector("a").remove();
 
 						// Adding options radio buttons
-						let optionDiv = newDateFilter.appendChild(BX.create("div", { "attrs": { "class": "aug-application-date-radio-container" }, "style": { "display": "flex" } }));
+						let optionDiv = newDateFilter.appendChild(BX.create("div", { "attrs": { "class": `aug-radio-container` }, "style": { "display": "flex" } }));
 						optionDiv.style.justifyContent = "space-evenly";
 						optionDiv.style.marginTop = "12px";
 						optionDiv.style.marginBottom = "12px";
 
-						let allRadio = augBuildRadioButton(optionDiv, "All", false, 'aug-radio-btn-all-applcation_date', 'application_date');
-						let rangeRadio = augBuildRadioButton(optionDiv, "Range", true, 'aug-radio-btn-range-applcation_date', 'application_date');
+						let allRadio = augBuildRadioButton(optionDiv, "All", false, `aug-radio-btn-all-${radioName}`, radioName);
+						let rangeRadio = augBuildRadioButton(optionDiv, "Range", true, `aug-radio-btn-range-${radioName}`, radioName);
 
 						// Adding From-To div Container
 						let toFromDiv = BX.create("div", { "attrs": { "class": "aug-date-from-to-input" }, "style": { "display": "flex", "justifyContent": "space-between" } });
@@ -197,6 +253,8 @@
 						// Adding Handler For Radio Buttons
 						allRadio.addEventListener("change", augAllRadioHandler.bind(toFromDiv));
 						rangeRadio.addEventListener("change", augRangeRadioHandler.bind(toFromDiv));
+
+						// ? LOCAL FUNCTIONS
 
 						/**
 						 * Module function to reduce code repetition.
@@ -240,8 +298,113 @@
 								this.style.visibility = "visible";
 							}
 						}
+					}
 
-					})();
+
+					// /**
+					//  * Function to modify 2 Application Date filters: combine "more than and equal" and "less than and equal" into one.
+					//  * @function augBuildApplicationDateDualField_Report
+					//  */
+					// (function augBuildApplicationDateDualField_Report() {
+					// 	let fromDateField, toDateField;
+
+					// 	let filterContainer = document.querySelector("#report-filter-chfilter");
+					// 	let sampleDateFilter = document.querySelector(".filter-field.chfilter-field-datetime");
+
+					// 	// Select 2 Applicaiton Date filters containers.
+					// 	document.querySelectorAll('.chfilter-field-datetime').forEach((element) => {
+					// 		let labelText = element.querySelector('label').innerText;
+					// 		if (!labelText || !labelText.includes("Application Date")) return;
+					// 		if (labelText.includes("more than or equal")) {
+					// 			fromDateField = element;
+					// 		} else if (labelText.includes("less than or equal")) {
+					// 			toDateField = element;
+					// 		}
+					// 	});
+
+					// 	// Clone inputs from these two filters
+					// 	let toInput = toDateField.querySelector("input");
+					// 	let toA = toDateField.querySelector("a");
+					// 	let fromInput = fromDateField.querySelector("input");
+					// 	let fromA = fromDateField.querySelector("a");
+
+					// 	// Hide 2 Application Date filter containers.
+					// 	toDateField.style.display = "none";
+					// 	fromDateField.style.display = "none";
+
+					// 	// Adding new Date filter
+					// 	let newDateFilter = sampleDateFilter.cloneNode(true);
+
+					// 	// Adding new Date Filter before the first filter
+					// 	filterContainer.insertBefore(newDateFilter, filterContainer.querySelectorAll(".filter-field")[0]);
+					// 	newDateFilter.querySelector("label").innerText = "Application Date"
+
+					// 	// Clear content of new Date Filter
+					// 	newDateFilter.querySelector("input").remove();
+					// 	newDateFilter.querySelector("a").remove();
+
+					// 	// Adding options radio buttons
+					// 	let optionDiv = newDateFilter.appendChild(BX.create("div", { "attrs": { "class": "aug-application-date-radio-container" }, "style": { "display": "flex" } }));
+					// 	optionDiv.style.justifyContent = "space-evenly";
+					// 	optionDiv.style.marginTop = "12px";
+					// 	optionDiv.style.marginBottom = "12px";
+
+					// 	let allRadio = augBuildRadioButton(optionDiv, "All", false, 'aug-radio-btn-all-applcation_date', 'application_date');
+					// 	let rangeRadio = augBuildRadioButton(optionDiv, "Range", true, 'aug-radio-btn-range-applcation_date', 'application_date');
+
+					// 	// Adding From-To div Container
+					// 	let toFromDiv = BX.create("div", { "attrs": { "class": "aug-date-from-to-input" }, "style": { "display": "flex", "justifyContent": "space-between" } });
+					// 	newDateFilter.appendChild(toFromDiv);
+					// 	augBuildDateField(toFromDiv, fromInput, fromA);
+					// 	augBuildDateField(toFromDiv, toInput, toA);
+
+					// 	// Adding Handler For Radio Buttons
+					// 	allRadio.addEventListener("change", augAllRadioHandler.bind(toFromDiv));
+					// 	rangeRadio.addEventListener("change", augRangeRadioHandler.bind(toFromDiv));
+
+					// 	/**
+					// 	 * Module function to reduce code repetition.
+					// 	 * Build Div for date input, keep in mind that this function will move the existing date filter 
+					// 	 * created by Bitrix template into a single div.
+					// 	 * @function augBuildDateField
+					// 	 * @param {Element} container - outer container that the div will be added to.
+					// 	 * @param {Boolean} inputElement - the field that we are moving from original filter
+					// 	 * @param aElement - the calendar button we are moving from original filter
+					// 	 */
+					// 	function augBuildDateField(container, inputElement, aElement) {
+					// 		let newDiv = BX.create("div", { "attrs": { "class": "aug-date-input" }, "style": { "display": "inline-block" } });
+					// 		container.appendChild(newDiv);
+					// 		newDiv.appendChild(BX.create("label", { "attrs": { "class": "aug-date-input-label" }, "text": "To" }));
+					// 		newDiv.appendChild(inputElement);
+					// 		newDiv.appendChild(aElement);
+					// 		inputElement.style.marginLeft = "5px";
+					// 		aElement.addEventListener("click", e => e.preventDefault()); // <== Prevent page refreshes when click on calendar img border
+					// 	}
+
+					// 	/**
+					// 	 * Module handler for all radio button - hide To-From Date Field
+					// 	 * @function augAllRadioHandler
+					// 	 * @param {Event} e - event passed in by EventListener
+					// 	 */
+					// 	function augAllRadioHandler(e) {
+					// 		if (e.target.checked) {
+					// 			BX.addClass(this, "aug_hide");
+					// 			this.querySelectorAll("input").forEach(item => item.value = "");
+					// 		}
+					// 	}
+
+					// 	/**
+					// 	 * Module handler for all radio button - hide To-From Date Field
+					// 	 * @function augRangeRadioHandler
+					// 	 * @param {Event} e - event passed in by EventListener
+					// 	 */
+					// 	function augRangeRadioHandler(e) {
+					// 		if (e.target.checked) {
+					// 			BX.removeClass(this, "aug_hide");
+					// 			this.style.visibility = "visible";
+					// 		}
+					// 	}
+					// })();
 
 					/**
 					 * Function to modify Closed filter "is equal to".
@@ -288,41 +451,60 @@
 						// Add new select field
 						let newSelectFieldContainer = filterContainer.appendChild(templateSelectField.cloneNode(true));
 						newSelectFieldContainer.querySelector("label").innerHTML = "Branch Office";
+						BX.addClass(newSelectFieldContainer, "aug-select-field");
+
 						let newSelectDiv = newSelectFieldContainer.appendChild(BX.create("span", { "attrs": { "class": "" }, "style": { "position": "relative" } }));
+
 						let textField = newSelectDiv.appendChild(BX.create("input", { "attrs": { "type": "text" } }));
 
 						// Build dropdown
-						let dropdownContainer = BX.create("div", { "attrs": { "class": "dropdown-container" }, "style": { "visibility": "hidden", "position": "absolute", "height": "10em", "overflowY": "scroll", "backgroundColor": "white" } });
+						let dropdownContainer = BX.create("div", { "attrs": { "class": "aug-dropdown-container" }, "style": { "visibility": "hidden", "position": "absolute", "height": "20em", "overflow": "hidden scroll", "backgroundColor": "white" } });
 
+						// Build country select's options, each has its own handler
 						Object.keys(augBranchSelect).forEach(country => {
 							let countryContainer = dropdownContainer.appendChild(BX.create("div", { "attrs": { "class": "country-container" } }));
 							let countrySelect = countryContainer.appendChild(BX.create("a", { "attrs": { "class": "countrySelect", "href": "#" }, "style": { "display": "block" }, "text": country }));
 
+							/**
+							 * Local function handling when the select field is activated
+							 * @function countrySelectHandler
+							 * @param e - Event object passed by EventListener
+							 */
 							let countrySelectHandler = function (e) {
 								this.value = country;
 								augSetBranchCountry(country);
 								dropdownContainer.style.visibility = "hidden";
 								e.preventDefault();
 							}
+
 							countrySelect.addEventListener("click", countrySelectHandler.bind(textField));
 
+							// Build office branch select's options, each has its own handler
 							let officeContainer = countryContainer.appendChild(BX.create("div", { "attrs": { "class": "office-container" } }));
 
 							augBranchSelect[country].forEach(office => {
 								let officeSelect = officeContainer.appendChild(BX.create("a", { "attrs": { "class": "officeSelect", "href": "#" }, "style": { "display": "block" }, "text": office }));
 
+								/**
+								 * Local function handling when office option is activated
+								 * @function officeSelectHandler
+								 * @param e - Event object passed by EventListener
+								 */
 								let officeSelectHandler = function (e) {
 									this.value = office;
 									augSetOfficeBranch(office);
 									dropdownContainer.style.visibility = "hidden";
 									e.preventDefault();
 								}
+
 								officeSelect.addEventListener("click", officeSelectHandler.bind(textField));
 							});
 						});
 						newSelectDiv.appendChild(dropdownContainer); //<== Add dropdown menu to new select span
 
-						// Auxilary Functions
+						// Auxilary Features
+
+						// Show/Hide Drop down
 						let dropdownContainerMouse;
 
 						textField.addEventListener("focus", (e) => {
@@ -332,6 +514,10 @@
 						textField.addEventListener("blur", (e) => {
 							if (!dropdownContainerMouse) {
 								dropdownContainer.style.visibility = "hidden";
+							}
+							if (textField.value == "") {
+								augSetBranchCountry("Ignore");
+								augSetOfficeBranch("Ignore");
 							}
 						});
 
@@ -344,10 +530,9 @@
 						});
 
 						/**
-						 * Local function for handling textField event
+						 * Local function for handling textField event, the function provide search features for select field.
 						 * @function textFieldHandler
-						 * @param {Event} e - Event passed in by EventListener
-						 * @returns nothing
+						 * @param {Event} e - Event object passed by EventListener
 						 */
 						function textFieldHandler(e) {
 							let searchText = e.target.value.toUpperCase();
@@ -400,6 +585,7 @@
 						 */
 						function augSetBranchCountry(country) {
 							const selectTable = {
+								"Ignore": "",
 								"Australia": 110,
 								"China": 111,
 								"Hong Kong": 112,
@@ -419,6 +605,7 @@
 						 */
 						function augSetOfficeBranch(office) {
 							const selectTable = {
+								"Ignore": "",
 								"AUG Adelaide": 63807,
 								"AUG Brisbane": 63808,
 								"AUG Melbourne": 63809,
@@ -480,8 +667,7 @@
 						augBuildSelectField_Report(field, "Applied Institution");
 					})();
 
-					/** @var _selectFieldCounter - internal private counter of the module*/
-					var _selectFieldCounter = 0;
+
 					/**
 					* Modify and rebuild the Branch Country and Branch Select Fields
 					* @function augBuildSelectField_Report
@@ -508,16 +694,17 @@
 
 						// Add new select field
 						let newSelectFieldContainer = filterContainer.insertBefore(templateSelectField.cloneNode(true), selectFieldContainer.nextElementSibling);
+						BX.addClass(newSelectFieldContainer, "aug-select-field");
 						newSelectFieldContainer.querySelector("label").innerHTML = newLabel;
 
-						let newSelectDiv = newSelectFieldContainer.appendChild(BX.create("span", { "attrs": { "class": "" }, "style": { "position": "relative" } }));
+						let newSelectDiv = newSelectFieldContainer.appendChild(BX.create("span", { "attrs": { "class": "aug-select-span" }, "style": { "position": "relative" } }));
 						let textField = newSelectDiv.appendChild(BX.create("input", { "attrs": { "type": "text", "value": dataList[0].text } }));
 
 						// Build dropdown
-						let dropdownContainer = BX.create("div", { "attrs": { "class": `aug-dropdown-container-${_selectFieldCounter}` }, "style": { "visibility": "hidden", "position": "absolute", "height": "10em", "overflowY": "scroll", "backgroundColor": "white" } });
+						let dropdownContainer = BX.create("div", { "attrs": { "class": `aug-dropdown-container` }, "style": { "visibility": "hidden", "position": "absolute", "height": "15em", "overflow": "hidden scroll", "backgroundColor": "white", "zIndex": "1200" } });
 
 						dataList.forEach(item => {
-							let itemSelect = dropdownContainer.appendChild(BX.create("a", { "attrs": { "class": "itemSelect", "href": "#" }, "style": { "display": "block" }, "text": item.text }));
+							let itemSelect = dropdownContainer.appendChild(BX.create("a", { "attrs": { "class": "aug-item-select", "href": "#" }, "style": { "display": "block" }, "text": item.text }));
 
 							let itemSelectHandler = function (e) {
 								this.value = item.text;
@@ -586,6 +773,7 @@
 						let tableRows = resultTable.querySelectorAll(".reports-list-item");
 						if (tableRows.length == 0) return;
 						let color = "white" // Toggle this between red and blue
+						let colorAccept = ""
 						let pointer1 = 0, pointer2 = 1;
 						let counter = 0;
 
@@ -603,9 +791,15 @@
 						 */
 						function setColorTd(trElement, color) {
 							let tdElements = trElement.querySelectorAll("td");
-							for (let tdElement of tdElements) {
-								tdElement.style.backgroundColor = color;
-							};
+							if (!color) {
+								for (let tdElement of tdElements) {
+									tdElement.style.backgroundColor = tdElement.dataset.bgcolor;
+								};
+							} else {
+								for (let tdElement of tdElements) {
+									tdElement.style.backgroundColor = color;
+								};
+							}
 						};
 
 						do {
@@ -619,8 +813,8 @@
 								leadId2 = getTableData(tableRows[pointer2])[0];
 							}
 
-							console.log("pointer1 = " + pointer1);
-							console.log("pointer2 = " + (pointer2 - 1));
+							// console.log("pointer1 = " + pointer1);
+							// console.log("pointer2 = " + (pointer2 - 1));
 
 							for (let i = pointer1; i <= pointer2 - 1; i++) {
 								processingTableRow.push(tableRows[i]);
@@ -629,17 +823,47 @@
 							processingTableRow.forEach((tableRow, index, _tableRows) => {
 								tableRow.id = "data" + counter;
 
+								if (tableRow.querySelectorAll("td")[12].innerText.toUpperCase() == "ACCEPT") {
+									tableRow.dataset.accept = true;
+								};
+
 								tableRow.querySelectorAll("td").forEach((cell, cellIndex) => {
+									cell.dataset.bgcolor = color;
+
+									// Hide similar lead ID
 									if (cellIndex >= 0 && cellIndex <= 2 && index != 0) {
 										cell.innerText = "";
 									}
-									cell.style.backgroundColor = color
+
+									// Set color for acceptted row
+									if (cellIndex >= 3) {
+										cell.parentElement.dataset.accept && (cell.dataset.bgcolor = "#DEEACF");
+									}
+
+									// Format Application intake to MMMM / YYYY
+									if (cellIndex == 10) {
+										let date = cell.innerText.substring(3);
+										let month = Object.keys(applicationMonths)[Number(date.substring(0, 2)) - 1];
+										let year = date.substring(3);
+										cell.innerText = `${month} ${year}`
+									}
+
+									// Format Reporting intake to MMMM / YYYY
+									if (cellIndex == 11) {
+										let date = cell.innerText.substring(3);
+										let month = Object.keys(applicationMonths)[Number(date.substring(0, 2)) - 1];
+										let year = date.substring(3);
+										cell.innerText = `${month} ${year}`
+									}
 								});
+
+								// Set color for row
+								setColorTd(tableRow);
 
 								// Set eventListener for mouseout
 								tableRow.addEventListener("mouseout", (e) => {
 									_tableRows.forEach((_tableRow) => {
-										setColorTd(_tableRow, `${color}`);
+										setColorTd(_tableRow);
 									});
 								});
 
@@ -650,7 +874,7 @@
 										setColorTd(_tableRow, "#fbfec2");
 									});
 								});
-							})
+							});
 
 							// Setting variables for next loop
 							color = (color != "white") ? "white" : "#ededed";
@@ -672,8 +896,32 @@
 							console.log("click");
 							document.querySelector("#sidebar").style.display = (document.querySelector("#sidebar").style.display == "none") ? "" : "none";
 						});
-					})()
+					})();
 
+					/**
+					 * Auxilary features functions, including changing name of some fields
+					 * @function augAuxilaryFunctions
+					 */
+					(function augAuxilaryFunctions() {
+						document.querySelectorAll(".filter-field").forEach((element) => {
+
+							if (element.querySelector("label").innerText.toUpperCase().includes("RESPONSIBLE PERSON")) {
+								element.querySelector("label").innerText = "Responsible Person";
+								return;
+							}
+
+							if (element.querySelector("label").innerText.toUpperCase().includes("APPLICATION INTAKE")) {
+								element.querySelector("label").innerText = "Applicaion Intake";
+								return;
+							}
+
+							if (element.querySelector("label").innerText.toUpperCase().includes("REPORTING INTAKE")) {
+								element.querySelector("label").innerText = "Reporting Intake";
+								return;
+							}
+
+						});;
+					})();
 
 					/**
 					 * Local function
@@ -722,6 +970,7 @@
 						let optionDiv = filterContainer.appendChild(BX.create("div"));
 						optionDiv.style.display = "flex";
 						optionDiv.style.justifyContent = "space-evenly";
+						optionDiv.style.marginTop = "5px";
 						`aug-radio-btn-${className}-`
 						let radioId = `aug-radio-btn-${className}-`;
 						let radioName = className;
@@ -819,6 +1068,7 @@
 				} catch (error) {
 					return;
 				}
+
 			}, 0);
 
 			// Check whether there is a div with id "workarea"

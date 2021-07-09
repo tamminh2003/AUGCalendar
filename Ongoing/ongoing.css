@@ -1,33 +1,26 @@
-span.augBranchSelect {
-    position: relative;
-    width: -webkit-fill-available;
-    width: -moz-available;
-    width: fill-available;
+.aug-select-field > span {
+  width: -webkit-fill-available;
+  width: -moz-available;
 }
 
-span.augBranchSelect input {
-    width: -webkit-fill-available;
-    width: -moz-available;
-    width: fill-available;
+.aug-select-field .aug-dropdown-container,
+.aug-select-field input {
+  width: inherit;
+  z-index: 1200;
 }
 
-span.augBranchSelect div {
-    width: -webkit-fill-available;
-    width: -moz-available;
-    width: fill-available;
+.aug-select-field a {
+  padding: 0 6px 0 3px;
+  min-height: 33px;
+  font: 14px/33px "Helvetica Neue", Arial, Helvetica, sans-serif;
+  color: #80868e;
+  cursor: pointer;
 }
 
-.country-container {
-    margin-bottom: 10px;
+.aug-select-field a:hover {
+  background: #f3f6f8;
 }
 
-.office-container {
-    margin-top: 5px;
-    margin-bottom: 5px;
-    margin-left: 10px;
-}
-
-.dropdown-container {
-    max-height: 15em;
-    height: fit-content;
+.country-container > a {
+  font-weight: bold;
 }
