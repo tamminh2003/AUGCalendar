@@ -696,8 +696,11 @@ var augcAccommodationContractDuration = [
     "Others"
 ]
 
+
+// ============= Report Configurations ============= //
+
 // List of Branch and Offices
-var augBranchOfficeList_Report = {
+var augcBranchOfficeList_Report = {
     "Australia": ["Adelaide", "Brisbane", "Melbourne", "Perth", "Sydney"],
     "Malaysia": ["Ipoh", "Johor Bahru", "Kota Bharu", "Kuala Lumpur", "Kuantan", "Kuching", "Melaka", "Nilai", "Penang", "Segamat", "Subang Jaya"],
     "Indonesia": ["Bandung", "Jakarta", "Surabaya"],
@@ -709,7 +712,7 @@ var augBranchOfficeList_Report = {
 
 // Array of report optional filter
 // List of Optional filter for Acceptance List Australia
-var optionalFilter_Report = {
+var augcOptionalFilter_Report = {
 	"default": [
 			"reporting intake",
 			"branch office"
@@ -726,4 +729,3 @@ var optionalFilter_Report = {
             "applied institution"
     ]
 };
-
