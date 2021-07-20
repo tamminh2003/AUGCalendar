@@ -456,7 +456,7 @@ div .filter-field label.filter-field-title {
   background-image: linear-gradient(white, #e8e8e8);
   margin: 0px !important;
   height: 25px;
-  padding: 7px 0px 0px 15px !important;
+  padding: 5px 0px 0px 10px !important;
   font-size: 12px;
   border-top: 2px solid #cecece;
   border-bottom: 2px solid white;
@@ -464,9 +464,20 @@ div .filter-field label.filter-field-title {
 
 /* Filter field value */
 .filter-field {
-  margin-top: 20px !important;
+  margin-top: 5px !important;
   padding-left: 3px;
   padding-right: 5px;
+  padding-bottom: 5px !important;
+  background-color: #f2f2f2;
+  border-radius: 0px 0px 3px 3px;
+}
+
+.filter-field span {
+  box-sizing: border-box;
+  display: block;
+  padding: 0px !important;
+  margin: 5px auto 0px;
+  width: 95% !important;
 }
 
 /* Whole filter section */
@@ -711,8 +722,8 @@ a.filter-date-interval-calendar {
 
 .aug-report-filter-field-datetime {
   margin-bottom: 0px !important;
-  padding-bottom: 0px !important;
-  margin-top: 20px !important;
+  padding-bottom: 10px !important;
+  margin-top: 5px !important;
 }
 
 .aug-report-filter-field-to-datetime {
@@ -766,11 +777,6 @@ select[id^="aug-report-select-input-field-reporting-intake-second-chfilter-field
 }
 
 /* report > select input */
-.aug-select-field > span {
-  width: -webkit-fill-available;
-  width: -moz-available;
-}
-/* report > select input */
 .aug-select-field .aug-dropdown-container,
 .aug-select-field input {
   width: inherit;
@@ -792,6 +798,13 @@ select[id^="aug-report-select-input-field-reporting-intake-second-chfilter-field
 
 .country-container > a {
   font-weight: bold;
+}
+
+.aug-radio-container {
+  display: flex;
+  justify-content: space-evenly;
+  margin-top: 12px;
+  margin-bottom: 6px;
 }
 
 /* --------------- End section ------------------- */

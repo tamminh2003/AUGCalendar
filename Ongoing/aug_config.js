@@ -727,5 +727,8 @@ var augcOptionalFilter_Report = {
     "Student Application Status List": [
             "counsellor",
             "applied institution"
+    ],
+    "Student List" : [
+        
     ]
 };

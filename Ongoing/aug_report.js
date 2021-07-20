@@ -123,7 +123,7 @@
 								augBuildOneIntakeField_Report(className, reportingMonths, yearValue, reportingId);
 							}
 						}
-			
+
 						className = "chfilter-field-datetime";
 					}
 
@@ -240,57 +240,62 @@
 
 							}(mainFilterContainer));
 
-						(
-							/**
-							 * Function to iterate through main filter container and processes all Select filter field.
-							 * This ignores Branch and Branch Country select filter fields.
-							 * For each customer field there should only be one filter.
-							 * @function augBuildAllSelectField_Report
-							 * @param {Element} filterContainer - main filter container of report page, #report-filter-chfilter
-							 */
-							function augBuildAllSelectField_Report(filterContainer) {
-								// ? VARIABLES
-								// uniqueFields contains names of filter of a field
-								// e.g. There usually are two filter fields for a data field Application Date; "more than or equal to" and "less than or equal to"
-								let uniqueFields = {};
 
-								// Get all date filter in filter container
-								let filterFields = filterContainer.querySelectorAll(".filter-field.chfilter-field-enum");
-								if (!filterFields) {
-									console.warn("No select filter field in this report.");
+						/**
+						 * Function to iterate through main filter container and processes all Select filter field.
+						 * This ignores Branch and Branch Country select filter fields.
+						 * For each customer field there should only be one filter.
+						 * @function augBuildAllSelectField_Report
+						 * @param {Element} filterContainer - main filter container of report page, #report-filter-chfilter
+						 */
+						function augBuildAllSelectField_Report(filterContainer) {
+							// ? VARIABLES
+							// uniqueFields contains names of filter of a field
+							// e.g. There usually are two filter fields for a data field Application Date; "more than or equal to" and "less than or equal to"
+							let uniqueFields = {};
+
+							// Get all date filter in filter container
+							let filterFields = filterContainer.querySelectorAll(".filter-field.chfilter-field-enum");
+							if (!filterFields) {
+								console.warn("No select filter field in this report.");
+								return;
+							}
+
+							// ? MAIN BODY
+							// Get iterate through filterFields to get uniqueFields
+							filterFields.forEach((filterField) => {
+								let label = filterField.querySelector("label").innerText;
+								if (label.includes("Branch")) { // <== Ignore Branch and Branch office select filters
 									return;
 								}
+								let uniqueFieldName = label.substring(0, label.indexOf("\"") - 1); // <== Get the field name
 
-								// ? MAIN BODY
-								// Get iterate through filterFields to get uniqueFields
-								filterFields.forEach((filterField) => {
-									let label = filterField.querySelector("label").innerText;
-									let uniqueFieldName = label.substring(0, label.indexOf("\"") - 1); // <== Get the field name
-									if (uniqueFieldName.includes("Branch")) { // <== Ignore Branch and Branch office select filters
-										return;
-									}
-									if (!Object.keys(uniqueFields).includes(uniqueFieldName)) {
-										uniqueFields[uniqueFieldName] = {};
-										uniqueFields[uniqueFieldName].fieldName = uniqueFieldName;
-										uniqueFields[uniqueFieldName].div = filterField;
-									}
-								});
-
-								console.log(uniqueFields);
-								if (Object.entries(uniqueFields).length == 0) { // <== Return if there is no date field
-									return;
+								if (!Object.keys(uniqueFields).includes(uniqueFieldName)) {
+									uniqueFields[uniqueFieldName] = {};
+									uniqueFields[uniqueFieldName].fieldName = uniqueFieldName;
+									uniqueFields[uniqueFieldName].div = filterField;
 								}
+							});
 
-								// Iterate through uniqueFields and processing date filter fields.
-								for (let [fieldName, fieldObject] of Object.entries(uniqueFields)) {
-									augBuildSelectField_Report(filterContainer, fieldObject.fieldName, fieldObject.div);
-								}
-							})(mainFilterContainer);
+							console.log(uniqueFields);
+							if (Object.entries(uniqueFields).length == 0) { // <== Return if there is no date field
+								return;
+							}
+
+							// Iterate through uniqueFields and processing date filter fields.
+							for (let [fieldName, fieldObject] of Object.entries(uniqueFields)) {
+								augBuildSelectField_Report(filterContainer, fieldObject.fieldName, fieldObject.div);
+							}
+						};
+
+						setTimeout(() => {
+							augBuildAllSelectField_Report(mainFilterContainer);
+						}, 100); // <== Bitrix doesn't load select's options right after load
 
 						(/**
-					 * Modify and rebuild the Branch Country and Branch Select Fields
-					 * @function augBuildBranchSelectField_Report
-					 */
+							* Modify and rebuild the Branch Country and Branch Select Fields
+							* @function augBuildBranchSelectField_Report
+							*/
 							function augBuildBranchSelectField_Report(filterContainer) {
 								// ? MODULE FUNCTIONS
 								/**
@@ -671,9 +676,9 @@
 
 
 						(/**
-					 * Auxilary features functions, including changing name of some fields
-					 * @function augAuxilaryFunctions
-					 */
+							* Auxilary features functions, including changing name of some fields
+							* @function augAuxilaryFunctions
+							*/
 							function augAuxilaryFunctions() {
 								document.querySelectorAll(".filter-field").forEach((element) => {
 
@@ -725,32 +730,34 @@
 									})
 								})();
 
-								/** Add Show/Hide Advanced Filter button
-								 * @function augReportAdvancedFilterShowHideButton
-								 */
-								(function augReportAdvancedFilterShowHideButton() {
-									let button = BX.create("button", { "attrs": { "class": "ui-btn ui-btn-primary" }, "text": "MORE" });
-									document.querySelector("#pagetitle-menu").querySelector("button").insertAdjacentElement("afterend", button);
-									button.addEventListener("click", (e) => {
-										document.querySelector("#sidebar").style.display = "";
-										button.innerText = button.innerText == "MORE" ? "LESS" : "MORE";
-										mainFilterContainer.querySelectorAll(".aug-optional-filter").forEach((optionalFilter) => {
-											optionalFilter.style.display = optionalFilter.style.display != "none" ? "none" : "block";
-										});
-									});
-								})();
 
-								/**  
+								(/**  
 								 * Add Show/Hide filter button
 								 * @function augReportFilterShowHideButton
 								 */
-								(function augReportFilterShowHideButton() {
-									let button = BX.create("button", { "attrs": { "class": "ui-btn ui-btn-primary" }, "text": "Filter" });
-									document.querySelector("#pagetitle-menu").querySelector("button").insertAdjacentElement("afterend", button);
-									button.addEventListener("click", (e) => {
-										document.querySelector("#sidebar").style.display = (document.querySelector("#sidebar").style.display == "none") ? "" : "none";
-									});
-								})();
+									function augReportFilterShowHideButton() {
+										let button = BX.create("button", { "attrs": { "class": "ui-btn ui-btn-primary" }, "text": "Filter" });
+										document.querySelector("#pagetitle-menu").querySelector("button").insertAdjacentElement("afterend", button);
+										button.addEventListener("click", (e) => {
+											document.querySelector("#sidebar").style.display = (document.querySelector("#sidebar").style.display == "none") ? "" : "none";
+										});
+									})();
+
+
+								(/** Add Show/Hide Advanced Filter button
+								 * @function augReportAdvancedFilterShowHideButton
+								 */
+									function augReportAdvancedFilterShowHideButton() {
+										let button = BX.create("button", { "attrs": { "class": "ui-btn ui-btn-primary" }, "text": "MORE" });
+										document.querySelector("#pagetitle-menu").querySelector("button").insertAdjacentElement("afterend", button);
+										button.addEventListener("click", (e) => {
+											document.querySelector("#sidebar").style.display = "";
+											button.innerText = button.innerText == "MORE" ? "LESS" : "MORE";
+											mainFilterContainer.querySelectorAll(".aug-optional-filter").forEach((optionalFilter) => {
+												optionalFilter.style.display = optionalFilter.style.display != "none" ? "none" : "block";
+											});
+										});
+									})();
 
 							})();
 
@@ -816,10 +823,7 @@
 							newDateFilter.querySelector("a").remove();
 
 							// Adding options radio buttons
-							let optionDiv = newDateFilter.appendChild(BX.create("div", { "attrs": { "class": `aug-radio-container` }, "style": { "display": "flex" } }));
-							optionDiv.style.justifyContent = "space-evenly";
-							optionDiv.style.marginTop = "12px";
-							optionDiv.style.marginBottom = "12px";
+							let optionDiv = newDateFilter.appendChild(BX.create("div", { "attrs": { "class": `aug-radio-container` } }));
 
 							let allRadio = augBuildRadioButton(optionDiv, "All", false, `aug-radio-btn-all-${radioName}`, radioName);
 							let rangeRadio = augBuildRadioButton(optionDiv, "Range", true, `aug-radio-btn-range-${radioName}`, radioName);
@@ -877,10 +881,7 @@
 							label.innerText = `Show ${fieldName}`;
 
 							// Set container as flex
-							let optionDiv = fieldDiv.appendChild(BX.create("div"));
-							optionDiv.style.display = "flex";
-							optionDiv.style.justifyContent = "space-evenly";
-							optionDiv.style.marginTop = "12px";
+							let optionDiv = fieldDiv.appendChild(BX.create("div", { "attrs": { "class": "aug-radio-container" } }));
 							let radioId = `aug-radio-btn-${className}-`;
 							let radioName = className;
 
