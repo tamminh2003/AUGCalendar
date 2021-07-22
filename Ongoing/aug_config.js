@@ -713,22 +713,24 @@ var augcBranchOfficeList_Report = {
 // Array of report optional filter
 // List of Optional filter for Acceptance List Australia
 var augcOptionalFilter_Report = {
-	"default": [
-			"reporting intake",
-			"branch office"
-	],
-	"Acceptance List (AUSTRALIA)": [
-			"counsellor",
-			"applied institution",
-			"application date",
-			"payment date",
-			"expected date"
-	],
-    "Student Application Status List": [
-            "counsellor",
-            "applied institution"
+    "default": [
+        "reporting intake",
+        "branch office",
+        "branch",
+        "branch country"
     ],
-    "Student List" : [
-        
+    "Acceptance List (AUSTRALIA)": [
+        "counsellor",
+        "applied institution",
+        "application date",
+        "payment date",
+        "expected date"
+    ],
+    "Student Application Status List": [
+        "counsellor",
+        "applied institution"
+    ],
+    "Student List": [
+
     ]
 };

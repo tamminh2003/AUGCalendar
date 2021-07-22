@@ -63,7 +63,7 @@ BX.ready(
 
 
 
-		function main() {
+		(function main() {
 
 			/**
 			 * This part of code is responsible of modifying the two filter: Application Intake and Reporting Intake.
@@ -151,7 +151,7 @@ BX.ready(
 			 * + Some auxiliary features, please read more about them in augAuxilaryFunctions 
 			 */
 
-			// @var mainFilterContainer - The element contain all the filters of the report page.
+			/**  @var mainFilterContainer - The element contain all the filters of the report page. */
 			var mainFilterContainer = document.querySelector("#report-filter-chfilter");
 
 			try {
@@ -297,9 +297,9 @@ BX.ready(
 						// Get iterate through filterFields to get uniqueFields
 						filterFields.forEach((filterField) => {
 							let label = filterField.querySelector("label").innerText;
-							if (label.includes("Branch")) { // <== Ignore Branch and Branch office select filters
-								return;
-							}
+							// if (label.includes("Branch")) { // <== Ignore Branch and Branch office select filters
+							// 	return;
+							// }
 							let uniqueFieldName = label.substring(0, label.indexOf("\"") - 1); // <== Get the field name
 
 							if (!Object.keys(uniqueFields).includes(uniqueFieldName)) {
@@ -324,13 +324,17 @@ BX.ready(
 				console.log(error);
 			};
 
+
 			try {
 				(
 					/**
+					 * !!! THIS FUNCTION / MODULE IS DEPRECATED, DON'T USE THIS !!!
+					 * !!! THIS IS FOR REFERENCE ONLY
 					 * Modify and rebuild the Branch Country and Branch Select Fields
 					 * @function augBuildBranchSelectField_Report
 					 */
 					function augBuildBranchSelectField_Report(filterContainer) {
+						return;
 						// ? MODULE FUNCTIONS
 						/**
 						 * Local function ampping option value of office select field
@@ -556,6 +560,83 @@ BX.ready(
 				console.log(error);
 			}
 
+			console.log("DEBUGGING augModyfyBranch_Report");
+			try {
+				(
+					/**
+					 * This part of code responsible for modifying the Branch and Branch Country filters.
+					 * The general idea is that when the Branch Country is selected, only Branch of that Country is shown.
+					 * This also gives the Branch and Branch Country options based on their authentication.
+					 * For example, staff in Melbourne, Australia can only choose Australia and Melbourne.
+					 * @function augModifyBranch_Report
+					 * 
+					 */
+					function augModifyBranch_Report(filterContainer) {
+						// Get Available Option
+						let augBranchSelect;
+						if (userDepartments && userCrmRoleName) {
+							augBranchSelect = augBuildBranchSelectObject(userCrmRoleName, userDepartments);
+						}
+						let augBranchCountry = Object.keys(augBranchSelect).map(each => each.toLowerCase());
+						let branchCountryFilter, branchFilter;
+
+						for (let filter of filterContainer.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum.aug-select-field")) {
+							if (filter.querySelector("label").innerText.toLowerCase().includes("branch country")) {
+								branchCountryFilter = filter;
+								break;
+							}
+						}
+
+						for (let filter of filterContainer.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum.aug-select-field.aug-select-field")) {
+							if (filter.querySelector("label").innerText.toLowerCase() == "branch") {
+								branchFilter = filter;
+								break;
+							}
+						}
+
+						branchCountryFilter.querySelectorAll("a").forEach((option) => {
+							if (!augBranchCountry.includes(option.innerHTML.toLowerCase())) {
+								option.remove();
+							}
+						});
+
+						branchFilter.querySelectorAll("a").forEach((option) => {
+							for (let country in augBranchSelect) {
+								if (augBranchSelect[country].map((each) => each.toLowerCase()).includes(option.innerHTML.toLowerCase())) {
+									return;
+								}
+							}
+							option.remove();
+						});
+
+						branchCountryFilter.querySelector("a").click();
+						branchFilter.querySelector("a").click();
+
+						branchCountryFilter.querySelector("div.aug-dropdown-container").addEventListener("click", (e) => {
+							// update branch filter to respective country
+							console.log(e);
+							let chosenCountry = e.target.innerHTML;
+							branchFilter.querySelectorAll("a").forEach((option) => {
+								if (augBranchSelect[chosenCountry].includes(option.innerHTML)) {
+									option.style.display = "block";
+								} else {
+									option.style.display = "none";
+								}
+								for (let option of branchFilter.querySelectorAll("a")) {
+									if (option.style.display == "block") {
+										option.click();
+										break;
+									}
+								}
+							});
+						});
+
+					})(mainFilterContainer);
+
+			} catch (error) {
+				console.log("There were errors during execution of augModifyBranch_Report.");
+				console.error(error);
+			}
 
 			// TODO: Change the funcion so fit with different report.
 			try {
@@ -755,13 +836,13 @@ BX.ready(
 							function augReportMarkOptionalFilter() {
 								function getOptionFilterList() {
 									let reportName = document.querySelector("#pagetitle").innerText;
-									if (!Object.keys(optionalFilter_Report).includes(reportName)) {
+									if (!Object.keys(augcOptionalFilter_Report).includes(reportName)) {
 										console.error("report name not found");
 										return;
 									}
 									let optionList = [];
-									optionalFilter_Report.default.forEach(option => optionList.push(option));
-									optionalFilter_Report[reportName].forEach(option => optionList.push(option));
+									augcOptionalFilter_Report.default.forEach(option => optionList.push(option));
+									augcOptionalFilter_Report[reportName].forEach(option => optionList.push(option));
 									return optionList;
 								}
 
@@ -1042,8 +1123,6 @@ BX.ready(
 
 				// Build DataList
 				let temp = [];
-				fieldDiv.querySelectorAll("option").length
-				fieldDiv.querySelectorAll("option").values()
 				for (let each of fieldDiv.querySelectorAll("option").values()) {
 					temp.push(each);
 				}
@@ -1065,7 +1144,7 @@ BX.ready(
 				let textField = newSelectDiv.appendChild(BX.create("input", { "attrs": { "type": "text", "value": dataList[0].text } }));
 
 				// Build dropdown
-				let dropdownContainer = BX.create("div", { "attrs": { "class": `aug-dropdown-container` }, "style": { "visibility": "hidden", "position": "absolute", "height": "15em", "overflow": "hidden scroll", "backgroundColor": "white", "zIndex": "1200" } });
+				let dropdownContainer = BX.create("div", { "attrs": { "class": `aug-dropdown-container` }, "style": { "visibility": "hidden", "position": "absolute" } });
 
 				dataList.forEach(item => {
 					let itemSelect = dropdownContainer.appendChild(BX.create("a", { "attrs": { "class": "aug-item-select", "href": "#" }, "style": { "display": "block" }, "text": item.text }));
@@ -1139,16 +1218,24 @@ BX.ready(
 				let augBranchSelect = {};
 
 				if (userCrmRoleName == "Administrator") { // <== return full access if CrmRole is Administrator.
-					augBranchSelect = augBranchOfficeList_Report;
+					augBranchSelect = augcBranchOfficeList_Report;
 					return augBranchSelect;
 				}
 
-				for (let [country, offices] of Object.entries(augBranchOfficeList_Report)) {
+				if (crmDepartment == "Communication Team") {
+					augBranchSelect = augcBranchOfficeList_Report;
+					return augBranchSelect;
+				}
+
+				for (let [country, offices] of Object.entries(augcBranchOfficeList_Report)) {
 					for (let [id, department] of Object.entries(crmDepartment)) {
-						if (offices.includes(department.substring(4))) {
-							if (!augBranchSelect[country]) augBranchSelect[country] = []; // <== add country object if the object does not exist.
-							augBranchSelect[country].push(department.substring(4));
+						for (let office of offices) {
+							if (department.includes(office)) {
+								if (!augBranchSelect[country]) augBranchSelect[country] = [];
+								augBranchSelect[country].push(office);
+							}
 						}
+
 					}
 				} // <== get access authorization based on department.
 
@@ -1156,6 +1243,6 @@ BX.ready(
 			}
 
 
-		};
+		})();
 
 	});
