@@ -560,46 +560,60 @@ BX.ready(
 				console.log(error);
 			}
 
-			console.log("DEBUGGING augModyfyBranch_Report");
 			try {
 				(
 					/**
 					 * This part of code responsible for modifying the Branch and Branch Country filters.
 					 * The general idea is that when the Branch Country is selected, only Branch of that Country is shown.
-					 * This also gives the Branch and Branch Country options based on their authentication.
+					 * This also gives the Branch and Branch Country options based on user authentication.
 					 * For example, staff in Melbourne, Australia can only choose Australia and Melbourne.
+					 * Keep in mind that there should only be one filter of the field.
 					 * @function augModifyBranch_Report
-					 * 
 					 */
 					function augModifyBranch_Report(filterContainer) {
-						// Get Available Option
+						// Get Available Options
 						let augBranchSelect;
 						if (userDepartments && userCrmRoleName) {
 							augBranchSelect = augBuildBranchSelectObject(userCrmRoleName, userDepartments);
 						}
+						if (Object.keys(augBranchSelect).length == 0) {
+							throw "Error occured while retrieving Branch and Branch Country options.";
+						}
+
+						// Local variable
 						let augBranchCountry = Object.keys(augBranchSelect).map(each => each.toLowerCase());
 						let branchCountryFilter, branchFilter;
 
+						// Select Branch Country filter element
 						for (let filter of filterContainer.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum.aug-select-field")) {
 							if (filter.querySelector("label").innerText.toLowerCase().includes("branch country")) {
 								branchCountryFilter = filter;
 								break;
 							}
 						}
+						if (!branchCountryFilter) {
+							throw "No Branch Country filter found.";
+						}
 
+						// Select Branch filter element
 						for (let filter of filterContainer.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum.aug-select-field.aug-select-field")) {
 							if (filter.querySelector("label").innerText.toLowerCase() == "branch") {
 								branchFilter = filter;
 								break;
 							}
 						}
+						if (!branchFilter) {
+							throw "No Branch filter found.";
+						}
 
+						// Remove Branch Country options not available for the user.
 						branchCountryFilter.querySelectorAll("a").forEach((option) => {
 							if (!augBranchCountry.includes(option.innerHTML.toLowerCase())) {
 								option.remove();
 							}
 						});
 
+						// Remove Branch options not available for the user.
 						branchFilter.querySelectorAll("a").forEach((option) => {
 							for (let country in augBranchSelect) {
 								if (augBranchSelect[country].map((each) => each.toLowerCase()).includes(option.innerHTML.toLowerCase())) {
@@ -609,12 +623,14 @@ BX.ready(
 							option.remove();
 						});
 
+						// Set the first option as default for both filters.
 						branchCountryFilter.querySelector("a").click();
 						branchFilter.querySelector("a").click();
 
+						// Handling "Click" event to change the available options when Branch Country change.
+						// For example, when click Indonesia in Branch Country filter, Branch filter will change the available options to Indonesia's Branches.
 						branchCountryFilter.querySelector("div.aug-dropdown-container").addEventListener("click", (e) => {
-							// update branch filter to respective country
-							console.log(e);
+							// Update branch filter to respective country.
 							let chosenCountry = e.target.innerHTML;
 							branchFilter.querySelectorAll("a").forEach((option) => {
 								if (augBranchSelect[chosenCountry].includes(option.innerHTML)) {
@@ -622,6 +638,7 @@ BX.ready(
 								} else {
 									option.style.display = "none";
 								}
+								// Set first option as default.
 								for (let option of branchFilter.querySelectorAll("a")) {
 									if (option.style.display == "block") {
 										option.click();
