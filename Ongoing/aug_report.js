@@ -570,7 +570,7 @@ BX.ready(
 					 * Keep in mind that there should only be one filter of the field.
 					 * @function augModifyBranch_Report
 					 */
-					function augModifyBranch_Report(filterContainer) {
+					async function augModifyBranch_Report(filterContainer) {
 						// Get Available Options
 						let augBranchSelect;
 						if (userDepartments && userCrmRoleName) {
@@ -585,12 +585,27 @@ BX.ready(
 						let branchCountryFilter, branchFilter;
 
 						// Select Branch Country filter element
-						for (let filter of filterContainer.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum.aug-select-field")) {
-							if (filter.querySelector("label").innerText.toLowerCase().includes("branch country")) {
-								branchCountryFilter = filter;
-								break;
+						timerObject = {
+							testFunc: () => {
+								for (let filter of filterContainer.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum.aug-select-field")) {
+									if (filter.querySelector("label").innerText.toLowerCase().includes("branch country")) {
+										return true;
+									}
+								}
+								return false;
+							},
+							callbackFunc: () => {
+								for (let filter of filterContainer.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum.aug-select-field")) {
+									if (filter.querySelector("label").innerText.toLowerCase().includes("branch country")) {
+										branchCountryFilter = filter;
+										break;
+									}
+								}
 							}
 						}
+
+						await augAwait(100, 10, timerObject);
+
 						if (!branchCountryFilter) {
 							throw "No Branch Country filter found.";
 						}
@@ -1135,10 +1150,24 @@ BX.ready(
 
 			/** @var _selectFieldCounter - to count new Select Field */
 			var _selectFieldCounter = 0;
-			function augBuildSelectField_Report(filterContainer, fieldName, fieldDiv) {
+			async function augBuildSelectField_Report(filterContainer, fieldName, fieldDiv) {
 				_selectFieldCounter++; // <== Global counter
 
+				// Hide the original bitrix field
+				fieldDiv.style.display = "none";
+
 				// Build DataList
+				timerObject = {
+					testFunc: () => {
+						return fieldDiv.querySelectorAll("option").length > 1;
+					},
+					callbackFunc: () => {
+						console.log("Data arrived.");
+					}
+				};
+
+				await augAwait(100, 10, timerObject);
+
 				let temp = [];
 				for (let each of fieldDiv.querySelectorAll("option").values()) {
 					temp.push(each);
@@ -1149,8 +1178,7 @@ BX.ready(
 
 				let templateSelectField = document.querySelector("#report-chfilter-examples > div.filter-field.filter-field-crm.chfilter-field-enum");
 
-				// Hide the original bitrix field
-				fieldDiv.style.display = "none";
+				
 
 				// Add new select field
 				let newSelectFieldContainer = filterContainer.insertBefore(templateSelectField.cloneNode(true), fieldDiv.nextElementSibling);
@@ -1222,6 +1250,8 @@ BX.ready(
 					})
 				}
 				textField.addEventListener("keyup", textFieldHandler.bind(dropdownContainer));
+
+				return;
 			}
 
 			/**
