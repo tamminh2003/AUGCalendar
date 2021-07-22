@@ -334,7 +334,7 @@ BX.ready(
 					 * @function augBuildBranchSelectField_Report
 					 */
 					function augBuildBranchSelectField_Report(filterContainer) {
-						return;
+						return; // ! <== return immediately, function is deprecated
 						// ? MODULE FUNCTIONS
 						/**
 						 * Local function ampping option value of office select field
