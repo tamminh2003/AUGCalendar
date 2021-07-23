@@ -711,7 +711,7 @@ var augcBranchOfficeList_Report = {
 }
 
 // Array of report optional filter
-// List of Optional filter for Acceptance List Australia
+// List of default filters for Acceptance List Australia
 var augcOptionalFilter_Report = {
     "default": [
         "reporting intake",
@@ -732,5 +732,22 @@ var augcOptionalFilter_Report = {
     ],
     "Student List": [
 
-    ]
+    ],
+    "Student List (Extended)": [
+
+    ],
 };
+
+
+// Array of report extra tasks
+// Each report will do certain tasks such as modifying branch and branch office, modifying date filter into range input.
+// But some reports required extra tasks to be done, hence using this config, developer can set which extra task to be done for specific report.
+// The format of the config is that each <report_name> is an array of <function_name> (extra tasks) that will be executed.
+var augcAdditionalTasks_Report = {
+    "Student List" : [
+        "augReportStudentList_ExtendedButton"
+    ],
+    "Student List (Extended)" :[
+        "augReportStudentList_ExtendedButton"
+    ]
+}

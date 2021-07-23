@@ -1,6 +1,6 @@
 /**
- * aug_report.js version 0.1.0721
- * Updated 21/07/2021
+ * aug_report.js version 0.1.0723
+ * Updated 23/07/2021
  */
 
 /**
@@ -638,10 +638,6 @@ BX.ready(
 							option.remove();
 						});
 
-						// Set the first option as default for both filters.
-						branchCountryFilter.querySelector("a").click();
-						branchFilter.querySelector("a").click();
-
 						// Handling "Click" event to change the available options when Branch Country change.
 						// For example, when click Indonesia in Branch Country filter, Branch filter will change the available options to Indonesia's Branches.
 						branchCountryFilter.querySelector("div.aug-dropdown-container").addEventListener("click", (e) => {
@@ -662,6 +658,12 @@ BX.ready(
 								}
 							});
 						});
+
+						// Set the first option as default for both filters.
+						branchCountryFilter.querySelector("a").click();
+						branchFilter.querySelector("a").click();
+
+
 
 					})(mainFilterContainer);
 
@@ -891,21 +893,6 @@ BX.ready(
 								})
 							})();
 
-
-						(
-							/**  
-							 * Add Show/Hide filter button
-							 * @function augReportFilterShowHideButton
-							 */
-							function augReportFilterShowHideButton() {
-								let button = BX.create("button", { "attrs": { "class": "ui-btn ui-btn-primary" }, "text": "Filter" });
-								document.querySelector("#pagetitle-menu").querySelector("button").insertAdjacentElement("afterend", button);
-								button.addEventListener("click", (e) => {
-									document.querySelector("#sidebar").style.display = (document.querySelector("#sidebar").style.display == "none") ? "" : "none";
-								});
-							})();
-
-
 						(
 							/** Add Show/Hide Advanced Filter button
 							 * @function augReportAdvancedFilterShowHideButton
@@ -922,6 +909,20 @@ BX.ready(
 								});
 							})();
 
+						(
+							/**  
+							 * Add Show/Hide filter button
+							 * @function augReportFilterShowHideButton
+							 */
+							function augReportFilterShowHideButton() {
+								let button = BX.create("button", { "attrs": { "class": "ui-btn ui-btn-primary" }, "text": "Filter" });
+								document.querySelector("#pagetitle-menu").querySelector("button").insertAdjacentElement("afterend", button);
+								button.addEventListener("click", (e) => {
+									document.querySelector("#sidebar").style.display = (document.querySelector("#sidebar").style.display == "none") ? "" : "none";
+								});
+							})();
+
+
 						try {
 							// Change all the calendar icon
 							var calendarElement = document.getElementsByClassName("filter-date-interval-calendar");
@@ -933,6 +934,36 @@ BX.ready(
 							return;
 						}
 
+						/**
+						 * Run extra tasks defined in augcAdditionalTasks_Report
+						 */
+						try {
+							let reportTitle = document.querySelector("#pagetitle").innerText;
+							let tasks;
+
+							// Get tasks from augcAdditionalTasks_Report based on reportTitle
+							try {
+								tasks = augcAdditionalTasks_Report[reportTitle];
+								if (!tasks) throw new Error("No tasks found");
+							} catch (error) {
+								console.log("There were error during getting tasks from augcAdditionalTasks_Report.");
+								console.error(error);
+							}
+
+							// Run tasks one by one
+							try {
+								tasks.forEach((current) => {
+									eval(`${current}()`);
+								});
+							} catch (error) {
+								console.log("There were error during executing extra tasks.");
+								console.log(error);
+							}
+
+						} catch (error) {
+							console.error(error); // <== Absorb errors
+						}
+
 					})();
 			}
 			catch (error) {
@@ -940,356 +971,377 @@ BX.ready(
 				console.error(error);
 			}
 
+			// ============= END OF MAIN ===============
 
-			// ============================
+		})();
 
-			// ? UTILITY FUNCTIONS
-			/**
-			 * ===========================================================
-			 * This section contains functions called in the main section.
-			 * ===========================================================
-			 */
+		// ? UTILITY FUNCTIONS
+		/**
+		 * ===========================================================
+		 * This section contains functions called in the main section.
+		 * ===========================================================
+		 */
 
-			function augFromToText(className, counter) {
-				var text = "";
-				if (counter === 1) {
-					text = "From";
-				}
-				else if (counter === 2) {
-					text = "To";
-					counter = 0;
-				}
-
-				// Add the number so that the function know the correct fields
-				className = className + "-" + text;
-				var array = [
-					className,
-					counter
-				];
-				return array;
+		function augFromToText(className, counter) {
+			var text = "";
+			if (counter === 1) {
+				text = "From";
+			}
+			else if (counter === 2) {
+				text = "To";
+				counter = 0;
 			}
 
+			// Add the number so that the function know the correct fields
+			className = className + "-" + text;
+			var array = [
+				className,
+				counter
+			];
+			return array;
+		}
+
+		/**
+		 * Utility function to reduce code repetition.
+		 * Build Div for date input, keep in mind that this function will move the existing date filter 
+		 * created by Bitrix template into a single div.
+		 * @function augBuildDateField
+		 * @param {Element} container - outer container that the div will be added to.
+		 * @param {Boolean} inputElement - the field that we are moving from original filter
+		 * @param aElement - the calendar button we are moving from original filter
+		 */
+		function augBuildDateField(container, inputElement, aElement) {
+			let newDiv = BX.create("div", { "attrs": { "class": "aug-date-input" }, "style": { "display": "inline-block" } });
+			container.appendChild(newDiv);
+			newDiv.appendChild(BX.create("label", { "attrs": { "class": "aug-date-input-label" }, "text": "To" }));
+			newDiv.appendChild(inputElement);
+			newDiv.appendChild(aElement);
+			inputElement.style.marginLeft = "5px";
+			aElement.addEventListener("click", e => e.preventDefault()); // <== Prevent page refreshes when click on calendar img border
+		}
+
+		/**
+		 * Utility function to combine "more than and equal" and "less than and equal" into one
+		 * @function augBuildDateFromToField_Report
+		 * @param {Element} filterContainer - main filter container
+		 * @param {Object} fieldObject - field Object containing ref to the 2 from / to div 
+		 */
+		function augBuildDateFromToField_Report(filterContainer, fieldObject) {
+			// ? VARIABLES
+			let fieldName = fieldObject.fieldName;
+			let toDiv = fieldObject.toDiv;
+			let fromDiv = fieldObject.fromDiv;
+			let radioName = fieldName.toLowerCase().replace(' ', '_');
+
+			// ? MAIN BODY
+			// Sample date filter field used to clone new date filter field
+			let sampleDateFilter = document.querySelector(".filter-field.chfilter-field-datetime");
+
+			// Clone inputs from these two filters
+			let toInput = toDiv.querySelector("input");
+			let toA = toDiv.querySelector("a");
+			let fromInput = fromDiv.querySelector("input");
+			let fromA = fromDiv.querySelector("a");
+
+			// Hide 2 Date filter containers.
+			toDiv.style.display = "none";
+			fromDiv.style.display = "none";
+
+			// Adding new Date filter
+			let newDateFilter = sampleDateFilter.cloneNode(true);
+
+			// Adding new Date Filter before the first filter
+			toDiv.insertAdjacentElement("afterend", newDateFilter)
+			newDateFilter.querySelector("label").innerText = fieldName;
+
+			// Clear content of new Date Filter
+			newDateFilter.querySelector("input").remove();
+			newDateFilter.querySelector("a").remove();
+
+			// Adding options radio buttons
+			let optionDiv = newDateFilter.appendChild(BX.create("div", { "attrs": { "class": `aug-radio-container` } }));
+
+			let allRadio = augBuildRadioButton(optionDiv, "All", false, `aug-radio-btn-all-${radioName}`, radioName);
+			let rangeRadio = augBuildRadioButton(optionDiv, "Range", true, `aug-radio-btn-range-${radioName}`, radioName);
+
+			// Adding From-To div Container
+			let toFromDiv = BX.create("div", { "attrs": { "class": "aug-date-from-to-input" }, "style": { "display": "flex", "justifyContent": "space-between" } });
+			newDateFilter.appendChild(toFromDiv);
+			augBuildDateField(toFromDiv, fromInput, fromA);
+			augBuildDateField(toFromDiv, toInput, toA);
+
+			// Adding Handler For Radio Buttons
+			allRadio.addEventListener("change", augAllRadioHandler.bind(toFromDiv));
+			rangeRadio.addEventListener("change", augRangeRadioHandler.bind(toFromDiv));
+
+			// ? LOCAL FUNCTIONS
 			/**
-			 * Utility function to reduce code repetition.
-			 * Build Div for date input, keep in mind that this function will move the existing date filter 
-			 * created by Bitrix template into a single div.
-			 * @function augBuildDateField
-			 * @param {Element} container - outer container that the div will be added to.
-			 * @param {Boolean} inputElement - the field that we are moving from original filter
-			 * @param aElement - the calendar button we are moving from original filter
+			 * Module handler for all radio button - hide To-From Date Field
+			 * @function augAllRadioHandler
+			 * @param {Event} e - event passed in by EventListener
 			 */
-			function augBuildDateField(container, inputElement, aElement) {
-				let newDiv = BX.create("div", { "attrs": { "class": "aug-date-input" }, "style": { "display": "inline-block" } });
-				container.appendChild(newDiv);
-				newDiv.appendChild(BX.create("label", { "attrs": { "class": "aug-date-input-label" }, "text": "To" }));
-				newDiv.appendChild(inputElement);
-				newDiv.appendChild(aElement);
-				inputElement.style.marginLeft = "5px";
-				aElement.addEventListener("click", e => e.preventDefault()); // <== Prevent page refreshes when click on calendar img border
-			}
-
-			/**
-			 * Utility function to combine "more than and equal" and "less than and equal" into one
-			 * @function augBuildDateFromToField_Report
-			 * @param {Element} filterContainer - main filter container
-			 * @param {Object} fieldObject - field Object containing ref to the 2 from / to div 
-			 */
-			function augBuildDateFromToField_Report(filterContainer, fieldObject) {
-				// ? VARIABLES
-				let fieldName = fieldObject.fieldName;
-				let toDiv = fieldObject.toDiv;
-				let fromDiv = fieldObject.fromDiv;
-				let radioName = fieldName.toLowerCase().replace(' ', '_');
-
-				// ? MAIN BODY
-				// Sample date filter field used to clone new date filter field
-				let sampleDateFilter = document.querySelector(".filter-field.chfilter-field-datetime");
-
-				// Clone inputs from these two filters
-				let toInput = toDiv.querySelector("input");
-				let toA = toDiv.querySelector("a");
-				let fromInput = fromDiv.querySelector("input");
-				let fromA = fromDiv.querySelector("a");
-
-				// Hide 2 Date filter containers.
-				toDiv.style.display = "none";
-				fromDiv.style.display = "none";
-
-				// Adding new Date filter
-				let newDateFilter = sampleDateFilter.cloneNode(true);
-
-				// Adding new Date Filter before the first filter
-				toDiv.insertAdjacentElement("afterend", newDateFilter)
-				newDateFilter.querySelector("label").innerText = fieldName;
-
-				// Clear content of new Date Filter
-				newDateFilter.querySelector("input").remove();
-				newDateFilter.querySelector("a").remove();
-
-				// Adding options radio buttons
-				let optionDiv = newDateFilter.appendChild(BX.create("div", { "attrs": { "class": `aug-radio-container` } }));
-
-				let allRadio = augBuildRadioButton(optionDiv, "All", false, `aug-radio-btn-all-${radioName}`, radioName);
-				let rangeRadio = augBuildRadioButton(optionDiv, "Range", true, `aug-radio-btn-range-${radioName}`, radioName);
-
-				// Adding From-To div Container
-				let toFromDiv = BX.create("div", { "attrs": { "class": "aug-date-from-to-input" }, "style": { "display": "flex", "justifyContent": "space-between" } });
-				newDateFilter.appendChild(toFromDiv);
-				augBuildDateField(toFromDiv, fromInput, fromA);
-				augBuildDateField(toFromDiv, toInput, toA);
-
-				// Adding Handler For Radio Buttons
-				allRadio.addEventListener("change", augAllRadioHandler.bind(toFromDiv));
-				rangeRadio.addEventListener("change", augRangeRadioHandler.bind(toFromDiv));
-
-				// ? LOCAL FUNCTIONS
-				/**
-				 * Module handler for all radio button - hide To-From Date Field
-				 * @function augAllRadioHandler
-				 * @param {Event} e - event passed in by EventListener
-				 */
-				function augAllRadioHandler(e) {
-					if (e.target.checked) {
-						BX.addClass(this, "aug_hide");
-						this.querySelectorAll("input").forEach(item => item.value = "");
-					}
-				}
-
-				/**
-				 * Module handler for all radio button - hide To-From Date Field
-				 * @function augRangeRadioHandler
-				 * @param {Event} e - event passed in by EventListener
-				 */
-				function augRangeRadioHandler(e) {
-					if (e.target.checked) {
-						BX.removeClass(this, "aug_hide");
-						this.style.visibility = "visible";
-					}
+			function augAllRadioHandler(e) {
+				if (e.target.checked) {
+					BX.addClass(this, "aug_hide");
+					this.querySelectorAll("input").forEach(item => item.value = "");
 				}
 			}
 
 			/**
-			 * Utility function to create yes no field
-			 * @function augBuildYesNoField_Report
-			 * @param {Element} filterContainer - main filter container
-			 * @param {String} fieldName - format: fieldname, div
-			 * @param {Element} fieldDiv
+			 * Module handler for all radio button - hide To-From Date Field
+			 * @function augRangeRadioHandler
+			 * @param {Event} e - event passed in by EventListener
 			 */
-			function augBuildYesNoField_Report(filterContainer, fieldName, fieldDiv) {
-				let className = fieldName.toLowerCase();
-
-				// Clear container
-				let selectElement = fieldDiv.querySelector("select");
-				selectElement.style.display = "none";
-				let label = fieldDiv.querySelector("label");
-				label.innerText = `Show ${fieldName}`;
-
-				// Set container as flex
-				let optionDiv = fieldDiv.appendChild(BX.create("div", { "attrs": { "class": "aug-radio-container" } }));
-				let radioId = `aug-radio-btn-${className}-`;
-				let radioName = className;
-
-				// Adding radio buttons
-				let allRadio = augBuildRadioButton(optionDiv, 'All', true, radioId + "all", radioName);
-				let yesRadio = augBuildRadioButton(optionDiv, 'Yes', false, radioId + "yes", radioName);
-				let noRadio = augBuildRadioButton(optionDiv, 'No', false, radioId + "no", radioName);
-
-				allRadio.addEventListener("change", allRadioHandler.bind(selectElement));
-				yesRadio.addEventListener("change", yesRadioHandler.bind(selectElement));
-				noRadio.addEventListener("change", noRadioHandler.bind(selectElement));
-
-				function allRadioHandler(e) {
-					if (e.target.checked == true) {
-						this.value = "";
-					}
+			function augRangeRadioHandler(e) {
+				if (e.target.checked) {
+					BX.removeClass(this, "aug_hide");
+					this.style.visibility = "visible";
 				}
+			}
+		}
 
-				function yesRadioHandler(e) {
-					if (e.target.checked == true) {
-						this.value = "true";
-					}
-				}
+		/**
+		 * Utility function to create yes no field
+		 * @function augBuildYesNoField_Report
+		 * @param {Element} filterContainer - main filter container
+		 * @param {String} fieldName - format: fieldname, div
+		 * @param {Element} fieldDiv
+		 */
+		function augBuildYesNoField_Report(filterContainer, fieldName, fieldDiv) {
+			let className = fieldName.toLowerCase();
 
-				function noRadioHandler(e) {
-					if (e.target.checked == true) {
-						this.value = "false";
-					}
+			// Clear container
+			let selectElement = fieldDiv.querySelector("select");
+			selectElement.style.display = "none";
+			let label = fieldDiv.querySelector("label");
+			label.innerText = `Show ${fieldName}`;
+
+			// Set container as flex
+			let optionDiv = fieldDiv.appendChild(BX.create("div", { "attrs": { "class": "aug-radio-container" } }));
+			let radioId = `aug-radio-btn-${className}-`;
+			let radioName = className;
+
+			// Adding radio buttons
+			let allRadio = augBuildRadioButton(optionDiv, 'All', true, radioId + "all", radioName);
+			let yesRadio = augBuildRadioButton(optionDiv, 'Yes', false, radioId + "yes", radioName);
+			let noRadio = augBuildRadioButton(optionDiv, 'No', false, radioId + "no", radioName);
+
+			allRadio.addEventListener("change", allRadioHandler.bind(selectElement));
+			yesRadio.addEventListener("change", yesRadioHandler.bind(selectElement));
+			noRadio.addEventListener("change", noRadioHandler.bind(selectElement));
+
+			function allRadioHandler(e) {
+				if (e.target.checked == true) {
+					this.value = "";
 				}
 			}
 
-			/**
-			 * Utility function
-			 * Build Radio button
-			 * @function augBuildRadioButton
-			 * @param {Element} container - Outer container the button will be added to
-			 * @param {String} text - Label of the radio button
-			 * @param {Boolean} checked - Check by default?
-			 * @param {String} id - Id of radio button
-			 * @param {String} name - name of radio button section
-			 * @returns radioButton
-			 */
-			function augBuildRadioButton(container, text, checked, id, name) {
-				let radioDiv = container.appendChild(BX.create("div"));
-				let radioButton = radioDiv.appendChild(BX.create("input", { "attrs": { "type": "radio", "id": id, "name": name, "class": "aug-report-intake-options" } }));
-				if (checked) {
-					radioButton.checked = true;
+			function yesRadioHandler(e) {
+				if (e.target.checked == true) {
+					this.value = "true";
 				}
-				radioDiv.appendChild(BX.create("label", { "attrs": { "for": id }, "text": text }));
-
-				return radioButton;
 			}
 
-
-			/**
-			* Utility function build Select Field
-			* @function augBuildSelectField_Report
-			* @param {Element} filterContainer - main filter container
-			* @param {String} fieldName - new label for the select field
-			* @param {Element} fieldDiv
-			*/
-
-			/** @var _selectFieldCounter - to count new Select Field */
-			var _selectFieldCounter = 0;
-			async function augBuildSelectField_Report(filterContainer, fieldName, fieldDiv) {
-				_selectFieldCounter++; // <== Global counter
-
-				// Hide the original bitrix field
-				fieldDiv.style.display = "none";
-
-				// Build DataList
-				timerObject = {
-					testFunc: () => {
-						return fieldDiv.querySelectorAll("option").length > 1;
-					},
-					callbackFunc: () => {
-						console.log("Data arrived.");
-					}
-				};
-
-				await augAwait(100, 10, timerObject);
-
-				let temp = [];
-				for (let each of fieldDiv.querySelectorAll("option").values()) {
-					temp.push(each);
+			function noRadioHandler(e) {
+				if (e.target.checked == true) {
+					this.value = "false";
 				}
-				let dataList = temp.map((each) => {
-					return { "value": each.value, "text": each.text };
-				});
-
-				let templateSelectField = document.querySelector("#report-chfilter-examples > div.filter-field.filter-field-crm.chfilter-field-enum");
-
-				
-
-				// Add new select field
-				let newSelectFieldContainer = filterContainer.insertBefore(templateSelectField.cloneNode(true), fieldDiv.nextElementSibling);
-				BX.addClass(newSelectFieldContainer, "aug-select-field");
-				newSelectFieldContainer.querySelector("label").innerHTML = fieldName;
-
-				let newSelectDiv = newSelectFieldContainer.appendChild(BX.create("span", { "attrs": { "class": "aug-select-span" }, "style": { "position": "relative" } }));
-				let textField = newSelectDiv.appendChild(BX.create("input", { "attrs": { "type": "text", "value": dataList[0].text } }));
-
-				// Build dropdown
-				let dropdownContainer = BX.create("div", { "attrs": { "class": `aug-dropdown-container` }, "style": { "visibility": "hidden", "position": "absolute" } });
-
-				dataList.forEach(item => {
-					let itemSelect = dropdownContainer.appendChild(BX.create("a", { "attrs": { "class": "aug-item-select", "href": "#" }, "style": { "display": "block" }, "text": item.text }));
-
-					let itemSelectHandler = function (e) {
-						this.value = item.text;
-						fieldDiv.querySelector("select").value = item.value;
-						dropdownContainer.style.visibility = "hidden";
-						e.preventDefault();
-					}
-					itemSelect.addEventListener("click", itemSelectHandler.bind(textField));
-				});
-
-				newSelectDiv.appendChild(dropdownContainer); //<== Add dropdown menu to new select span
-
-				// Auxilary Functions
-				let dropdownContainerMouse;
-
-				textField.addEventListener("focus", (e) => {
-					dropdownContainer.style.visibility = "visible";
-				});
-
-				textField.addEventListener("blur", (e) => {
-					if (!dropdownContainerMouse) {
-						dropdownContainer.style.visibility = "hidden";
-					}
-				});
-
-				dropdownContainer.addEventListener("mouseenter", (e) => {
-					dropdownContainerMouse = true;
-				});
-
-				dropdownContainer.addEventListener("mouseleave", (e) => {
-					dropdownContainerMouse = false;
-				});
-
-				/**
-				 * Local function for handling textField event
-				 * @function textFieldHandler
-				 * @param {Event} e - Event passed in by EventListener
-				 * @returns nothing
-				 */
-				function textFieldHandler(e) {
-					let searchText = e.target.value.toUpperCase();
-					let itemArray = this.querySelectorAll("a");
-
-					if (!searchText) {
-						this.querySelectorAll("a").forEach(option => option.style.display = "block"); // <== Set all the option visible if text field empty.
-						return;
-					}
-
-					itemArray.forEach(option => option.style.display = "none");
-
-					itemArray.forEach(item => {
-						if (item.innerText.toUpperCase().includes(searchText)) {
-							item.style.display = "block";
-						}
-					})
-				}
-				textField.addEventListener("keyup", textFieldHandler.bind(dropdownContainer));
-
-				return;
 			}
+		}
+
+		/**
+		 * Utility function
+		 * Build Radio button
+		 * @function augBuildRadioButton
+		 * @param {Element} container - Outer container the button will be added to
+		 * @param {String} text - Label of the radio button
+		 * @param {Boolean} checked - Check by default?
+		 * @param {String} id - Id of radio button
+		 * @param {String} name - name of radio button section
+		 * @returns radioButton
+		 */
+		function augBuildRadioButton(container, text, checked, id, name) {
+			let radioDiv = container.appendChild(BX.create("div"));
+			let radioButton = radioDiv.appendChild(BX.create("input", { "attrs": { "type": "radio", "id": id, "name": name, "class": "aug-report-intake-options" } }));
+			if (checked) {
+				radioButton.checked = true;
+			}
+			radioDiv.appendChild(BX.create("label", { "attrs": { "for": id }, "text": text }));
+
+			return radioButton;
+		}
+
+
+		/**
+		* Utility function build Select Field
+		* @function augBuildSelectField_Report
+		* @param {Element} filterContainer - main filter container
+		* @param {String} fieldName - new label for the select field
+		* @param {Element} fieldDiv
+		*/
+
+		/** @var _selectFieldCounter - to count new Select Field */
+		var _selectFieldCounter = 0;
+		async function augBuildSelectField_Report(filterContainer, fieldName, fieldDiv) {
+			_selectFieldCounter++; // <== Global counter
+
+			// Hide the original bitrix field
+			fieldDiv.style.display = "none";
+
+			// Build DataList
+			timerObject = {
+				testFunc: () => {
+					return fieldDiv.querySelectorAll("option").length > 1;
+				},
+				callbackFunc: () => {
+					console.log("Data arrived.");
+				}
+			};
+
+			await augAwait(100, 10, timerObject);
+
+			let temp = [];
+			for (let each of fieldDiv.querySelectorAll("option").values()) {
+				temp.push(each);
+			}
+			let dataList = temp.map((each) => {
+				return { "value": each.value, "text": each.text };
+			});
+
+			let templateSelectField = document.querySelector("#report-chfilter-examples > div.filter-field.filter-field-crm.chfilter-field-enum");
+
+
+
+			// Add new select field
+			let newSelectFieldContainer = filterContainer.insertBefore(templateSelectField.cloneNode(true), fieldDiv.nextElementSibling);
+			BX.addClass(newSelectFieldContainer, "aug-select-field");
+			newSelectFieldContainer.querySelector("label").innerHTML = fieldName;
+
+			let newSelectDiv = newSelectFieldContainer.appendChild(BX.create("span", { "attrs": { "class": "aug-select-span" }, "style": { "position": "relative" } }));
+			let textField = newSelectDiv.appendChild(BX.create("input", { "attrs": { "type": "text", "value": dataList[0].text } }));
+
+			// Build dropdown
+			let dropdownContainer = BX.create("div", { "attrs": { "class": `aug-dropdown-container` }, "style": { "visibility": "hidden", "position": "absolute" } });
+
+			dataList.forEach(item => {
+				let itemSelect = dropdownContainer.appendChild(BX.create("a", { "attrs": { "class": "aug-item-select", "href": "#" }, "style": { "display": "block" }, "text": item.text }));
+
+				let itemSelectHandler = function (e) {
+					this.value = item.text;
+					fieldDiv.querySelector("select").value = item.value;
+					dropdownContainer.style.visibility = "hidden";
+					e.preventDefault();
+				}
+				itemSelect.addEventListener("click", itemSelectHandler.bind(textField));
+			});
+
+			newSelectDiv.appendChild(dropdownContainer); //<== Add dropdown menu to new select span
+
+			// Auxilary Functions
+			let dropdownContainerMouse;
+
+			textField.addEventListener("focus", (e) => {
+				dropdownContainer.style.visibility = "visible";
+			});
+
+			textField.addEventListener("blur", (e) => {
+				if (!dropdownContainerMouse) {
+					dropdownContainer.style.visibility = "hidden";
+				}
+			});
+
+			dropdownContainer.addEventListener("mouseenter", (e) => {
+				dropdownContainerMouse = true;
+			});
+
+			dropdownContainer.addEventListener("mouseleave", (e) => {
+				dropdownContainerMouse = false;
+			});
 
 			/**
-			 * Utility function to build select options based on authentication and department this will affect augBranchSelect variable declared above
-			 * @function augBuildBranchSelectObject
-			 * @param {String} userCrmRoleName - crm Role
-			 * @param {Array} crmDepartment - crm Department this is array of String
-			 * @return {Object} augBranchSelect
+			 * Local function for handling textField event
+			 * @function textFieldHandler
+			 * @param {Event} e - Event passed in by EventListener
+			 * @returns nothing
 			 */
-			function augBuildBranchSelectObject(userCrmRoleName, crmDepartment) {
-				let augBranchSelect = {};
+			function textFieldHandler(e) {
+				let searchText = e.target.value.toUpperCase();
+				let itemArray = this.querySelectorAll("a");
 
-				if (userCrmRoleName == "Administrator") { // <== return full access if CrmRole is Administrator.
-					augBranchSelect = augcBranchOfficeList_Report;
-					return augBranchSelect;
+				if (!searchText) {
+					this.querySelectorAll("a").forEach(option => option.style.display = "block"); // <== Set all the option visible if text field empty.
+					return;
 				}
 
-				if (crmDepartment == "Communication Team") {
-					augBranchSelect = augcBranchOfficeList_Report;
-					return augBranchSelect;
-				}
+				itemArray.forEach(option => option.style.display = "none");
 
-				for (let [country, offices] of Object.entries(augcBranchOfficeList_Report)) {
-					for (let [id, department] of Object.entries(crmDepartment)) {
-						for (let office of offices) {
-							if (department.includes(office)) {
-								if (!augBranchSelect[country]) augBranchSelect[country] = [];
-								augBranchSelect[country].push(office);
-							}
-						}
-
+				itemArray.forEach(item => {
+					if (item.innerText.toUpperCase().includes(searchText)) {
+						item.style.display = "block";
 					}
-				} // <== get access authorization based on department.
+				})
+			}
+			textField.addEventListener("keyup", textFieldHandler.bind(dropdownContainer));
 
+			return;
+		}
+
+		/**
+		 * Utility function to build select options based on authentication and department this will affect augBranchSelect variable declared above
+		 * @function augBuildBranchSelectObject
+		 * @param {String} userCrmRoleName - crm Role
+		 * @param {Array} crmDepartment - crm Department this is array of String
+		 * @return {Object} augBranchSelect
+		 */
+		function augBuildBranchSelectObject(userCrmRoleName, crmDepartment) {
+			let augBranchSelect = {};
+
+			if (userCrmRoleName == "Administrator") { // <== return full access if CrmRole is Administrator.
+				augBranchSelect = augcBranchOfficeList_Report;
 				return augBranchSelect;
 			}
 
+			if (crmDepartment == "Communication Team") {
+				augBranchSelect = augcBranchOfficeList_Report;
+				return augBranchSelect;
+			}
 
-		})();
+			for (let [country, offices] of Object.entries(augcBranchOfficeList_Report)) {
+				for (let [id, department] of Object.entries(crmDepartment)) {
+					for (let office of offices) {
+						if (department.includes(office)) {
+							if (!augBranchSelect[country]) augBranchSelect[country] = [];
+							augBranchSelect[country].push(office);
+						}
+					}
+
+				}
+			} // <== get access authorization based on department.
+
+			return augBranchSelect;
+		}
+
+		/**
+		 * Extra task function for Student List Report
+		 * The idea is that when the extended button is clicked, it would transfer the filter query to the extended report and vice versa
+		 * @function augReportStudentList_ExtendedButton
+		 */
+		function augReportStudentList_ExtendedButton() {
+			let buttonLabel, newURL;
+			let searchParams = new URL(document.URL).searchParams;
+			let reportTitle = document.querySelector("#pagetitle").innerText;
+			if (reportTitle.includes("Extended")) {
+				buttonLabel = "REDUCE";
+				newURL = new URL("https://augcrm.com/crm/reports/report/view/155/?" + searchParams);
+			} else {
+				buttonLabel = "EXTENDED";
+				newURL = new URL("https://augcrm.com/crm/reports/report/view/154/?" + searchParams);
+			}
+			let button = BX.create("button", { "attrs": { "class": "ui-btn ui-btn-primary" }, "text": buttonLabel });
+			document.querySelector("#pagetitle-menu").querySelector("button").insertAdjacentElement("afterend", button);
+			button.addEventListener("click", (e) => {
+				document.location.href = newURL;
+			});
+		}
 
 	});

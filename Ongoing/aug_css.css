@@ -809,7 +809,7 @@ select[id^="aug-report-select-input-field-reporting-intake-second-chfilter-field
 .aug-dropdown-container {
   width: 100%;
   height: fit-content;
-  max-height: 15em;
+  max-height: 10em;
   z-index: 1200;
   overflow: hidden scroll;
   background-color: white;
