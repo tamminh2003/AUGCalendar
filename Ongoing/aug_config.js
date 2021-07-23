@@ -738,16 +738,18 @@ var augcOptionalFilter_Report = {
     ],
 };
 
+// Array of report config
+var augcReportConfig = {
+    "Acceptance List (AUSTRALIA)": {
 
-// Array of report extra tasks
-// Each report will do certain tasks such as modifying branch and branch office, modifying date filter into range input.
-// But some reports required extra tasks to be done, hence using this config, developer can set which extra task to be done for specific report.
-// The format of the config is that each <report_name> is an array of <function_name> (extra tasks) that will be executed.
-var augcAdditionalTasks_Report = {
-    "Student List" : [
-        "augReportStudentList_ExtendedButton"
-    ],
-    "Student List (Extended)" :[
-        "augReportStudentList_ExtendedButton"
-    ]
+    },
+    "Student Application Status List": {
+        
+    },
+    "Student List": {
+        "extend_id": 154,
+    },
+    "Student List (Extended)": {
+        "reduce_id": 155,
+    }
 }

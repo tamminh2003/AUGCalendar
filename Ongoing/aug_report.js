@@ -685,9 +685,12 @@ BX.ready(
 						let tableRows = resultTable.querySelectorAll(".reports-list-item");
 						if (tableRows.length == 0) return;
 						let color = "white" // Toggle this between red and blue
-						let studentBlocks = getStudentBlocks(resultTable);
 						let applicationIntakeIndex = getTableHeaderIndex(resultTable, "application intake");
 						let reportingIntakeIndex = getTableHeaderIndex(resultTable, "reporting intake");
+						let idIndex = getTableHeaderIndex(resultTable, "id");
+						let acceptIndex = getTableHeaderIndex(resultTable, "accept");
+						let studentBlocks = getStudentBlocks(resultTable, idIndex);
+
 
 						// ? FUNCTIONS
 						/**
@@ -734,14 +737,14 @@ BX.ready(
 						 * @param {Element} table - element table, #report-result-table
 						 * @returns {Array} studentBlocks
 						 */
-						function getStudentBlocks(table) {
+						function getStudentBlocks(table, idIndex) {
 							let pointer1 = 0, pointer2 = 1;
 							let studentBlocks = [];
 							let tableRows = table.querySelectorAll(".reports-list-item");
 
 							do {
-								let leadId1 = getTableData(tableRows[pointer1])[0];
-								let leadId2 = getTableData(tableRows[pointer2])[0];
+								let leadId1 = getTableData(tableRows[pointer1])[idIndex];
+								let leadId2 = getTableData(tableRows[pointer2])[idIndex];
 								let processingTableRow = [];
 
 								// Loop to get rows of same student
@@ -770,10 +773,11 @@ BX.ready(
 
 						studentBlocks.forEach((block) => {
 							block.forEach((tableRow, index, _tableRows) => {
-
-								if (tableRow.querySelectorAll("td")[12].innerText.toUpperCase() == "ACCEPT") {
-									tableRow.dataset.accept = true;
-								};
+								if (acceptIndex > -1) {
+									if (tableRow.querySelectorAll("td")[acceptIndex].innerText.toUpperCase() == "ACCEPT") {
+										tableRow.dataset.accept = true;
+									};
+								}
 
 								tableRow.querySelectorAll("td").forEach((cell, cellIndex) => {
 									cell.dataset.bgcolor = color;
@@ -833,6 +837,104 @@ BX.ready(
 				console.error(error);
 			}
 
+			try {
+				console.log("DEBUG");
+				(async function () {
+					timerObject = {
+						testFunc: () => {
+							return _selectFieldCounter == _selectFieldFinish;
+						},
+						callbackFunc: () => {
+							console.log("select field rendered");
+						}
+					}
+
+					await augAwait(100, 10, timerObject);
+
+					let institutionCountry;
+					for (let each of document.querySelectorAll(".aug-select-field")) {
+						if (each.querySelector("label").innerHTML.toLowerCase() == "applied institution country") {
+							institutionCountry = each;
+							break;
+						}
+					}
+					console.log({ institutionCountry });
+
+					let appliedInstitution;
+					for (let each of document.querySelectorAll(".aug-select-field")) {
+						if (each.querySelector("label").innerHTML.toLowerCase() == "applied institution") {
+							appliedInstitution = each;
+							break;
+						}
+					}
+					console.log({ appliedInstitution });
+
+
+					let campus;
+					for (let each of document.querySelectorAll(".aug-select-field")) {
+						if (each.querySelector("label").innerHTML.toLowerCase() == "campus") {
+							campus = each;
+							break;
+						}
+					}
+					console.log({ campus });
+
+
+					let chosenCountry;
+					institutionCountry.querySelector(".aug-dropdown-container").addEventListener("click", (e) => {
+						chosenCountry = e.target.innerHTML;
+						console.log({ chosenCountry });
+						augSetAppliedInstitutionCountry(chosenCountry);
+					});
+
+
+					function augSetAppliedInstitutionCountry(chosenCountry) {
+						console.log("augSetAppliedInstitutionCountry");
+						let dropdownContainer = appliedInstitution.querySelector(".aug-dropdown-container");
+						let textField = appliedInstitution.querySelector("input");
+						let shortName = augcGetCountryShortName[chosenCountry];
+						let temp = [];
+						let appliedInstitutionOriginal;
+						
+						for (let each of document.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum")) {
+							if (each.querySelector("label").innerHTML == "Applied Institution \"is equal to\"") {
+								appliedInstitutionOriginal = each;
+								break;
+							}
+						}
+
+						for (let each of appliedInstitutionOriginal.querySelectorAll("option").values()) {
+							temp.push(each);
+						}
+						let dataList = temp.map((each) => ({ "value": each.value, "text": each.text }))
+							.filter(each => each.text.includes(`${shortName}--`));
+
+						appliedInstitution.querySelectorAll("a").forEach((option) => {
+							option.remove(); // <== clear options.
+						});
+
+						dataList.forEach(item => {
+							console.log("Build options");
+							let itemSelect = dropdownContainer.appendChild(BX.create("a", { "attrs": { "class": "aug-item-select", "href": "#" }, "style": { "display": "block" }, "text": item.text }));
+
+							let itemSelectHandler = function (e) {
+								this.value = item.text;
+								appliedInstitutionOriginal.querySelector("select").value = item.value;
+								dropdownContainer.style.visibility = "hidden";
+								e.preventDefault();
+							}
+							itemSelect.addEventListener("click", itemSelectHandler.bind(textField));
+						});
+
+					}
+
+				})();
+
+
+			} catch (error) {
+				console.error(error);
+			}
+
 
 			try {
 				(
@@ -841,7 +943,6 @@ BX.ready(
 					 * @function augAuxilaryFunctions
 					 */
 					function augAuxilaryFunctions() {
-
 
 						document.querySelectorAll(".filter-field").forEach((element) => {
 
@@ -867,7 +968,7 @@ BX.ready(
 							 * Mark which filter is optional
 							 * @function augReportMarkOptionalFilter
 							 */
-							function augReportMarkOptionalFilter() {
+							async function augReportMarkOptionalFilter() {
 								function getOptionFilterList() {
 									let reportName = document.querySelector("#pagetitle").innerText;
 									if (!Object.keys(augcOptionalFilter_Report).includes(reportName)) {
@@ -879,6 +980,17 @@ BX.ready(
 									augcOptionalFilter_Report[reportName].forEach(option => optionList.push(option));
 									return optionList;
 								}
+
+								let timerObject = {
+									testFunc: () => {
+										return _selectFieldCounter == _selectFieldFinish;
+									},
+									callbackFunc: () => {
+										console.log("select fields rendered");
+									}
+								}
+
+								await augAwait(100, 10, timerObject);
 
 								let optionList = getOptionFilterList();
 								console.log(optionList);
@@ -892,6 +1004,7 @@ BX.ready(
 									}
 								})
 							})();
+
 
 						(
 							/** Add Show/Hide Advanced Filter button
@@ -922,47 +1035,28 @@ BX.ready(
 								});
 							})();
 
-
-						try {
-							// Change all the calendar icon
-							var calendarElement = document.getElementsByClassName("filter-date-interval-calendar");
-							for (var i = 0; i < calendarElement.length; i++) {
-								calendarElement[i].getElementsByTagName("img")[0].setAttribute("src", "/bitrix/js/ui/forms/images/calendar.svg");
-							}
-						} catch (error) {
-							console.error(error);
-							return;
+						// Change all the calendar icon
+						var calendarElement = document.getElementsByClassName("filter-date-interval-calendar");
+						for (var i = 0; i < calendarElement.length; i++) {
+							calendarElement[i].getElementsByTagName("img")[0].setAttribute("src", "/bitrix/js/ui/forms/images/calendar.svg");
 						}
 
-						/**
-						 * Run extra tasks defined in augcAdditionalTasks_Report
-						 */
-						try {
-							let reportTitle = document.querySelector("#pagetitle").innerText;
-							let tasks;
-
-							// Get tasks from augcAdditionalTasks_Report based on reportTitle
-							try {
-								tasks = augcAdditionalTasks_Report[reportTitle];
-								if (!tasks) throw new Error("No tasks found");
-							} catch (error) {
-								console.log("There were error during getting tasks from augcAdditionalTasks_Report.");
-								console.error(error);
-							}
-
-							// Run tasks one by one
-							try {
-								tasks.forEach((current) => {
-									eval(`${current}()`);
-								});
-							} catch (error) {
-								console.log("There were error during executing extra tasks.");
-								console.log(error);
-							}
-
-						} catch (error) {
-							console.error(error); // <== Absorb errors
-						}
+						(
+							/**
+							 * Iterate report config
+							 * @function augReportConfig
+							 */
+							function augReportConfig() {
+								let reportConfig = augcReportConfig[document.querySelector("#pagetitle").innerText];
+								if (reportConfig) {
+									if (reportConfig.extend_id) {
+										augLink_Report(reportConfig.extend_id, "EXTEND");
+									}
+									if (reportConfig.reduce_id) {
+										augLink_Report(reportConfig.reduce_id, "REDUCE");
+									}
+								}
+							})();
 
 					})();
 			}
@@ -1010,10 +1104,10 @@ BX.ready(
 		 * @param {Boolean} inputElement - the field that we are moving from original filter
 		 * @param aElement - the calendar button we are moving from original filter
 		 */
-		function augBuildDateField(container, inputElement, aElement) {
+		function augBuildDateField(container, inputElement, aElement, label) {
 			let newDiv = BX.create("div", { "attrs": { "class": "aug-date-input" }, "style": { "display": "inline-block" } });
 			container.appendChild(newDiv);
-			newDiv.appendChild(BX.create("label", { "attrs": { "class": "aug-date-input-label" }, "text": "To" }));
+			newDiv.appendChild(BX.create("label", { "attrs": { "class": "aug-date-input-label" }, "text": label }));
 			newDiv.appendChild(inputElement);
 			newDiv.appendChild(aElement);
 			inputElement.style.marginLeft = "5px";
@@ -1067,8 +1161,8 @@ BX.ready(
 			// Adding From-To div Container
 			let toFromDiv = BX.create("div", { "attrs": { "class": "aug-date-from-to-input" }, "style": { "display": "flex", "justifyContent": "space-between" } });
 			newDateFilter.appendChild(toFromDiv);
-			augBuildDateField(toFromDiv, fromInput, fromA);
-			augBuildDateField(toFromDiv, toInput, toA);
+			augBuildDateField(toFromDiv, fromInput, fromA, "From");
+			augBuildDateField(toFromDiv, toInput, toA, "To");
 
 			// Adding Handler For Radio Buttons
 			allRadio.addEventListener("change", augAllRadioHandler.bind(toFromDiv));
@@ -1182,6 +1276,7 @@ BX.ready(
 
 		/** @var _selectFieldCounter - to count new Select Field */
 		var _selectFieldCounter = 0;
+		var _selectFieldFinish = 0;
 		async function augBuildSelectField_Report(filterContainer, fieldName, fieldDiv) {
 			_selectFieldCounter++; // <== Global counter
 
@@ -1195,6 +1290,7 @@ BX.ready(
 				},
 				callbackFunc: () => {
 					console.log("Data arrived.");
+					_selectFieldFinish++;
 				}
 			};
 
@@ -1269,7 +1365,9 @@ BX.ready(
 				let itemArray = this.querySelectorAll("a");
 
 				if (!searchText) {
-					this.querySelectorAll("a").forEach(option => option.style.display = "block"); // <== Set all the option visible if text field empty.
+					this.querySelectorAll("a").forEach(option => {
+						option.style.display = "block";
+					}); // <== Set all the option visible if text field empty.
 					return;
 				}
 
@@ -1322,21 +1420,12 @@ BX.ready(
 		}
 
 		/**
-		 * Extra task function for Student List Report
-		 * The idea is that when the extended button is clicked, it would transfer the filter query to the extended report and vice versa
-		 * @function augReportStudentList_ExtendedButton
+		 * Link a report with another report with the same fitlers.
+		 * @function augLink_Report
 		 */
-		function augReportStudentList_ExtendedButton() {
-			let buttonLabel, newURL;
+		function augLink_Report(page_id, buttonLabel) {
 			let searchParams = new URL(document.URL).searchParams;
-			let reportTitle = document.querySelector("#pagetitle").innerText;
-			if (reportTitle.includes("Extended")) {
-				buttonLabel = "REDUCE";
-				newURL = new URL("https://augcrm.com/crm/reports/report/view/155/?" + searchParams);
-			} else {
-				buttonLabel = "EXTENDED";
-				newURL = new URL("https://augcrm.com/crm/reports/report/view/154/?" + searchParams);
-			}
+			let newURL = new URL(`https://augcrm.com/crm/reports/report/view/${page_id}/?` + searchParams);
 			let button = BX.create("button", { "attrs": { "class": "ui-btn ui-btn-primary" }, "text": buttonLabel });
 			document.querySelector("#pagetitle-menu").querySelector("button").insertAdjacentElement("afterend", button);
 			button.addEventListener("click", (e) => {
