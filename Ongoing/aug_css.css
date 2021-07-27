@@ -814,4 +814,12 @@ select[id^="aug-report-select-input-field-reporting-intake-second-chfilter-field
   background-color: white;
 }
 
+.aug-option-hide {
+  display: none;
+}
+
+.aug-option-show {
+  display: block;
+}
+
 /* --------------- End section ------------------- */

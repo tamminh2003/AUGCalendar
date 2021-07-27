@@ -14,8 +14,9 @@
  * 		aug_css.css
  */
 
-BX.ready(
+ BX.ready(
 	function () {
+
 		// Id value for new Application and Reporting intake user fields
 		var applicationId = "aug-report-select-input-field-application-intake";
 		var reportingId = "aug-report-select-input-field-reporting-intake";
@@ -61,9 +62,22 @@ BX.ready(
 			"October": "10"
 		};
 
+		main();
 
+		async function main() {
 
-		(function main() {
+			// ====== await Main Filter Container to be rendered ======
+
+			let timerObject = {
+				testFunc: () => {
+					return Boolean(document.querySelector("#report-filter-chfilter"));
+				},
+				callbackFunc: () => { console.log("Main Filter Container arrived!"); }
+			}
+
+			await augAwait(100, 10, timerObject, "Main Filter Container await");
+
+			// ============ Previous version ===========
 
 			/**
 			 * This part of code is responsible of modifying the two filter: Application Intake and Reporting Intake.
@@ -80,48 +94,50 @@ BX.ready(
 			 * This part of code uses aug_functions.js
 			 */
 			try {
-				var className = "chfilter-field-datetime";
-				var dateTime = document.getElementsByClassName(className);
-				var counter = 0;
-				var position = "";
-				for (var i = 0; i < dateTime.length; i++) {
-					var labelText = dateTime[i].getElementsByTagName("label")[0].innerText;
-					if ((labelText.includes("Application Intake") || labelText.includes("Reporting Intake"))
-						&& (labelText.includes("is less than or equal to") || labelText.includes("is more than or equal to"))) {
-						counter += 1;
-						var array = augFromToText(className, counter);
-						className = array[0] + "-" + i;
-						counter = array[1];
-						if (labelText.includes("Application Intake")) {
-							augBuildDualFields_Report(className, applicationMonths, yearValue, applicationId);
+				(function buildIntakeFields_Report() {
+					var className = "chfilter-field-datetime";
+					var dateTime = document.getElementsByClassName(className);
+					var counter = 0;
+					var position = "";
+					for (var i = 0; i < dateTime.length; i++) {
+						var labelText = dateTime[i].getElementsByTagName("label")[0].innerText;
+						if ((labelText.includes("Application Intake") || labelText.includes("Reporting Intake"))
+							&& (labelText.includes("is less than or equal to") || labelText.includes("is more than or equal to"))) {
+							counter += 1;
+							var array = augFromToText(className, counter);
+							className = array[0] + "-" + i;
+							counter = array[1];
+							if (labelText.includes("Application Intake")) {
+								augBuildDualFields_Report(className, applicationMonths, yearValue, applicationId);
 
-							// Apply to second fields after both fields are rendered
-							if (counter % 2 === 0) {
-								augIntakeRadioButton(dateTime[i - 1], null);
+								// Apply to second fields after both fields are rendered
+								if (counter % 2 === 0) {
+									augIntakeRadioButton(dateTime[i - 1], null);
+								}
+							}
+							else if (labelText.includes("Reporting Intake")) {
+								augBuildDualFields_Report(className, reportingMonths, yearValue, reportingId);
+
+								// Apply to second fields after both fields are rendered
+								if (counter % 2 === 0) {
+									augIntakeRadioButton(dateTime[i - 1], null);
+								}
 							}
 						}
-						else if (labelText.includes("Reporting Intake")) {
-							augBuildDualFields_Report(className, reportingMonths, yearValue, reportingId);
-
-							// Apply to second fields after both fields are rendered
-							if (counter % 2 === 0) {
-								augIntakeRadioButton(dateTime[i - 1], null);
+						else if ((labelText.includes("Application Intake") || labelText.includes("Reporting Intake"))
+							&& (labelText.includes("is equal to"))) {
+							className = className + "-In-" + i;
+							if (labelText.includes("Application Intake")) {
+								augBuildOneIntakeField_Report(className, applicationMonths, yearValue, applicationId);
+							}
+							else if (labelText.includes("Reporting Intake")) {
+								augBuildOneIntakeField_Report(className, reportingMonths, yearValue, reportingId);
 							}
 						}
-					}
-					else if ((labelText.includes("Application Intake") || labelText.includes("Reporting Intake"))
-						&& (labelText.includes("is equal to"))) {
-						className = className + "-In-" + i;
-						if (labelText.includes("Application Intake")) {
-							augBuildOneIntakeField_Report(className, applicationMonths, yearValue, applicationId);
-						}
-						else if (labelText.includes("Reporting Intake")) {
-							augBuildOneIntakeField_Report(className, reportingMonths, yearValue, reportingId);
-						}
-					}
 
-					className = "chfilter-field-datetime";
-				}
+						className = "chfilter-field-datetime";
+					}
+				})()
 			} catch (error) {
 				console.log("There were error during executing Modifying Application Intake and Reporting Intake filters.");
 				console.log(error);
@@ -129,15 +145,20 @@ BX.ready(
 
 			// Add AUG class to change the style of button.
 			try {
-				BX.addClass(BX("workarea"), "aug_report");
-				BX.addClass(BX("report-rewrite-filter-button"), "aug-button-blue");
-				BX.addClass(BX("report-reset-filter-button"), "aug-button-white");
+				(function augAddButtonClass_Report() {
+					BX.addClass(BX("workarea"), "aug_report");
+					BX.addClass(BX("report-rewrite-filter-button"), "aug-button-blue");
+					BX.addClass(BX("report-reset-filter-button"), "aug-button-white");
+				})();
 			} catch (error) {
 				console.log("There were errors during execution of BX.addClass.");
 				console.log(error);
 			}
 
-			// ================================
+			// ==================================================================
+			// ==================================================================
+
+			// ============ Current version ===========
 
 			/**
 			 * This part of code responsible for modifying the rest of the report page.
@@ -197,7 +218,6 @@ BX.ready(
 							}
 						});
 
-						// console.log(uniqueFields);
 						if (Object.entries(uniqueFields).length == 0) { // <== Return if there is no date field
 							return;
 						}
@@ -205,10 +225,10 @@ BX.ready(
 						// Iterate through uniqueFields and processing date filter fields.
 						for (let [fieldName, fieldObject] of Object.entries(uniqueFields)) {
 							if (fieldObject.fromTo !== "ready") {
-								console.warn(`Found only one element for field ${fieldName}, ignoring the field.`);
+								console.log(`Found only one element for field |${fieldName}|, ignoring the field.`);
 								continue;
 							} else if (fieldObject.fieldName == "Reporting Intake" || fieldObject.fieldName == "Application Intake") {
-								console.warn(`Found ${fieldObject.fieldName}, processed by previous program version, ignoring the field.`);
+								console.log(`Found |${fieldObject.fieldName}|, processed by previous program version, ignoring the field.`);
 								continue;
 							}
 
@@ -254,14 +274,15 @@ BX.ready(
 							}
 						});
 
-						// console.log(uniqueFields);
 						if (Object.entries(uniqueFields).length == 0) { // <== Return if there is no date field
 							return;
 						}
 
+						console.log({ uniqueFields });
+
 						// Iterate through uniqueFields and processing date filter fields.
 						for (let [fieldName, fieldObject] of Object.entries(uniqueFields)) {
-							augBuildYesNoField_Report(filterContainer, fieldObject.fieldName, fieldObject.div);
+							augBuildYesNoField_Report(filterContainer, fieldObject);
 						}
 
 					}(mainFilterContainer));
@@ -316,249 +337,13 @@ BX.ready(
 
 						// Iterate through uniqueFields and processing date filter fields.
 						for (let [fieldName, fieldObject] of Object.entries(uniqueFields)) {
-							augBuildSelectField_Report(filterContainer, fieldObject.fieldName, fieldObject.div);
+							augBuildSelectField_Report(filterContainer, fieldObject);
 						}
 					})(mainFilterContainer);
 			} catch (error) {
 				console.log("There were errors during execution of augBuildAllSelectField_Report.");
 				console.log(error);
 			};
-
-
-			try {
-				(
-					/**
-					 * !!! THIS FUNCTION / MODULE IS DEPRECATED, DON'T USE THIS !!!
-					 * !!! THIS IS FOR REFERENCE ONLY
-					 * Modify and rebuild the Branch Country and Branch Select Fields
-					 * @function augBuildBranchSelectField_Report
-					 */
-					function augBuildBranchSelectField_Report(filterContainer) {
-						return; // ! <== return immediately, function is deprecated
-						// ? MODULE FUNCTIONS
-						/**
-						 * Local function ampping option value of office select field
-						 * @function augGetOfficeCodes
-						 * @param {Element} selectBranchOffice - select element of office select field
-						 */
-						function augGetOfficeCodes(selectBranchOffice) {
-							// Build an object mapping option value to office.
-							let officesElement = selectBranchOffice.querySelectorAll("option");
-							let officesCode = Object.fromEntries(Array.from(officesElement).map((optionElement) => {
-								return [optionElement.innerText, optionElement.value];
-							}));
-							return officesCode;
-						}
-
-						/**
-						 * Local function mapping option value of country select field
-						 * @function augGetCountryCodes
-						 * @param {Element} selectBranchCountry - select element of country select field
-						 */
-						function augGetCountryCodes(selectBranchCountry) {
-							//Build an object mapping option value to country
-							let countriesElement = selectBranchCountry.querySelectorAll("option");
-							let countriesCode = Object.fromEntries(Array.from(countriesElement).map((optionElement) => {
-								return [optionElement.innerText, optionElement.value];
-							}));
-							return countriesCode;
-						}
-
-						/**
-						 * Local function handling when the select field is activated
-						 * @function countrySelectHandler
-						 * @param e - Event object passed by EventListener
-						 */
-						let countrySelectHandler = function (e) {
-							let country = e.target.innerHTML;
-							this.value = country;
-							augSetBranchCountry(country);
-							dropdownContainer.style.visibility = "hidden";
-							e.preventDefault();
-						}
-
-						/**
-						 * Local function handling when office option is activated
-						 * @function officeSelectHandler
-						 * @param e - Event object passed by EventListener
-						 */
-						let officeSelectHandler = function (e) {
-							let office = e.target.innerHTML;
-							this.value = office;
-							augSetOfficeBranch(office);
-							dropdownContainer.style.visibility = "hidden";
-							e.preventDefault();
-						}
-
-						/**
-						 * Local function for handling textField event, the function provide search features for select field.
-						 * @function textFieldHandler
-						 * @param {Event} e - Event object passed by EventListener
-						 */
-						function textFieldHandler(e) {
-							let searchText = e.target.value.toUpperCase();
-							let countryContainerArray = this.querySelectorAll(".country-container");
-							let officeContainerArray = this.querySelectorAll(".office-container");
-
-							if (!searchText) {
-								this.querySelectorAll("a").forEach(option => option.style.display = "block"); // <== Set all the option visible if text field empty.
-								countryContainerArray.forEach(countryContainer => countryContainer.style.display = "block");
-								return;
-							}
-
-							this.querySelectorAll("a").forEach(option => option.style.display = "none");
-							countryContainerArray.forEach(countryContainer => countryContainer.style.display = "none");
-
-							let matchingCountry = Object.keys(augBranchSelect)
-								.map(country => country.toUpperCase())
-								.reduce((accu, curr) => accu || (curr.includes(searchText)), false);
-
-							if (matchingCountry) { // <== Matching country
-								countryContainerArray.forEach(countryContainer => {
-									if (countryContainer.querySelector("a").innerText.toUpperCase().includes(searchText)) {
-										countryContainer.style.display = "block";
-										countryContainer.querySelectorAll("a").forEach(option => option.style.display = "block");
-										return;
-									}
-								});
-								return;
-							}
-
-							officeContainerArray.forEach(officeContainer => {
-								let optionArray = officeContainer.querySelectorAll("a");
-								optionArray.forEach(option => {
-									if (option.innerText.toUpperCase().includes(searchText)) {
-										option.style.display = "block";
-										officeContainer.style.display = "block";
-										officeContainer.parentElement.style.display = "block";
-										officeContainer.parentElement.querySelector("a").style.display = "block";
-									}
-								});
-							})
-						}
-
-						/**
-						 * Local function that handling setting value of the original Country filter field
-						 * @function augSetBranchCountry
-						 * @param {Srting} country - Name of selected country
-						 */
-						function augSetBranchCountry(country) {
-							const selectTable = countryCodes;
-							selectBranchCountry.querySelector("select").value = selectTable[country];
-							selectBranchOffice.querySelector("select").value = "";
-						}
-
-						/**
-						 * Local function that handling setting value of the original Office filter field
-						 * @function augSetOfficeBranch
-						 * @param {String} office - Name of selected office
-						 */
-						function augSetOfficeBranch(office) {
-							const selectTable = officeCodes;
-							selectBranchCountry.querySelector("select").value = "";
-							selectBranchOffice.querySelector("select").value = selectTable[office];
-						}
-
-						// ? MODULE VARIABLES
-						let augBranchSelect;
-						if (userDepartments && userCrmRoleName) {
-							augBranchSelect = augBuildBranchSelectObject(userCrmRoleName, userDepartments);
-						}
-						console.log({ augBranchSelect });
-
-						let templateSelectField = document.querySelector("#report-chfilter-examples > div.filter-field.filter-field-crm.chfilter-field-enum");
-
-						let selectBranchCountry, selectBranchOffice;
-						// Select the Branch Country and Branch Office Select Fields
-						document.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum").forEach((item) => {
-							item.querySelector("label").innerHTML == 'Branch Country "is equal to"' && (selectBranchCountry = item);
-							item.querySelector("label").innerHTML == 'Branch "is equal to"' && (selectBranchOffice = item);
-						});
-
-						let countryCodes = augGetCountryCodes(selectBranchCountry);
-						let officeCodes = augGetOfficeCodes(selectBranchOffice);
-						let defaultCountryCode, defaultOfficeCode
-						if (userCrmRoleName == "Administrator") {
-							defaultCountryCode = "Ignore";
-							defaultOfficeCode = "Ignore";
-						} else {
-							defaultCountryCode = Object.entries(augBranchSelect)[0][0];
-							defaultOfficeCode = Object.entries(augBranchSelect)[0][1];
-						}
-
-						console.log(defaultCountryCode);
-						console.log(defaultOfficeCode);
-
-						// ? MAIN BODY
-						// Hide two country - office select fields
-						selectBranchCountry.style.display = "none";
-						selectBranchOffice.style.display = "none";
-
-						// Add new select field
-						let newSelectFieldContainer = filterContainer.appendChild(templateSelectField.cloneNode(true));
-						newSelectFieldContainer.querySelector("label").innerHTML = "Branch Office";
-						BX.addClass(newSelectFieldContainer, "aug-select-field");
-						let newSelectDiv = newSelectFieldContainer.appendChild(BX.create("span", { "attrs": { "class": "" }, "style": { "position": "relative" } }));
-						let textField = newSelectDiv.appendChild(BX.create("input", { "attrs": { "type": "text" } }));
-
-						// Build dropdown
-						let dropdownContainer = BX.create("div", { "attrs": { "class": "aug-dropdown-container" }, "style": { "visibility": "hidden", "position": "absolute", "height": "15em", "overflow": "hidden scroll", "backgroundColor": "white" } });
-
-						// Build country select's options, each has its own handler
-						Object.keys(augBranchSelect).forEach(country => {
-							let countryContainer = dropdownContainer.appendChild(BX.create("div", { "attrs": { "class": "country-container" } }));
-							let countrySelect = countryContainer.appendChild(BX.create("a", { "attrs": { "class": "countrySelect", "href": "#" }, "style": { "display": "block" }, "text": country }));
-							countrySelect.addEventListener("click", countrySelectHandler.bind(textField));
-
-							// Build office branch select's options, each has its own handler
-							let officeContainer = countryContainer.appendChild(BX.create("div", { "attrs": { "class": "office-container" } }));
-
-							augBranchSelect[country].forEach(office => {
-								let officeSelect = officeContainer.appendChild(BX.create("a", { "attrs": { "class": "officeSelect", "href": "#" }, "style": { "display": "block" }, "text": office }));
-								officeSelect.addEventListener("click", officeSelectHandler.bind(textField));
-							});
-						});
-						newSelectDiv.appendChild(dropdownContainer); //<== Add dropdown menu to new select span
-
-						// Set default current branch country and office
-
-
-						// ? AUXILIARY FEATURES
-
-						// Show/Hide Drop down
-						let dropdownContainerMouse;
-
-						textField.addEventListener("focus", (e) => {
-							dropdownContainer.style.visibility = "visible";
-						});
-
-						textField.addEventListener("blur", (e) => {
-							if (!dropdownContainerMouse) {
-								dropdownContainer.style.visibility = "hidden";
-							}
-							if (textField.value == "") {
-								augSetBranchCountry("Ignore");
-								augSetOfficeBranch("Ignore");
-							}
-						});
-
-						dropdownContainer.addEventListener("mouseenter", (e) => {
-							dropdownContainerMouse = true;
-						});
-
-						dropdownContainer.addEventListener("mouseleave", (e) => {
-							dropdownContainerMouse = false;
-						});
-
-						// Text field Search
-						textField.addEventListener("keyup", textFieldHandler.bind(dropdownContainer));
-
-					})(mainFilterContainer);
-			}
-			catch (error) {
-				console.log("There were errors during execution of augBuildBranchSelectField_Report.");
-				console.log(error);
-			}
 
 			try {
 				(
@@ -568,62 +353,53 @@ BX.ready(
 					 * This also gives the Branch and Branch Country options based on user authentication.
 					 * For example, staff in Melbourne, Australia can only choose Australia and Melbourne.
 					 * Keep in mind that there should only be one filter of the field.
-					 * @function augModifyBranch_Report
+					 * @function augBuildBranchSelectField_Report
 					 */
-					async function augModifyBranch_Report(filterContainer) {
+					async function augBuildBranchSelectField_Report(filterContainer) {
 						// Get Available Options
-						let augBranchSelect;
-						if (userDepartments && userCrmRoleName) {
-							augBranchSelect = augBuildBranchSelectObject(userCrmRoleName, userDepartments);
-						}
-						if (Object.keys(augBranchSelect).length == 0) {
-							throw "Error occured while retrieving Branch and Branch Country options.";
+						try {
+							// Short-hand for if (userDepartments and userCrmRolName) exist assign augBuildBranchSelectObject => augBranchSelect
+							var augBranchSelect = !!userDepartments && !!userCrmRoleName && augBuildBranchSelectObject(userCrmRoleName, userDepartments);
+						} catch (err) {
+							console.log(err);
+							if (!augBranchSelect || Object.keys(augBranchSelect).length == 0) {
+								let error = new Error("Could not retrieve available option for Branch and Branch Country.");
+								error.name = "RetrievalError";
+								throw error;
+							}
 						}
 
 						// Local variable
 						let augBranchCountry = Object.keys(augBranchSelect).map(each => each.toLowerCase());
 						let branchCountryFilter, branchFilter;
 
-						// Select Branch Country filter element
-						timerObject = {
-							testFunc: () => {
-								for (let filter of filterContainer.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum.aug-select-field")) {
-									if (filter.querySelector("label").innerText.toLowerCase().includes("branch country")) {
-										return true;
-									}
-								}
-								return false;
-							},
-							callbackFunc: () => {
-								for (let filter of filterContainer.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum.aug-select-field")) {
-									if (filter.querySelector("label").innerText.toLowerCase().includes("branch country")) {
-										branchCountryFilter = filter;
-										break;
-									}
-								}
+						// Select branchCountryFilter
+						try {
+							branchCountryFilter = await augAwaitSelector(100, 10, "#aug_report_filter_select_branch_country", mainFilterContainer); // <== Wait until augBuildAllSelectField_Report finish
+						} catch (err) {
+							console.log(err);
+							if (!branchCountryFilter) {
+								let error = new Error("No Branch Country filter found.");
+								error.name = "SelectError";
+								throw error;
 							}
 						}
 
-						await augAwait(100, 10, timerObject);
-
-						if (!branchCountryFilter) {
-							throw "No Branch Country filter found.";
-						}
-
-						// Select Branch filter element
-						for (let filter of filterContainer.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum.aug-select-field.aug-select-field")) {
-							if (filter.querySelector("label").innerText.toLowerCase() == "branch") {
-								branchFilter = filter;
-								break;
+						// Select branchFilter
+						try {
+							branchFilter = await augAwaitSelector(100, 10, "#aug_report_filter_select_branch", mainFilterContainer);
+						} catch (err) {
+							console.log(err);
+							if (!branchCountryFilter) {
+								let error = new Error("No Branch Country filter found.");
+								error.name = "SelectError";
+								throw error;
 							}
-						}
-						if (!branchFilter) {
-							throw "No Branch filter found.";
 						}
 
 						// Remove Branch Country options not available for the user.
 						branchCountryFilter.querySelectorAll("a").forEach((option) => {
-							if (!augBranchCountry.includes(option.innerHTML.toLowerCase())) {
+							if (option.innerHTML != "Ignore" && !augBranchCountry.includes(option.innerHTML.toLowerCase())) {
 								option.remove();
 							}
 						});
@@ -631,7 +407,7 @@ BX.ready(
 						// Remove Branch options not available for the user.
 						branchFilter.querySelectorAll("a").forEach((option) => {
 							for (let country in augBranchSelect) {
-								if (augBranchSelect[country].map((each) => each.toLowerCase()).includes(option.innerHTML.toLowerCase())) {
+								if (augBranchSelect[country].map((each) => each.toLowerCase()).includes(option.innerHTML.toLowerCase()) || option.innerHTML == "Ignore") {
 									return;
 								}
 							}
@@ -643,27 +419,22 @@ BX.ready(
 						branchCountryFilter.querySelector("div.aug-dropdown-container").addEventListener("click", (e) => {
 							// Update branch filter to respective country.
 							let chosenCountry = e.target.innerHTML;
-							branchFilter.querySelectorAll("a").forEach((option) => {
-								if (augBranchSelect[chosenCountry].includes(option.innerHTML)) {
-									option.style.display = "block";
-								} else {
-									option.style.display = "none";
-								}
-								// Set first option as default.
-								for (let option of branchFilter.querySelectorAll("a")) {
-									if (option.style.display == "block") {
-										option.click();
-										break;
+							if (chosenCountry != "Ignore") {
+								branchFilter.querySelectorAll("a").forEach((option) => {
+									if (option.innerHTML == "Ignore" || augBranchSelect[chosenCountry].includes(option.innerHTML)) {
+										option.style.display = "block";
+									} else {
+										option.style.display = "none";
 									}
-								}
-							});
+								});
+							}
+								// Set first option as default.
+								branchFilter.querySelector("a").click();
 						});
 
 						// Set the first option as default for both filters.
 						branchCountryFilter.querySelector("a").click();
 						branchFilter.querySelector("a").click();
-
-
 
 					})(mainFilterContainer);
 
@@ -680,18 +451,6 @@ BX.ready(
 					 * @function augModifyResultTable
 					 */
 					function augModifyResultTable() {
-						// ? VARIABLES
-						let resultTable = document.querySelector("#report-result-table");
-						let tableRows = resultTable.querySelectorAll(".reports-list-item");
-						if (tableRows.length == 0) return;
-						let color = "white" // Toggle this between red and blue
-						let applicationIntakeIndex = getTableHeaderIndex(resultTable, "application intake");
-						let reportingIntakeIndex = getTableHeaderIndex(resultTable, "reporting intake");
-						let idIndex = getTableHeaderIndex(resultTable, "id");
-						let acceptIndex = getTableHeaderIndex(resultTable, "accept");
-						let studentBlocks = getStudentBlocks(resultTable, idIndex);
-
-
 						// ? FUNCTIONS
 						/**
 						 * Local function to get data from each row
@@ -744,7 +503,11 @@ BX.ready(
 
 							do {
 								let leadId1 = getTableData(tableRows[pointer1])[idIndex];
-								let leadId2 = getTableData(tableRows[pointer2])[idIndex];
+								let leadId2
+								if (pointer2 < tableRows.length) {
+									leadId2 = getTableData(tableRows[pointer2])[idIndex];
+								} else leadId2 = null;
+
 								let processingTableRow = [];
 
 								// Loop to get rows of same student
@@ -764,10 +527,24 @@ BX.ready(
 								pointer1 = pointer2;
 								pointer2 = pointer1 + 1;
 
-							} while (pointer2 < tableRows.length);
+							} while (pointer2 <= tableRows.length);
 
 							return studentBlocks;
 						}
+
+						// ? VARIABLES
+						let resultTable = document.querySelector("#report-result-table");
+
+						let tableRows = resultTable.querySelectorAll(".reports-list-item");
+						if (tableRows.length == 0) return;
+
+						let color = "white" // Toggle this between red and blue
+						let applicationIntakeIndex = getTableHeaderIndex(resultTable, "application intake");
+						let reportingIntakeIndex = getTableHeaderIndex(resultTable, "reporting intake");
+						let idIndex = getTableHeaderIndex(resultTable, "id");
+						if (idIndex == -1) idIndex = 0;
+						let acceptIndex = getTableHeaderIndex(resultTable, "accept");
+						let studentBlocks = getStudentBlocks(resultTable, idIndex);
 
 						// ? MAIN BODY
 
@@ -793,19 +570,23 @@ BX.ready(
 									}
 
 									// Format Application intake to MMMM / YYYY
-									if (cellIndex == applicationIntakeIndex) {
-										let date = cell.innerText.substring(3);
-										let month = Object.keys(applicationMonths)[Number(date.substring(0, 2)) - 1];
-										let year = date.substring(3);
-										cell.innerText = `${month} ${year}`
+									if (applicationIntakeIndex > -1) {
+										if (cellIndex == applicationIntakeIndex && cell.innerHTML != '') {
+											let date = cell.innerText.substring(3);
+											let month = Object.keys(applicationMonths)[Number(date.substring(0, 2)) - 1];
+											let year = date.substring(3);
+											cell.innerText = `${month} ${year}`
+										}
 									}
 
 									// Format Reporting intake to MMMM / YYYY
-									if (cellIndex == reportingIntakeIndex) {
-										let date = cell.innerText.substring(3);
-										let month = Object.keys(applicationMonths)[Number(date.substring(0, 2)) - 1];
-										let year = date.substring(3);
-										if (month && year) cell.innerText = `${month} ${year}`;
+									if (reportingIntakeIndex > -1) {
+										if (cellIndex == reportingIntakeIndex && cell.innerHTML != '') {
+											let date = cell.innerText.substring(3);
+											let month = Object.keys(applicationMonths)[Number(date.substring(0, 2)) - 1];
+											let year = date.substring(3);
+											if (month && year) cell.innerText = `${month} ${year}`;
+										}
 									}
 								});
 
@@ -849,7 +630,7 @@ BX.ready(
 						}
 					}
 
-					await augAwait(100, 10, timerObject);
+					await augAwait(100, 10, timerObject, "Select Field await");
 
 					let institutionCountry;
 					for (let each of document.querySelectorAll(".aug-select-field")) {
@@ -895,7 +676,7 @@ BX.ready(
 						let shortName = augcGetCountryShortName[chosenCountry];
 						let temp = [];
 						let appliedInstitutionOriginal;
-						
+
 						for (let each of document.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum")) {
 							if (each.querySelector("label").innerHTML == "Applied Institution \"is equal to\"") {
 								appliedInstitutionOriginal = each;
@@ -990,7 +771,7 @@ BX.ready(
 									}
 								}
 
-								await augAwait(100, 10, timerObject);
+								await augAwait(100, 10, timerObject, "augReportMarkOptionalFilter");
 
 								let optionList = getOptionFilterList();
 								console.log(optionList);
@@ -1067,7 +848,7 @@ BX.ready(
 
 			// ============= END OF MAIN ===============
 
-		})();
+		};
 
 		// ? UTILITY FUNCTIONS
 		/**
@@ -1125,6 +906,7 @@ BX.ready(
 			let fieldName = fieldObject.fieldName;
 			let toDiv = fieldObject.toDiv;
 			let fromDiv = fieldObject.fromDiv;
+			let fieldId = 'aug_report_filter_date_' + fieldName.toLowerCase().replace(' ', '_');
 			let radioName = fieldName.toLowerCase().replace(' ', '_');
 
 			// ? MAIN BODY
@@ -1143,6 +925,8 @@ BX.ready(
 
 			// Adding new Date filter
 			let newDateFilter = sampleDateFilter.cloneNode(true);
+			newDateFilter.id = fieldId;
+			BX.addClass(newDateFilter, 'aug-date-field');
 
 			// Adding new Date Filter before the first filter
 			toDiv.insertAdjacentElement("afterend", newDateFilter)
@@ -1198,11 +982,19 @@ BX.ready(
 		 * Utility function to create yes no field
 		 * @function augBuildYesNoField_Report
 		 * @param {Element} filterContainer - main filter container
-		 * @param {String} fieldName - format: fieldname, div
-		 * @param {Element} fieldDiv
+		 * @param {fieldObject} fieldObject - format: fieldName, div
 		 */
-		function augBuildYesNoField_Report(filterContainer, fieldName, fieldDiv) {
+		function augBuildYesNoField_Report(filterContainer, fieldObject) {
+			let fieldName = fieldObject.fieldName;
+			let fieldDiv = fieldObject.div;
+			let fieldId = 'aug_report_filter_boolean_' + fieldName.toLowerCase().replace(' ', '_');
 			let className = fieldName.toLowerCase();
+			let radioId = `aug-radio-btn-${className}-`;
+			let radioName = className;
+
+			// Set id
+			fieldDiv.id = fieldId;
+			BX.addClass(fieldDiv, 'aug-boolean-field');
 
 			// Clear container
 			let selectElement = fieldDiv.querySelector("select");
@@ -1212,8 +1004,6 @@ BX.ready(
 
 			// Set container as flex
 			let optionDiv = fieldDiv.appendChild(BX.create("div", { "attrs": { "class": "aug-radio-container" } }));
-			let radioId = `aug-radio-btn-${className}-`;
-			let radioName = className;
 
 			// Adding radio buttons
 			let allRadio = augBuildRadioButton(optionDiv, 'All', true, radioId + "all", radioName);
@@ -1270,15 +1060,18 @@ BX.ready(
 		* Utility function build Select Field
 		* @function augBuildSelectField_Report
 		* @param {Element} filterContainer - main filter container
-		* @param {String} fieldName - new label for the select field
-		* @param {Element} fieldDiv
+		* @param {fieldObject} fieldObject - fieldName and div
 		*/
 
 		/** @var _selectFieldCounter - to count new Select Field */
 		var _selectFieldCounter = 0;
 		var _selectFieldFinish = 0;
-		async function augBuildSelectField_Report(filterContainer, fieldName, fieldDiv) {
+		async function augBuildSelectField_Report(filterContainer, fieldObject) {
 			_selectFieldCounter++; // <== Global counter
+
+			let fieldName = fieldObject.fieldName;
+			let fieldDiv = fieldObject.div;
+			let fieldId = 'aug_report_filter_select_' + fieldName.toLowerCase().replace(' ', '_');
 
 			// Hide the original bitrix field
 			fieldDiv.style.display = "none";
@@ -1294,7 +1087,7 @@ BX.ready(
 				}
 			};
 
-			await augAwait(100, 10, timerObject);
+			await augAwait(100, 10, timerObject, `${fieldName} await`);
 
 			let temp = [];
 			for (let each of fieldDiv.querySelectorAll("option").values()) {
@@ -1306,10 +1099,10 @@ BX.ready(
 
 			let templateSelectField = document.querySelector("#report-chfilter-examples > div.filter-field.filter-field-crm.chfilter-field-enum");
 
-
-
 			// Add new select field
 			let newSelectFieldContainer = filterContainer.insertBefore(templateSelectField.cloneNode(true), fieldDiv.nextElementSibling);
+			newSelectFieldContainer.id = fieldId;
+
 			BX.addClass(newSelectFieldContainer, "aug-select-field");
 			newSelectFieldContainer.querySelector("label").innerHTML = fieldName;
 
@@ -1422,6 +1215,8 @@ BX.ready(
 		/**
 		 * Link a report with another report with the same fitlers.
 		 * @function augLink_Report
+		 * @param page_id - report id linked to current report
+		 * @param buttonLabel - Label on the button
 		 */
 		function augLink_Report(page_id, buttonLabel) {
 			let searchParams = new URL(document.URL).searchParams;

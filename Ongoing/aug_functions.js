@@ -524,16 +524,23 @@ async function augSetTimerLoop(delayTimer, numberOfLoop, augTimerObject) {
 /**
  * @function augAwait
  * @async
+ * @param delayTimer - time for each Loop
+ * @param numberOfLoop - number of Loop
  * @param timerObject - contain callback functions for test and resolve case.
  * The timerObject contains properties as follow:
  * + testFunc - function that return a boolean to decide whether a waiting conditiong has met.
  * + callbackFunc - function that executed a task after testFunc return true.
  * For example, the augSetDelayTask will await periodically <delaytimer> ms. Then it runs the testFunc.
  * If testFunc return true, augSetDelayTask will continue to run callbackFunc.
+ * @param awaitName - optional - for debug purposes;
  * @return {Promise}
  */
-async function augAwait(delayTimer, numberOfLoop, timerObject) {
+var _augAwaitCounter = 0;
+var _augAwaitId = 0;
+async function augAwait(delayTimer, numberOfLoop, timerObject, awaitName) {
 	let _loopCounter = 0; // <= Local variable to counter loop
+	_augAwaitCounter++;
+	let augAwaitId = _augAwaitId++;
 
 	if (typeof timerObject.testFunc !== "function") {
 		console.warn("testFunc of timerObject is not a function");
@@ -546,7 +553,11 @@ async function augAwait(delayTimer, numberOfLoop, timerObject) {
 	}
 
 	while (_loopCounter <= numberOfLoop) {
-		console.log({ _loopCounter });
+		if (awaitName) {
+			console.log(`awaitName: ${awaitName}`);
+		}
+		console.log(`augAwaitId: ${augAwaitId}`);
+		console.log(`_loopCounter: ${_loopCounter}`);
 		if (timerObject.testFunc()) {
 			timerObject.callbackFunc();
 			return "Success!";
@@ -554,10 +565,42 @@ async function augAwait(delayTimer, numberOfLoop, timerObject) {
 		await new Promise(r => setTimeout(r, delayTimer));
 		_loopCounter++;
 	}
-	console.warn("Something goes wrong, please check with network administrator.");
-	return "Something goes wrong, please check with network administrator.";
+	console.warn("Something goes wrong, please check with administrator.");
+	return "Something goes wrong, please check with administrator.";
 }
 
+var _augAwaitSelectCount = 0;
+var _augAwaitSelectId = 0;
+/**
+ * Asynchronous function awaiting to select element in loop.
+ * Best use with id
+ * @function augAwaitSelector
+ * @param delayTimer - timer of each loop.
+ * @param numberOfLoop - number of loop.
+ * @param selector - css selector, can be class or id or tag.
+ * @param container - container to select from.
+ */
+async function augAwaitSelector(delayTimer, numberOfLoop, selector, container) {
+	_augAwaitSelectCount++; // <== Keep track of number of time function is called
+	let augAwaitSelectId = _augAwaitSelectId++; // <== Keep track which await function is being called
+	let _loopCounter = 0; // <= Local variable to counter loop
+
+	while (_loopCounter <= numberOfLoop) {
+		console.log(`augAwaitSelectId: ${augAwaitSelectId} -- ${_loopCounter}`);
+		let result = container.querySelector(selector);
+		if (result) {
+			_augAwaitSelectCount--;
+			return result;
+		}
+		await new Promise(r => setTimeout(r, delayTimer));
+		_loopCounter++;
+	}
+	
+	_augAwaitSelectCount--;
+	let reject = new Error("Cannot select element.");
+	reject.name = "PromiseRejected";
+	throw reject;
+};
 
 // ----------------------------------------- End Timer function -------------------------------------------- //
 
