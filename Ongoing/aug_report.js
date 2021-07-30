@@ -1,6 +1,6 @@
 /**
- * aug_report.js version 0.1.0723
- * Updated 23/07/2021
+ * aug_report.js version 0.1.0730
+ * Updated 30/07/2021
  */
 
 /**
@@ -14,7 +14,7 @@
  * 		aug_css.css
  */
 
- BX.ready(
+BX.ready(
 	function () {
 
 		// Id value for new Application and Reporting intake user fields
@@ -36,7 +36,7 @@
 			"December": "12"
 		};
 
-		var yearValue = {
+		var intakeYears = {
 			"2015": "2015",
 			"2016": "2016",
 			"2017": "2017",
@@ -79,6 +79,7 @@
 
 			// ============ Previous version ===========
 
+			// ! DEPRACATED 
 			/**
 			 * This part of code is responsible of modifying the two filter: Application Intake and Reporting Intake.
 			 * Application Intake and Reporting Intake filters are set with the condition "more than and equal to", e.g. Application Intake "more than and equal to" <date>.
@@ -93,8 +94,10 @@
 			 * 
 			 * This part of code uses aug_functions.js
 			 */
+			// ! DEPRACATED 
 			try {
 				(function buildIntakeFields_Report() {
+					return;
 					var className = "chfilter-field-datetime";
 					var dateTime = document.getElementsByClassName(className);
 					var counter = 0;
@@ -108,7 +111,7 @@
 							className = array[0] + "-" + i;
 							counter = array[1];
 							if (labelText.includes("Application Intake")) {
-								augBuildDualFields_Report(className, applicationMonths, yearValue, applicationId);
+								augBuildDualFields_Report(className, applicationMonths, intakeYears, applicationId);
 
 								// Apply to second fields after both fields are rendered
 								if (counter % 2 === 0) {
@@ -116,7 +119,7 @@
 								}
 							}
 							else if (labelText.includes("Reporting Intake")) {
-								augBuildDualFields_Report(className, reportingMonths, yearValue, reportingId);
+								augBuildDualFields_Report(className, reportingMonths, intakeYears, reportingId);
 
 								// Apply to second fields after both fields are rendered
 								if (counter % 2 === 0) {
@@ -227,8 +230,13 @@
 							if (fieldObject.fromTo !== "ready") {
 								console.log(`Found only one element for field |${fieldName}|, ignoring the field.`);
 								continue;
-							} else if (fieldObject.fieldName == "Reporting Intake" || fieldObject.fieldName == "Application Intake") {
-								console.log(`Found |${fieldObject.fieldName}|, processed by previous program version, ignoring the field.`);
+							} else if (fieldObject.fieldName == "Reporting Intake") {
+								console.log(`Found |${fieldObject.fieldName}|.`);
+								augBuildIntakeDateField_Report(filterContainer, fieldObject);
+								continue;
+							} else if (fieldObject.fieldName == "Application Intake") {
+								console.log(`Found |${fieldObject.fieldName}|.`);
+								augBuildIntakeDateField_Report(filterContainer, fieldObject);
 								continue;
 							}
 
@@ -428,8 +436,8 @@
 									}
 								});
 							}
-								// Set first option as default.
-								branchFilter.querySelector("a").click();
+							// Set first option as default.
+							branchFilter.querySelector("a").click();
 						});
 
 						// Set the first option as default for both filters.
@@ -896,11 +904,179 @@
 		}
 
 		/**
+		 * Build Reporting Intake Date Field
+		 * @function augBuildIntakeDateField_Report
+		 * @param {Element} filterContainer 
+		 * @param {fieldObject} fieldObject 
+		 */
+		function augBuildIntakeDateField_Report(filterContainer, fieldObject) {
+
+			// ? VARIABLES
+			let fieldName = fieldObject.fieldName;
+			let toDiv = fieldObject.toDiv;
+			let fromDiv = fieldObject.fromDiv;
+			let fieldId = 'aug_report_filter_intake_date_' + fieldName.toLowerCase().replace(' ', '_');
+			let radioName = fieldName.toLowerCase().replace(' ', '_');
+			let toDivInput = toDiv.querySelector("input");
+			let fromDivInput = fromDiv.querySelector("input");
+			let monthOptions = fieldName == "Application Intake" ? applicationMonths : reportingMonths;
+			let radioMode = (!toDivInput.value && !fromDivInput.value) ? 0 : (toDivInput.value == fromDivInput.value) ? 1 : 2; // 0 = all, 1 = one, 2 = range
+			// ? MAIN BODY
+			// Sample date filter field used to clone new date filter field
+			let sampleDateFilter = document.querySelector(".filter-field.chfilter-field-datetime");
+
+			// Clone inputs from these two filters
+			let toInput = toDiv.querySelector("input");
+			let toA = toDiv.querySelector("a");
+			let fromInput = fromDiv.querySelector("input");
+			let fromA = fromDiv.querySelector("a");
+
+			// Hide 2 Date filter containers.
+			toDiv.style.display = "none";
+			fromDiv.style.display = "none";
+
+			// Adding new Date filter
+			let newDateFilter = sampleDateFilter.cloneNode(true);
+			newDateFilter.id = fieldId;
+			BX.addClass(newDateFilter, 'aug-date-field');
+
+			// Adding new Date Filter before the first filter
+			toDiv.insertAdjacentElement("afterend", newDateFilter);
+			newDateFilter.querySelector("label").innerText = fieldName;
+
+			// Clear content of new Date Filter
+			newDateFilter.querySelector("input").remove();
+			newDateFilter.querySelector("a").remove();
+
+			// Adding options radio buttons
+			let optionDiv = newDateFilter.appendChild(BX.create("div", { "attrs": { "class": `aug-radio-container` } }));
+
+
+			let allRadio = augBuildRadioButton(optionDiv, "All Intake", (radioMode == 0), `aug-radio-btn-all-${radioName}`, radioName);
+			let oneRadio = augBuildRadioButton(optionDiv, "One Intake", (radioMode == 1), `aug-radio-btn-all-${radioName}`, radioName);
+			let rangeRadio = augBuildRadioButton(optionDiv, "Range", (radioMode = 2), `aug-radio-btn-range-${radioName}`, radioName);
+
+
+
+			// Build Month FROM TO Select
+			let fromToDiv = newDateFilter.appendChild(BX.create("div", { "attrs": { "class": "aug-intake" } }));
+			let fromMonthDiv = fromToDiv.appendChild(BX.create("div", { "attrs": { "class": "aug-intake-from" } }));
+			let toMonthDiv = fromToDiv.appendChild(BX.create("div", { "attrs": { "class": "aug-intake-to" } }));
+
+			let [fromMonthInput, fromYearInput] = buildMonthSelect(fromMonthDiv, "From", fromDivInput.value, fromDivInput);
+			let [toMonthInput, toYearInput] = buildMonthSelect(toMonthDiv, "To", toDivInput.value, toDivInput);
+
+			// Adding Handler For Radio Buttons
+			allRadio.addEventListener("change", augAllRadioHandler.bind(fromToDiv));
+			oneRadio.addEventListener("change", augOneRadioHandler.bind(fromToDiv));
+			rangeRadio.addEventListener("change", augRangeRadioHandler.bind(fromToDiv));
+
+			// ? LOCAL FUNCTIONS
+
+			function buildMonthSelect(topContainer, label, selectedDate, inputDiv) {
+				let [selectedMonth, selectedYear] = selectedDate.split('/').splice(1, 2);
+
+				topContainer.appendChild(BX.create("label", { "attrs": { "class": "" }, "text": label }));
+
+				// Build month input
+				let monthInput = topContainer.appendChild(BX.create("select", { "attrs": { "class": "aug-intake-month-select aug-two-layers-fields", "id": label.toLowerCase() + "MonthSelect" } }));
+				for (let [monthName, monthValue] of Object.entries(monthOptions)) {
+					let option = monthInput.appendChild(BX.create("option", { "attrs": { "class": "", "value": monthValue }, "text": monthName }));
+					option.selected = (monthValue == selectedMonth);
+				}
+
+
+				// Build year input
+				let yearInput = topContainer.appendChild(BX.create("select", { "attrs": { "class": "aug-intake-year-select aug-two-layers-fields", "id": label.toLowerCase() + "YearSelect" } }));
+				for (let [yearName, yearValue] of Object.entries(intakeYears)) {
+					let option = yearInput.appendChild(BX.create("option", { "attrs": { "class": "", "value": yearValue }, "text": yearName }));
+					option.selected = (selectedYear == yearValue);
+				}
+
+				monthInput.addEventListener("change", monthSelectHandler.bind(inputDiv));
+				yearInput.addEventListener("change", yearSelectHandler.bind(inputDiv));
+
+				return [monthInput, yearInput];
+			}
+
+			function monthSelectHandler(e) {
+				let chosenMonth = e.target.value;
+				let chosenYear = e.target.parentElement.querySelector("select.aug-intake-year-select").value;
+				let chosenDate = `01/${chosenMonth}/${chosenYear}`;
+				if (radioMode == 1) {
+					fromDivInput.value = chosenDate;
+					toDivInput.value = chosenDate;
+				} else if (radioMode == 2) {
+					this.value = chosenDate;
+				}
+			}
+
+			function yearSelectHandler(e) {
+				let chosenMonth = e.target.parentElement.querySelector("select.aug-intake-month-select").value;
+				let chosenYear = e.target.value;
+				let chosenDate = `01/${chosenMonth}/${chosenYear}`;
+				if (radioMode == 1) {
+					fromDivInput.value = chosenDate;
+					toDivInput.value = chosenDate;
+				} else if (radioMode == 2) {
+					this.value = chosenDate;
+				}
+			}
+
+			/**
+			 * Module handler for all radio button - hide To-From Date Field
+			 * @function augAllRadioHandler
+			 * @param {Event} e - event passed in by EventListener
+			 */
+			function augAllRadioHandler(e) {
+				if (e.target.checked) {
+					radioMode = 0;
+					BX.removeClass(fromToDiv, "aug-intake-one-mode");
+					BX.removeClass(fromToDiv, "aug-intake-range-mode");
+					BX.addClass(fromToDiv, "aug-intake-all-mode");
+					fromDivInput.value = "";
+					toDivInput.value = "";
+				}
+			}
+
+			/**
+			 * Local handler for one radio button - Set both same date for both to and from date field
+			 * @function augOneRadioHandler
+			 * @param {Event} e - event passed in by EventListener
+			 */
+			function augOneRadioHandler(e) {
+				if (e.target.checked) {
+					radioMode = 1;
+					BX.removeClass(fromToDiv, "aug-intake-all-mode");
+					BX.removeClass(fromToDiv, "aug-intake-range-mode");
+					BX.addClass(fromToDiv, "aug-intake-one-mode");
+				}
+			}
+
+			/**
+			 * Module handler for all radio button - hide To-From Date Field
+			 * @function augRangeRadioHandler
+			 * @param {Event} e - event passed in by EventListener
+			 */
+			function augRangeRadioHandler(e) {
+				if (e.target.checked) {
+					radioMode = 2;
+					BX.removeClass(fromToDiv, "aug-intake-one-mode");
+					BX.removeClass(fromToDiv, "aug-intake-all-mode");
+					BX.addClass(fromToDiv, "aug-intake-range-mode");
+				}
+			}
+
+		}
+
+
+
+		/**
 		 * Utility function to combine "more than and equal" and "less than and equal" into one
 		 * @function augBuildDateFromToField_Report
 		 * @param {Element} filterContainer - main filter container
-		 * @param {Object} fieldObject - field Object containing ref to the 2 from / to div 
-		 */
+								* @param {Object} fieldObject - field Object containing ref to the 2 from / to div
+								*/
 		function augBuildDateFromToField_Report(filterContainer, fieldObject) {
 			// ? VARIABLES
 			let fieldName = fieldObject.fieldName;
@@ -957,7 +1133,7 @@
 			 * Module handler for all radio button - hide To-From Date Field
 			 * @function augAllRadioHandler
 			 * @param {Event} e - event passed in by EventListener
-			 */
+								*/
 			function augAllRadioHandler(e) {
 				if (e.target.checked) {
 					BX.addClass(this, "aug_hide");
@@ -969,7 +1145,7 @@
 			 * Module handler for all radio button - hide To-From Date Field
 			 * @function augRangeRadioHandler
 			 * @param {Event} e - event passed in by EventListener
-			 */
+								*/
 			function augRangeRadioHandler(e) {
 				if (e.target.checked) {
 					BX.removeClass(this, "aug_hide");
@@ -982,8 +1158,8 @@
 		 * Utility function to create yes no field
 		 * @function augBuildYesNoField_Report
 		 * @param {Element} filterContainer - main filter container
-		 * @param {fieldObject} fieldObject - format: fieldName, div
-		 */
+								* @param {fieldObject} fieldObject - format: fieldName, div
+								*/
 		function augBuildYesNoField_Report(filterContainer, fieldObject) {
 			let fieldName = fieldObject.fieldName;
 			let fieldDiv = fieldObject.div;
@@ -1038,12 +1214,12 @@
 		 * Build Radio button
 		 * @function augBuildRadioButton
 		 * @param {Element} container - Outer container the button will be added to
-		 * @param {String} text - Label of the radio button
-		 * @param {Boolean} checked - Check by default?
-		 * @param {String} id - Id of radio button
-		 * @param {String} name - name of radio button section
-		 * @returns radioButton
-		 */
+								* @param {String} text - Label of the radio button
+								* @param {Boolean} checked - Check by default?
+								* @param {String} id - Id of radio button
+								* @param {String} name - name of radio button section
+								* @returns radioButton
+								*/
 		function augBuildRadioButton(container, text, checked, id, name) {
 			let radioDiv = container.appendChild(BX.create("div"));
 			let radioButton = radioDiv.appendChild(BX.create("input", { "attrs": { "type": "radio", "id": id, "name": name, "class": "aug-report-intake-options" } }));
@@ -1060,8 +1236,8 @@
 		* Utility function build Select Field
 		* @function augBuildSelectField_Report
 		* @param {Element} filterContainer - main filter container
-		* @param {fieldObject} fieldObject - fieldName and div
-		*/
+								* @param {fieldObject} fieldObject - fieldName and div
+								*/
 
 		/** @var _selectFieldCounter - to count new Select Field */
 		var _selectFieldCounter = 0;
@@ -1151,8 +1327,8 @@
 			 * Local function for handling textField event
 			 * @function textFieldHandler
 			 * @param {Event} e - Event passed in by EventListener
-			 * @returns nothing
-			 */
+								* @returns nothing
+								*/
 			function textFieldHandler(e) {
 				let searchText = e.target.value.toUpperCase();
 				let itemArray = this.querySelectorAll("a");
@@ -1181,9 +1357,9 @@
 		 * Utility function to build select options based on authentication and department this will affect augBranchSelect variable declared above
 		 * @function augBuildBranchSelectObject
 		 * @param {String} userCrmRoleName - crm Role
-		 * @param {Array} crmDepartment - crm Department this is array of String
-		 * @return {Object} augBranchSelect
-		 */
+								* @param {Array} crmDepartment - crm Department this is array of String
+								* @return {Object} augBranchSelect
+								*/
 		function augBuildBranchSelectObject(userCrmRoleName, crmDepartment) {
 			let augBranchSelect = {};
 
