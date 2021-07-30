@@ -652,7 +652,7 @@ div #workarea-content {
 /* Filter sidebar */
 #sidebar {
   border: 1px solid white;
-  box-shadow: 0px 0px 10px #c1c1c1;
+  box-shadow: 0px 0px 20px 10px #363232b8;
   margin: 30px 20px;
   padding-left: 0px !important;
 }
@@ -835,6 +835,15 @@ div.aug-intake-one-mode label {
 
 div.aug-intake-one-mode div:nth-child(2)  {
   display: none !important;
+}
+
+.aug-dropdown-arrow {
+  background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNSIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI1IDE2Ij4gIDxwb2x5Z29uIGZpbGw9IiM1MzVDNjkiIGZpbGwtcnVsZT0iZXZlbm9kZCIgcG9pbnRzPSIzLjU0NiA3LjQyNSAzLjU0NiAxLjYwNyAxLjYwNyAxLjYwNyAxLjYwNyA4LjM5NCAxLjYwNyA5LjM2NCA5LjM2NCA5LjM2NCA5LjM2NCA3LjQyNSIgdHJhbnNmb3JtPSJyb3RhdGUoLTQ1IDkuOSAxLjY1NykiLz48L3N2Zz4=);
+  background-position: right center;
+  background-repeat: no-repeat;
+  appearance: none;
+  -moz-appearance: none; /* Firefox */
+  -webkit-appearance: none; /* Safari and Chrome */
 }
 
 
