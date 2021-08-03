@@ -1,6 +1,6 @@
 /**
- * aug_report.js version 0.1.0730
- * Updated 30/07/2021
+ * aug_report.js version 0.1.0803
+ * Updated 03/08/2021
  */
 
 /**
@@ -395,14 +395,14 @@ BX.ready(
 								branchFilter.querySelector("a").click();
 							});
 
-							// Set the first option as default for both filters.
+							// Set the default for both filters.
 							branchCountryFilter.querySelector("a").click();
 							branchFilter.querySelector("a").click();
 
 						})(mainFilterContainer);
 
 				} catch (error) {
-					throw new Error("There were errors during execution of augModifyBranch_Report.");
+					throw new Error("There were errors during execution of augBuildBranchSelectField_Report.");
 				}
 
 				// TODO: Change the funcion so fit with different report.
@@ -1254,6 +1254,7 @@ BX.ready(
 				let fieldName = fieldObject.fieldName;
 				let fieldDiv = fieldObject.div;
 				let fieldId = 'aug_report_filter_select_' + fieldName.toLowerCase().replace(' ', '_');
+				let selectedOption = fieldDiv.querySelector("select").value;
 
 				// Hide the original bitrix field
 				fieldDiv.style.display = "none";
@@ -1304,6 +1305,10 @@ BX.ready(
 						e.preventDefault();
 					}
 					itemSelect.addEventListener("click", itemSelectHandler.bind(textField));
+
+					if (item.value == selectedOption) {
+						itemSelect.click();
+					}
 				});
 
 
