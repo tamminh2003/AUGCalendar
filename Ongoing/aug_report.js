@@ -1,6 +1,6 @@
 /**
- * aug_report.js version 0.1.0803
- * Updated 03/08/2021
+ * aug_report.js version 0.1.0810
+ * Updated 10/08/2021
  */
 
 /**
@@ -836,7 +836,8 @@ BX.ready(
 									Object.assign(sideBar.style, style);
 
 									style = {
-										transition: "opacity 0.2s ease 0s"
+										transition: "opacity 0.2s ease 0s",
+										opacity: "0.1"
 									}
 									Object.assign(document.querySelector("#workarea").style, style);
 
@@ -1370,7 +1371,7 @@ BX.ready(
 			 * Utility function to build select options based on authentication and department this will affect augBranchSelect variable declared above
 			 * @function augBuildBranchSelectObject
 			 * @param {String} userCrmRoleName - crm Role
-									* @param {Array} crmDepartment - crm Department this is array of String
+									* @param {Object} crmDepartment - crm Department this is array of String
 									* @return {Object} augBranchSelect
 									*/
 			function augBuildBranchSelectObject(userCrmRoleName, crmDepartment) {
@@ -1381,9 +1382,11 @@ BX.ready(
 					return augBranchSelect;
 				}
 
-				if (crmDepartment == "Communication Team") {
-					augBranchSelect = augcBranchOfficeList_Report;
-					return augBranchSelect;
+				for (let [key, value] of Object.entries(crmDepartment)) {
+					if (value.toLowerCase() == "communication team" || value.toLowerCase() == "aug global") {
+						augBranchSelect = augcBranchOfficeList_Report;
+						return augBranchSelect;
+					}
 				}
 
 				for (let [country, offices] of Object.entries(augcBranchOfficeList_Report)) {
