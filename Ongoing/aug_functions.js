@@ -556,8 +556,7 @@ async function augAwait(delayTimer, numberOfLoop, timerObject, awaitName) {
 		if (awaitName) {
 			console.log(`awaitName: ${awaitName}`);
 		}
-		console.log(`augAwaitId: ${augAwaitId}`);
-		console.log(`_loopCounter: ${_loopCounter}`);
+		console.log(`augAwaitId: ${augAwaitId} -- _loopCounter: ${_loopCounter}`);
 		if (timerObject.testFunc()) {
 			timerObject.callbackFunc();
 			return "Success!";
@@ -586,7 +585,7 @@ async function augAwaitSelector(delayTimer, numberOfLoop, selector, container) {
 	let _loopCounter = 0; // <= Local variable to counter loop
 
 	while (_loopCounter <= numberOfLoop) {
-		console.log(`augAwaitSelectId: ${augAwaitSelectId} -- ${_loopCounter}`);
+		console.log(`augAwaitSelectId: ${augAwaitSelectId} -- Loop count: ${_loopCounter}`);
 		let result = container.querySelector(selector);
 		if (result) {
 			_augAwaitSelectCount--;

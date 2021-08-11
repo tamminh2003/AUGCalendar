@@ -26,7 +26,10 @@ BX.ready(
 			var intakeYears = { "2015": "2015", "2016": "2016", "2017": "2017", "2018": "2018", "2019": "2019", "2020": "2020", "2021": "2021", "2022": "2022", "2023": "2023", "2024": "2024", "2025": "2025", "2026": "2026", "2027": "2027", "2028": "2028", "2029": "2029" };
 			var reportingMonths = { "January": "01", "March": "03", "July": "07", "September": "09", "October": "10" };
 
-			main();
+			main().catch(error => {
+				console.log("There were errors during execution of report page main function");
+				console.log(error);
+			});
 
 			async function main() {
 
@@ -40,74 +43,6 @@ BX.ready(
 				}
 
 				await augAwait(100, 10, timerObject, "main() - 42");
-
-				// ============ Previous version ===========
-
-				// ! !!!!!!!!!!!!!!!          DEPRACATED          !!!!!!!!!!!!!!!!!!!!!!!!!!
-				/**
-				 * This part of code is responsible of modifying the two filter: Application Intake and Reporting Intake.
-				 * Application Intake and Reporting Intake filters are set with the condition "more than and equal to", e.g. Application Intake "more than and equal to" <date>.
-				 * As well as the condition "less than and equal to", e.g. Application Intake "less than and equal to".
-				 * In summary, the there are two conditions for the filter "more than and equal to" and "less than and equal to".
-				 * These two conditions make up for the range of the filters.
-				 * The date format of Application Intake and Reporting Intake are set the first day of month, i.e. 01/07/2021.
-				 * We only use the month so the filters will be modify so that there are only Month and Year field, e.g. July 2021.
-				 * So 01/07/2021 => July 2021.
-				 * 
-				 * The code will hide the original date input fields of Bitrix, then add the select fields selecting the Month and Year.
-				 * 
-				 * This part of code uses aug_functions.js
-				 */
-				// ! !!!!!!!!!!!!!!!          DEPRACATED          !!!!!!!!!!!!!!!!!!!!!!!!!!
-				try {
-					(function buildIntakeFields_Report() {
-						return;
-						var className = "chfilter-field-datetime";
-						var dateTime = document.getElementsByClassName(className);
-						var counter = 0;
-						var position = "";
-						for (var i = 0; i < dateTime.length; i++) {
-							var labelText = dateTime[i].getElementsByTagName("label")[0].innerText;
-							if ((labelText.includes("Application Intake") || labelText.includes("Reporting Intake"))
-								&& (labelText.includes("is less than or equal to") || labelText.includes("is more than or equal to"))) {
-								counter += 1;
-								var array = augFromToText(className, counter);
-								className = array[0] + "-" + i;
-								counter = array[1];
-								if (labelText.includes("Application Intake")) {
-									augBuildDualFields_Report(className, applicationMonths, intakeYears, applicationId);
-
-									// Apply to second fields after both fields are rendered
-									if (counter % 2 === 0) {
-										augIntakeRadioButton(dateTime[i - 1], null);
-									}
-								}
-								else if (labelText.includes("Reporting Intake")) {
-									augBuildDualFields_Report(className, reportingMonths, intakeYears, reportingId);
-
-									// Apply to second fields after both fields are rendered
-									if (counter % 2 === 0) {
-										augIntakeRadioButton(dateTime[i - 1], null);
-									}
-								}
-							}
-							else if ((labelText.includes("Application Intake") || labelText.includes("Reporting Intake"))
-								&& (labelText.includes("is equal to"))) {
-								className = className + "-In-" + i;
-								if (labelText.includes("Application Intake")) {
-									augBuildOneIntakeField_Report(className, applicationMonths, yearValue, applicationId);
-								}
-								else if (labelText.includes("Reporting Intake")) {
-									augBuildOneIntakeField_Report(className, reportingMonths, yearValue, reportingId);
-								}
-							}
-
-							className = "chfilter-field-datetime";
-						}
-					})()
-				} catch (error) {
-					throw new Error("There were error during executing Modifying Application Intake and Reporting Intake filters.");
-				}
 
 				// Add AUG class to change the style of button.
 				try {
