@@ -1,6 +1,5 @@
-let currentStatusArray = Array.from(document.querySelector(`#CRM_DEAL_${augcElementIDs["Deal"]["Current Status"]}\\[0\\]`)
-  .querySelectorAll("option")).map(option => option.innerHTML.toLowerCase());
-
+// let currentStatusArray = Array.from(document.querySelector(`#CRM_DEAL_${augcElementIDs["Deal"]["Current Status"]}\\[0\\]`)
+//   .querySelectorAll("option")).map(option => option.innerHTML.toLowerCase());
 
 let tableDiv = BX("report-result-table");
 let dealPipelineIndex = getTableHeaderIndex(tableDiv, "deal pipeline");
@@ -125,6 +124,12 @@ document.querySelector("#workarea-content > div > div.reports-result-list-wrap")
 document.querySelector("#workarea-content > div > div.reports-result-list-wrap > .report-table-wrap").style.display = "none";
 
 
+chartData = [
+  { 'Application': 'Applicant', 'Amount 2020' : uniqueApplicantNumber_lastYear, 'Amount 2021' : uniqueApplicantNumber_thisYear}, 
+  { 'Application': 'Acceptance', 'Amount 2020' : uniqueAcceptanceNumber_lastYear, 'Amount 2021' : uniqueAcceptanceNumber_thisYear}
+]
+drawChart(chartData);
+
 // ==============================================================
 function getAmount(table, field, condition) {
   let tableHeader = table.tableHeader;
@@ -179,5 +184,162 @@ function getApplicationDataOnly(tableData) {
 
 function getTableColumnData(table, fieldIndex) {
   return Array.from(table.querySelectorAll(`tbody tr td:nth-child(${fieldIndex + 1})`)).map(row => row.innerText.toLowerCase());
+}
+
+function drawChart(data) {
+  var amChartData = { 'err': '0', 'type': 'column', 'width': '670', 'height': '420', 'data': data, 'categoryField': 'Application', 'categoryType': 'string', 'valueFields': ['Amount 2020', 'Amount 2021'], 'valueTypes': ['integer', 'integer'], 'valueColors': ['#6699CC', '#ff80ed'] };
+  var chartType = amChartData["type"];
+  var valueFields = amChartData["valueFields"];
+  var valueColors = amChartData["valueColors"];
+
+  var i, value;
+  if (BX.type.isNotEmptyString(amChartData['categoryField'])
+    && amChartData['categoryType'] === 'money'
+    && BX.type.isArray(amChartData['data'])) {
+    var ta = BX.create('TEXTAREA');
+    for (i = 0; i < amChartData['data'].length; i++) {
+      value = amChartData['data'][i][amChartData['categoryField']];
+      if (BX.type.isNotEmptyString(value)) {
+        ta.innerHTML = value;
+        amChartData['data'][i][amChartData['categoryField']] = ta.textContent;
+      }
+    }
+    ta = null;
+  }
+  i = value = null;
+
+  // CHART
+  var chart = null;
+  if (chartType === "pie") {
+    chart = new AmCharts.AmPieChart();
+  }
+  else {
+    chart = new AmCharts.AmSerialChart();
+  }
+  chart.dataProvider = amChartData["data"];
+  chart.numberFormatter = {
+    precision: -1,
+    decimalSeparator: '.',
+    thousandsSeparator: ' '
+  };
+  chart.percentFormatter = {
+    precision: 2,
+    decimalSeparator: '.',
+    thousandsSeparator: ' '
+  };
+  chart.zoomOutText = "Show all";
+
+  if (chart.dataProvider !== null && BX.type.isArray(chart.dataProvider) && chart.dataProvider.length > 0) {
+    for (var i = 0; i < chart.dataProvider.length; i++) {
+      if (chart.dataProvider[i][amChartData["categoryField"]] !== "") {
+        chart.dataProvider[i]["__BN__TITLE__"] =
+          BX.util.htmlspecialchars(chart.dataProvider[i][amChartData["categoryField"]]);
+      }
+    }
+  }
+
+  if (chartType === "pie") {
+    chart.addTitle(amChartData["categoryField"] + ": " + valueFields[0]);
+    chart.titleField = amChartData["categoryField"];
+    chart.valueField = valueFields[0];
+    chart.outlineAlpha = 0.8;
+    chart.outlineThickness = 0;
+    chart.balloonText = "<div>[[__BN__TITLE__]]: [[percents]]%</div>" + BX.util.htmlspecialchars(valueFields[0]) +
+      ": <b>[[value]]</b>";
+    chart.colors = valueColors;
+    chart.groupedTitle = "Other";
+  }
+  else {
+    chart.categoryField = amChartData["categoryField"];
+  }
+  chart.startDuration = 1;
+  if (chartType === "column" || chartType === "pie") {
+    chart.depth3D = 15;
+    chart.angle = 30;
+  }
+  if (chartType === "line" || chartType === "column") {
+    // AXES X
+    var categoryAxis = chart.categoryAxis;
+    var categoryType = "string";
+    categoryAxis.labelRotation = 45;
+    if (chartType === 'column') {
+      categoryAxis.gridPosition = "start";
+    }
+    categoryAxis.title = amChartData["categoryField"];
+    if (chartType === "line"
+      && (amChartData["categoryType"] === "date" || amChartData["categoryType"] === "datetime")) {
+      categoryType = "date";
+      categoryAxis.dateFormats = [
+        { period: "fff", format: "JJ:NN:SS" },
+        { period: "ss", format: "JJ:NN:SS" },
+        { period: "mm", format: "JJ:NN" },
+        { period: "hh", format: "JJ:NN" },
+        { period: "DD", format: "DD.MM" },
+        { period: "WW", format: "DD.MM" },
+        { period: "MM", format: "MM.YYYY" },
+        { period: "YYYY", format: "MM.YYYY" }
+      ];
+      categoryAxis.parseDates = true;
+      categoryAxis.minPeriod = "DD";
+    }
+
+    // VALUE
+    for (var i = 0; i < valueFields.length; i++) {
+      // GRAPH
+      var graph = new AmCharts.AmGraph();
+      graph.title = valueFields[i];
+      graph.valueField = valueFields[i];
+      graph.balloonText = BX.util.htmlspecialchars(valueFields[i]) + ": <b>[[value]]</b>";
+      graph.type = chartType;
+      graph.lineAlpha = 0.8;
+      graph.lineColor = valueColors[i];
+      if (chartType === "column") {
+        graph.fillAlphas = 0.8;
+      }
+      if (chartType === "line") {
+        graph.bullet = "round";
+        graph.hideBulletsCount = 30;
+        graph.bulletBorderThickness = 1;
+      }
+      chart.addGraph(graph);
+    }
+
+    // CURSOR
+    var chartCursor = new AmCharts.ChartCursor();
+    //chartCursor.zoomable = false;
+    if (chartType === "line") {
+      chartCursor.cursorAlpha = 0.8;
+      chartCursor.cursorPosition = "mouse";
+      if (categoryType === "string") {
+        chartCursor.categoryBalloonFunction = function (value) {
+          if (BX.type.isNotEmptyString(value)) {
+            return BX.util.htmlspecialchars(value);
+          }
+          else {
+            return value;
+          }
+        };
+      }
+      else if (categoryType === "date") {
+        chartCursor.categoryBalloonDateFormat = "DD.MM.YYYY";
+      }
+    }
+    else if (chartType === 'column') {
+      chartCursor.cursorAlpha = 0;
+      chartCursor.categoryBalloonEnabled = false;
+    }
+    chart.addChartCursor(chartCursor);
+  }
+
+  // LEGEND
+  var legend = new AmCharts.AmLegend();
+  legend.align = "left";
+  legend.markerType = "square";
+  legend.valueWidth = 120;
+  //legend.useMarkerColorForValues = true;
+
+  chart.addLegend(legend);
+  // WRITE
+  chart.write("report-chart-container");
 }
 
