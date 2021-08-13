@@ -12,7 +12,11 @@ let resultTable = {
 
 // let current = sumIf(resultTable, "id (unique)", "reporting intake", ["<=03/01/2021", ">=03/01/2016"])
 let current = sumIf(resultTable, "id (unique)", ["[reporting intake]<=03/01/2021", "[reporting intake]>=03/01/2016"]);
+let past = sumIf(resultTable, "id (unique)", ["[reporting intake]>=03/01/2015", "[reporting intake]<=03/01/2020"]);
 console.log(current);
+console.log(past);
+
+console.log(sumIf(resultTable, "id (unique)", ["[reporting intake]==01/03/2021", "[deal pipeline]==application"]));
 
 /**
  * Calculate the sum of a column in report table with condition.
@@ -58,8 +62,12 @@ function sumIf(table, valueField, conditions) {
       let [day, month, year] = conditionTerm.split("\/");
       conditionTerm = new Date(`${year}/${month}/${day}`).valueOf(); // <== convert date to number
     }
-    else if (!numberRegex.test(conditionTerm) && !conditionOperator != "==") { // <== not Number -> comparing String -> must be "=="
-      throw `ERROR: Can only comparing equal String, please use == operator`;
+    else if (!numberRegex.test(conditionTerm)) { // <== not Number -> comparing String -> must be "=="
+      if (conditionOperator != "==") {
+        throw `ERROR: Can only comparing equal String, please use == operator`;
+      } else {
+        conditionTerm = `"${conditionTerm.toLowerCase()}"`; // ,== convert to string with double quotes ""
+      }
     }
 
     conditionObj = {
@@ -73,14 +81,16 @@ function sumIf(table, valueField, conditions) {
   let accumulator = 0
   // Iterate sumConditions with conditionFieldValue
   if (sumConditions && sumConditions.length > 0) {
-    for (let eachDataValue of tableData) {
-      let sumValue = 0;
-      loopData: for (let eachCondition of sumConditions) {
+    loopData: for (let eachDataValue of tableData) {
+      for (let eachCondition of sumConditions) {
         let conditionFieldIndex = tableHeader.indexOf(eachCondition.field);
         let comparingData = eachDataValue[conditionFieldIndex];;
         if (dateRegex.test(comparingData)) { // <== if data is date -> convert to number
           let [day, month, year] = comparingData.split("\/");
           comparingData = new Date(`${year}/${month}/${day}`).valueOf();
+        }
+        else if (!numberRegex.test(comparingData)) { // <== if data is note number -> convert to string with double qutoes ""
+          comparingData = `"${comparingData.toLowerCase()}"`;
         }
         let condition = `${comparingData}${eachCondition.operator}${eachCondition.term}`; // <== build condition evaluation String
         if (!eval(condition)) {
