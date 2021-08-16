@@ -1,3 +1,8 @@
+/*********************************************************************
+ *                    aug_functions.js version 0.1.0817                 *
+ *                         Updated 17/08/2021                        *
+ *********************************************************************/
+
 // ----------------------------------------- Main function -------------------------------------------- //
 
 /** @function augHideFields */
@@ -594,7 +599,7 @@ async function augAwaitSelector(delayTimer, numberOfLoop, selector, container) {
 		await new Promise(r => setTimeout(r, delayTimer));
 		_loopCounter++;
 	}
-	
+
 	_augAwaitSelectCount--;
 	let reject = new Error("Cannot select element.");
 	reject.name = "PromiseRejected";

@@ -1,3 +1,8 @@
+/*********************************************************************
+ *                    aug_config.js version 0.1.0817                 *
+ *                         Updated 17/08/2021                        *
+ *********************************************************************/
+
 // Please find the excel file (CRM_Element_ID.xlsx)      
 // List of the all element IDs 
 var augcElementIDs = {
