@@ -696,8 +696,8 @@ BX.ready(
 									button.addEventListener("click", (e) => {
 										if (document.querySelector("#sidebar").style.display == "none") {
 											document.querySelector("#sidebar").style.display = "block";
-											document.querySelector("#workarea").style.opacity = 0.1;
-											document.querySelector("#sidebar").style.opacity = 1;
+											// document.querySelector("#workarea").style.opacity = 0.1;
+											// document.querySelector("#sidebar").style.opacity = 1;
 										}
 										button.innerText = button.innerText == "MORE" ? "LESS" : "MORE";
 										mainFilterContainer.querySelectorAll(".aug-optional-filter").forEach((optionalFilter) => {
@@ -716,17 +716,19 @@ BX.ready(
 									document.querySelector("#pagetitle-menu").querySelector("button").insertAdjacentElement("afterend", button);
 									button.addEventListener("click", (e) => {
 
-										if (document.querySelector("#sidebar").style.display == "none") {
-											document.querySelector("#sidebar").style.display = "block";
-											document.querySelector("#workarea").style.opacity = 0.1;
-											document.querySelector("#sidebar").style.opacity = 1;
-										} else {
-											document.querySelector("#sidebar").style.opacity = 0;
-											document.querySelector("#workarea").style.opacity = 1;
-											setTimeout(() => {
-												document.querySelector("#sidebar").style.display = "none";
-											}, 200);
-										}
+										BX("sidebar").style.display = BX("sidebar").style.display == "none" ? "block" : "none";
+
+										// if (document.querySelector("#sidebar").style.display == "none") {
+										// 	document.querySelector("#sidebar").style.display = "block";
+										// 	document.querySelector("#workarea").style.opacity = 0.1;
+										// 	document.querySelector("#sidebar").style.opacity = 1;
+										// } else {
+										// 	document.querySelector("#sidebar").style.opacity = 0;
+										// 	document.querySelector("#workarea").style.opacity = 1;
+										// 	setTimeout(() => {
+										// 		document.querySelector("#sidebar").style.display = "none";
+										// 	}, 200);
+										// }
 									});
 								})();
 
@@ -753,37 +755,37 @@ BX.ready(
 									}
 								})();
 
-							(
-								function augSideBarFlyout() {
-									let sideBar = document.querySelector("#sidebar");
-									let destination = sideBar.parentElement.parentElement;
-									sideBar.remove();
-									destination.appendChild(sideBar);
-									let style = {
-										position: "absolute",
-										top: "213px",
-										left: `calc(50vw - ${parseInt(window.getComputedStyle(sideBar).width) / 2}px)`,
-										boxShadow: "0px 0px 20px 10px #363232b8",
-										transition: "opacity 0.2s ease 0s",
-										opacity: "1",
-										display: "block",
-									}
-									Object.assign(sideBar.style, style);
+							// (
+							// 	function augSideBarFlyout() {
+							// 		let sideBar = document.querySelector("#sidebar");
+							// 		let destination = sideBar.parentElement.parentElement;
+							// 		sideBar.remove();
+							// 		destination.appendChild(sideBar);
+							// 		let style = {
+							// 			position: "absolute",
+							// 			top: "213px",
+							// 			left: `calc(50vw - ${parseInt(window.getComputedStyle(sideBar).width) / 2}px)`,
+							// 			boxShadow: "0px 0px 20px 10px #363232b8",
+							// 			transition: "opacity 0.2s ease 0s",
+							// 			opacity: "1",
+							// 			display: "block",
+							// 		}
+							// 		Object.assign(sideBar.style, style);
 
-									style = {
-										transition: "opacity 0.2s ease 0s",
-										opacity: "0.1"
-									}
-									Object.assign(document.querySelector("#workarea").style, style);
+							// 		style = {
+							// 			transition: "opacity 0.2s ease 0s",
+							// 			opacity: "0.1"
+							// 		}
+							// 		Object.assign(document.querySelector("#workarea").style, style);
 
-									style = {
-										backgroundColor: "white",
-									}
-									Object.assign(document.querySelector("#workarea").parentElement.style, style);
+							// 		style = {
+							// 			backgroundColor: "white",
+							// 		}
+							// 		Object.assign(document.querySelector("#workarea").parentElement.style, style);
 
-								}
+							// 	}
 
-							)();
+							// )();
 
 						})();
 				}

@@ -34,7 +34,6 @@ function sumIf(table, valueField, conditions) {
   let dateRegex = /^(0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])[- /.](19|20)\d\d$/;
   let numberRegex = /^[0-9][0-9]*[0-9]$/;
 
-
   // Verify parameter conditions type
   if (BX.type.isArray(conditions) && conditions.length > 0) {
     for (let [index, eachCondition] of conditions.entries()) {
