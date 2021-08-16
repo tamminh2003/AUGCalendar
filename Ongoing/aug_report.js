@@ -1,6 +1,6 @@
 /**
- * aug_report.js version 0.1.0810
- * Updated 10/08/2021
+ * aug_report.js version 0.1.0817
+ * Updated 17/08/2021
  */
 
 /**
@@ -75,6 +75,32 @@ BX.ready(
 
 				/**  @var mainFilterContainer - The element contain all the filters of the report page. */
 				var mainFilterContainer = document.querySelector("#report-filter-chfilter");
+
+				/**
+				 * Verify report in SHOWALL_1 mode
+				 */
+				if (!document.location.href.includes("SHOWALL_1=1")) {
+					let href = document.location.href;
+					let showAll_Index = href.indexOf("SHOWALL_1");
+					if (showAll_Index > -1) {
+						href = href.replace("SHOWALL_1=0", "SHOWALL_1=1");
+						document.location = href;
+						return;
+					} else {
+						href = href + "&SHOWALL_1=1";
+						document.location = href;
+						return;
+					}
+				}
+
+				/**
+				 * Always set report to SHOWALL_1
+				 * This is done by inserting a hidden input field name SHOWALL_1 value 1
+				 */
+				mainFilterContainer.appendChild(BX.create("input", {
+					"attrs":
+						{ "type": "hidden", "name": "SHOWALL_1", "value": "1" }
+				}));
 
 				try {
 					(
@@ -329,10 +355,6 @@ BX.ready(
 								// Set first option as default.
 								branchFilter.querySelector("a").click();
 							});
-
-							// Set the default for both filters.
-							branchCountryFilter.querySelector("a").click();
-							branchFilter.querySelector("a").click();
 
 						})(mainFilterContainer);
 
@@ -717,18 +739,6 @@ BX.ready(
 									button.addEventListener("click", (e) => {
 
 										BX("sidebar").style.display = BX("sidebar").style.display == "none" ? "block" : "none";
-
-										// if (document.querySelector("#sidebar").style.display == "none") {
-										// 	document.querySelector("#sidebar").style.display = "block";
-										// 	document.querySelector("#workarea").style.opacity = 0.1;
-										// 	document.querySelector("#sidebar").style.opacity = 1;
-										// } else {
-										// 	document.querySelector("#sidebar").style.opacity = 0;
-										// 	document.querySelector("#workarea").style.opacity = 1;
-										// 	setTimeout(() => {
-										// 		document.querySelector("#sidebar").style.display = "none";
-										// 	}, 200);
-										// }
 									});
 								})();
 
@@ -754,38 +764,6 @@ BX.ready(
 										}
 									}
 								})();
-
-							// (
-							// 	function augSideBarFlyout() {
-							// 		let sideBar = document.querySelector("#sidebar");
-							// 		let destination = sideBar.parentElement.parentElement;
-							// 		sideBar.remove();
-							// 		destination.appendChild(sideBar);
-							// 		let style = {
-							// 			position: "absolute",
-							// 			top: "213px",
-							// 			left: `calc(50vw - ${parseInt(window.getComputedStyle(sideBar).width) / 2}px)`,
-							// 			boxShadow: "0px 0px 20px 10px #363232b8",
-							// 			transition: "opacity 0.2s ease 0s",
-							// 			opacity: "1",
-							// 			display: "block",
-							// 		}
-							// 		Object.assign(sideBar.style, style);
-
-							// 		style = {
-							// 			transition: "opacity 0.2s ease 0s",
-							// 			opacity: "0.1"
-							// 		}
-							// 		Object.assign(document.querySelector("#workarea").style, style);
-
-							// 		style = {
-							// 			backgroundColor: "white",
-							// 		}
-							// 		Object.assign(document.querySelector("#workarea").parentElement.style, style);
-
-							// 	}
-
-							// )();
 
 						})();
 				}
