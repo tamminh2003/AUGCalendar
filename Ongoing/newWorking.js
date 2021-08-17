@@ -1,3 +1,4 @@
+let mainFilterContainer = BX("report-filter-chfilter");
 let tableDiv = BX("report-result-table");
 let dealPipelineIndex = getTableHeaderIndex(tableDiv, "deal pipeline");
 let reportIntakeIndex = getTableHeaderIndex(tableDiv, "reporting intake");
@@ -10,13 +11,64 @@ let resultTable = {
   tableData: tableData
 }
 
-// let current = sumIf(resultTable, "id (unique)", "reporting intake", ["<=03/01/2021", ">=03/01/2016"])
-let current = sumIf(resultTable, "id (unique)", ["[reporting intake]<=03/01/2021", "[reporting intake]>=03/01/2016"]);
-let past = sumIf(resultTable, "id (unique)", ["[reporting intake]>=03/01/2015", "[reporting intake]<=03/01/2020"]);
-console.log(current);
-console.log(past);
+let reportingIntake = getIntake("reporting intake");
+let applicationIntake = getIntake("application intake");
 
-console.log(sumIf(resultTable, "id (unique)", ["[reporting intake]==01/03/2021", "[deal pipeline]==application"]));
+// Reporting Intake
+
+if (reportingIntake.mode != "all") {
+
+  reportingIntake_current_from = reportingIntake
+    .fromValue.replace(/(?!^[0-9]{2}\/[0-9]{2}}\/)[0-9]{4}$/, parseInt(reportingIntake.fromValue.split("\/")[2]) + 1);
+  reportingIntake_past_to = reportingIntake
+    .toValue.replace(/(?!^[0-9]{2}\/[0-9]{2}}\/)[0-9]{4}$/, parseInt(reportingIntake.toValue.split("\/")[2]) - 1);
+
+  let current = sumIf(resultTable, "id (unique)", [`[deal pipeline]==application`, `[reporting intake]>=${reportingIntake_current_from}`, `[reporting intake]<=${reportingIntake.toValue}`]);
+  let past = sumIf(resultTable, "id (unique)", [`[deal pipeline]==application`, `[reporting intake]>=${reportingIntake.fromValue}`, `[reporting intake]<=${reportingIntake_past_to}`]);
+
+  console.log(`this year `, current);
+  console.log(`last year `, past);
+}
+
+function getIntake(filterName) {
+  let intake = {};
+
+  for (let filterContainer of mainFilterContainer.querySelectorAll(".filter-field.chfilter-field-datetime:not(.aug-date-field)")) {
+    let filterLabel = filterContainer.querySelector("label").innerHTML.toLowerCase();
+    if (filterLabel.includes(`${filterName.toLowerCase()} \"is more than or equal to\"`)) {
+      intake.fromDiv = filterContainer;
+      intake.fromValue = intake.fromDiv.querySelector("input").value;
+    } else if (filterLabel.includes(`${filterName.toLowerCase()} \"is less than or equal to\"`)) {
+      intake.toDiv = filterContainer;
+      intake.toValue = intake.toDiv.querySelector("input").value;
+    }
+  };
+  if (intake.toValue == intake.fromValue && intake.toValue != "") {
+    intake.mode = "one";
+  } else if (intake.toValue == "" && intake.fromValue == "") {
+    intake.mode = "all";
+  } else if (intake.toValue == "" || intake.fromValue == "") {
+    console.log("Something wrong. Both field should have values or none have values.");
+    if (intake.fromDiv.querySelector("input").value) {
+      intake.toDiv.querySelector("input").value = intake.fromDiv.querySelector("input").value;
+      intake.toValue = intake.fromValue;
+    }
+    if (intake.toDiv.querySelector("input").value) {
+      intake.fromDiv.querySelector("input").value = intake.toDiv.querySelector("input").value;
+      intake.fromValue = intake.toValue;
+    }
+    intake.mode = "one";
+  } else {
+    intake.mode = "range";
+  }
+
+
+  return intake;
+}
+
+
+
+
 
 /**
  * Calculate the sum of a column in report table with condition.

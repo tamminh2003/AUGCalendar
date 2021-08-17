@@ -85,7 +85,7 @@ BX.ready(
 						document.location = href;
 						return;
 					} else {
-						href = href + "&SHOWALL_1=1";
+						href = href + "?&SHOWALL_1=1";
 						document.location = href;
 						return;
 					}
@@ -129,6 +129,7 @@ BX.ready(
 							filterFields.forEach((filterField) => {
 								let label = filterField.querySelector("label").innerText;
 								let uniqueFieldName = label.substring(0, label.indexOf("\"") - 1); // <== Get the field name
+								
 								if (!Object.keys(uniqueFields).includes(uniqueFieldName)) {
 									uniqueFields[uniqueFieldName] = {};
 									uniqueFields[uniqueFieldName].fieldName = uniqueFieldName;
@@ -152,13 +153,13 @@ BX.ready(
 								if (fieldObject.fromTo !== "ready") {
 									console.log(`Found only one element for field |${fieldName}|, ignoring the field.`);
 									continue;
-								} else if (fieldObject.fieldName == "Reporting Intake") {
+								} else if (fieldObject.fieldName == "Reporting Intake" || fieldObject.fieldName == "Application Intake") {
 									console.log(`Found |${fieldObject.fieldName}|.`);
-									augBuildIntakeDateField_Report(filterContainer, fieldObject);
-									continue;
-								} else if (fieldObject.fieldName == "Application Intake") {
-									console.log(`Found |${fieldObject.fieldName}|.`);
-									augBuildIntakeDateField_Report(filterContainer, fieldObject);
+									if (BX("pagetitle").innerHTML.includes("Office Performance")) {
+										augBuildIntakeDateField_PerformanceReport(filterContainer, fieldObject);
+									} else {
+										augBuildIntakeDateField_Report(filterContainer, fieldObject);
+									}
 									continue;
 								}
 
@@ -369,6 +370,10 @@ BX.ready(
 						 */
 						function augModifyResultTable() {
 
+							if (BX("pagetitle").innerHTML.includes("Office Performance")) {
+								return;
+							}
+
 							// ? FUNCTIONS
 							/**
 							 * Local function to get data from each row
@@ -460,7 +465,6 @@ BX.ready(
 							let applicationIntakeIndex = getTableHeaderIndex(resultTable, "application intake");
 							let reportingIntakeIndex = getTableHeaderIndex(resultTable, "reporting intake");
 							let idIndex = getTableHeaderIndex(resultTable, "id");
-							if (idIndex == -1) idIndex = 0;
 							let acceptIndex = getTableHeaderIndex(resultTable, "accept");
 							let studentBlocks = getStudentBlocks(resultTable, idIndex);
 
@@ -478,8 +482,10 @@ BX.ready(
 										cell.dataset.bgcolor = color;
 
 										// Hide similar lead ID
-										if (cellIndex >= 0 && cellIndex <= 2 && index != 0) {
-											cell.innerText = "";
+										if (idIndex > -1) {
+											if (cellIndex >= idIndex && cellIndex <= 2 && index != idIndex) {
+												cell.innerText = "";
+											}
 										}
 
 										// Set color for acceptted row
@@ -649,16 +655,6 @@ BX.ready(
 
 								if (element.querySelector("label").innerText.toUpperCase().includes("RESPONSIBLE PERSON")) {
 									element.querySelector("label").innerText = "Counsellor";
-									return;
-								}
-
-								if (element.querySelector("label").innerText.toUpperCase().includes("APPLICATION INTAKE")) {
-									element.querySelector("label").innerText = "Application Intake";
-									return;
-								}
-
-								if (element.querySelector("label").innerText.toUpperCase().includes("REPORTING INTAKE")) {
-									element.querySelector("label").innerText = "Reporting Intake";
 									return;
 								}
 							});
@@ -983,7 +979,155 @@ BX.ready(
 
 			}
 
+			function augBuildIntakeDateField_PerformanceReport(filterContainer, fieldObject) {
+				// ? VARIABLES
+				let fieldName = fieldObject.fieldName;
+				let toDiv = fieldObject.toDiv;
+				let fromDiv = fieldObject.fromDiv;
+				let fieldId = 'aug_report_filter_intake_date_' + fieldName.toLowerCase().replace(' ', '_');
+				let radioName = fieldName.toLowerCase().replace(' ', '_');
+				let toDivInput = toDiv.querySelector("input");
+				let fromDivInput = fromDiv.querySelector("input");
+				let monthOptions = fieldName == "Application Intake" ? applicationMonths : reportingMonths;
+				let radioMode = (!toDivInput.value && !fromDivInput.value) ? 0 : (toDivInput.value == fromDivInput.value) ? 1 : 2; // 0 = all, 1 = one, 2 = range
+				// ? MAIN BODY
+				// Sample date filter field used to clone new date filter field
+				let sampleDateFilter = document.querySelector(".filter-field.chfilter-field-datetime");
 
+				// Clone inputs from these two filters
+				let toInput = toDiv.querySelector("input");
+				let toA = toDiv.querySelector("a");
+				let fromInput = fromDiv.querySelector("input");
+				let fromA = fromDiv.querySelector("a");
+
+				// Hide 2 Date filter containers.
+				toDiv.style.display = "none";
+				fromDiv.style.display = "none";
+
+				// Adding new Date filter
+				let newDateFilter = sampleDateFilter.cloneNode(true);
+				newDateFilter.id = fieldId;
+				BX.addClass(newDateFilter, 'aug-date-field');
+
+				// Adding new Date Filter before the first filter
+				toDiv.insertAdjacentElement("afterend", newDateFilter);
+				newDateFilter.querySelector("label").innerText = fieldName;
+
+				// Clear content of new Date Filter
+				newDateFilter.querySelector("input").remove();
+				newDateFilter.querySelector("a").remove();
+
+				// Adding options radio buttons
+				let optionDiv = newDateFilter.appendChild(BX.create("div", { "attrs": { "class": `aug-radio-container` } }));
+
+				let allRadio = augBuildRadioButton(optionDiv, "All Intake", (radioMode == 0), `aug-radio-btn-all-${radioName}`, radioName);
+				let oneRadio = augBuildRadioButton(optionDiv, "One Intake", (radioMode == 1), `aug-radio-btn-one-${radioName}`, radioName);
+				let rangeRadio = augBuildRadioButton(optionDiv, "Range", (radioMode == 2), `aug-radio-btn-range-${radioName}`, radioName);
+
+				// Build Month FROM TO Select
+				let fromToDivInitialClass = radioMode == 0 ? "aug-intake-all-mode" : radioMode == 1 ? "aug-intake-one-mode" : "aug-intake-range-mode";
+				let fromToDiv = newDateFilter.appendChild(BX.create("div", { "attrs": { "class": `aug-intake ${fromToDivInitialClass}` } }));
+				let fromMonthDiv = fromToDiv.appendChild(BX.create("div", { "attrs": { "class": "aug-intake-from" } }));
+				let toMonthDiv = fromToDiv.appendChild(BX.create("div", { "attrs": { "class": "aug-intake-to" } }));
+
+				let [fromMonthInput, fromYearInput] = buildMonthSelect(fromMonthDiv, "From", fieldName, fromDivInput.value, fromDivInput);
+				let [toMonthInput, toYearInput] = buildMonthSelect(toMonthDiv, "To", fieldName, toDivInput.value, toDivInput);
+
+				fromToDiv.addEventListener("change", (e) => {
+					if (radioMode == 1) {
+						fromDivInput.value = `01/${fromMonthInput.value}/${parseInt(fromYearInput.value - 1)}`;
+						toDivInput.value = `01/${fromMonthInput.value}/${parseInt(fromYearInput.value)}`;
+					} else if (radioMode == 2) {
+						fromDivInput.value = `01/${fromMonthInput.value}/${parseInt(fromYearInput.value - 1)}`;
+						toDivInput.value = `01/${toMonthInput.value}/${parseInt(toYearInput.value)}`;
+					} else if (radioMode == 0) {
+						fromDivInput.value = "";
+						toDivInput.value = "";
+						console.log("Something wronng. Case radioMode All but values got changed.")
+					} else {
+						console.log("Something wrong. Uncaught case.")
+					}
+				});
+
+				// Adding Handler For Radio Buttons
+				allRadio.addEventListener("change", augAllRadioHandler.bind(fromToDiv));
+				oneRadio.addEventListener("change", augOneRadioHandler.bind(fromToDiv));
+				rangeRadio.addEventListener("change", augRangeRadioHandler.bind(fromToDiv));
+
+				// ? LOCAL FUNCTIONS
+
+				function buildMonthSelect(topContainer, label, fieldName, selectedDate, inputDiv) {
+					let [selectedMonth, selectedYear] = selectedDate.split('/').splice(1, 2);
+					let id = fieldName.toLowerCase().replace(' ', '_');
+
+					topContainer.appendChild(BX.create("label", { "attrs": { "class": "" }, "text": label }));
+
+					// Build month input
+					let monthInput = topContainer.appendChild(BX.create("select", { "attrs": { "class": "aug-intake-month-select aug-two-layers-fields", "id": `aug_${id}_${label}_MonthSelect` } }));
+					for (let [monthName, monthValue] of Object.entries(monthOptions)) {
+						let option = monthInput.appendChild(BX.create("option", { "attrs": { "class": "", "value": monthValue }, "text": monthName }));
+						option.selected = (monthValue == selectedMonth);
+					}
+
+
+					// Build year input
+					let yearInput = topContainer.appendChild(BX.create("select", { "attrs": { "class": "aug-intake-year-select aug-two-layers-fields", "id": `aug_${id}_${label}_MonthSelect` + "YearSelect" } }));
+					for (let [yearName, yearValue] of Object.entries(intakeYears)) {
+						let option = yearInput.appendChild(BX.create("option", { "attrs": { "class": "", "value": yearValue }, "text": yearName }));
+						option.selected = (selectedYear == yearValue);
+					}
+
+					return [monthInput, yearInput];
+				}
+
+
+
+				/**
+				 * Module handler for all radio button - hide To-From Date Field
+				 * @function augAllRadioHandler
+				 * @param {Event} e - event passed in by EventListener
+				 */
+				function augAllRadioHandler(e) {
+					if (e.target.checked) {
+						radioMode = 0;
+						BX.removeClass(fromToDiv, "aug-intake-one-mode");
+						BX.removeClass(fromToDiv, "aug-intake-range-mode");
+						BX.addClass(fromToDiv, "aug-intake-all-mode");
+						fromDivInput.value = "";
+						toDivInput.value = "";
+					}
+				}
+
+				/**
+				 * Local handler for one radio button - Set both same date for both to and from date field
+				 * @function augOneRadioHandler
+				 * @param {Event} e - event passed in by EventListener
+				 */
+				function augOneRadioHandler(e) {
+					if (e.target.checked) {
+						radioMode = 1;
+						BX.removeClass(fromToDiv, "aug-intake-all-mode");
+						BX.removeClass(fromToDiv, "aug-intake-range-mode");
+						BX.addClass(fromToDiv, "aug-intake-one-mode");
+					}
+				}
+
+				/**
+				 * Module handler for all radio button - hide To-From Date Field
+				 * @function augRangeRadioHandler
+				 * @param {Event} e - event passed in by EventListener
+				 */
+				function augRangeRadioHandler(e) {
+					if (e.target.checked) {
+						radioMode = 2;
+						BX.removeClass(fromToDiv, "aug-intake-one-mode");
+						BX.removeClass(fromToDiv, "aug-intake-all-mode");
+						BX.addClass(fromToDiv, "aug-intake-range-mode");
+					}
+				}
+
+
+			}
 
 			/**
 			 * Utility function to combine "more than and equal" and "less than and equal" into one
@@ -1168,7 +1312,6 @@ BX.ready(
 				let fieldName = fieldObject.fieldName;
 				let fieldDiv = fieldObject.div;
 				let fieldId = 'aug_report_filter_select_' + fieldName.toLowerCase().replace(' ', '_');
-				let selectedOption = fieldDiv.querySelector("select").value;
 
 				// Hide the original bitrix field
 				fieldDiv.style.display = "none";
@@ -1186,6 +1329,7 @@ BX.ready(
 
 				await augAwait(100, 10, timerObject, `augBuildSelectField_Report(${fieldName})`);
 
+				let selectedOption = fieldDiv.querySelector("select").value;
 				let temp = [];
 				for (let each of fieldDiv.querySelectorAll("option").values()) {
 					temp.push(each);
@@ -1334,7 +1478,7 @@ BX.ready(
 			}
 
 		} catch (err) {
-			console.error("THERE WERE SOME ERRROS OCCUR, PLEASE CHECK!!!")
+			console.error("THERE WERE SOME ERRORS OCCUR, PLEASE CHECK!!!")
 			alert("THERE WERE SOME ERROR PLEASE CHECK");
 			console.log(err);
 		}

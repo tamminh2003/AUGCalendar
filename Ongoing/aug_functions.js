@@ -727,16 +727,16 @@ function augFieldsHaveValues(fieldsArray) {
 * @param {array} tabsArray - the array with tabs name (Example: 'Applications', 'Orders')
 */
 function augHideTabs(tabsArray) {
-	var tabsList = document.getElementsByClassName("crm-entity-section-tabs-container")[0].childNodes;
+	// var tabsList = document.getElementsByClassName("crm-entity-section-tabs-container")[0].childNodes;
 
-	for (var i = 0; i < tabsList.length; i++) {
-		var text = tabsList[i].getElementsByTagName("a")[0].innerText;
-		for (var j = 0; j < tabsArray.length; j++) {
-			if (text === tabsArray[j]) {
-				BX.addClass(tabsList[i], "aug_hide");
-			}
-		}
-	}
+	// for (var i = 0; i < tabsList.length; i++) {
+	// 	var text = tabsList[i].getElementsByTagName("a")[0].innerText;
+	// 	for (var j = 0; j < tabsArray.length; j++) {
+	// 		if (text === tabsArray[j]) {
+	// 			BX.addClass(tabsList[i], "aug_hide");
+	// 		}
+	// 	}
+	// }
 }
 
 
