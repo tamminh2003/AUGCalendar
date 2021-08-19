@@ -129,7 +129,7 @@ BX.ready(
 							filterFields.forEach((filterField) => {
 								let label = filterField.querySelector("label").innerText;
 								let uniqueFieldName = label.substring(0, label.indexOf("\"") - 1); // <== Get the field name
-								
+
 								if (!Object.keys(uniqueFields).includes(uniqueFieldName)) {
 									uniqueFields[uniqueFieldName] = {};
 									uniqueFields[uniqueFieldName].fieldName = uniqueFieldName;
@@ -541,106 +541,102 @@ BX.ready(
 					throw new Error("There were errors during execution of augModifyResultTable.");
 				}
 
-				try {
-					(
-						/**
-						 * Module function to modify Institution report
-						 * @function augModifyInstitution_Report
-						 */
-						async function augModifyInstitution_Report() {
-							timerObject = {
-								testFunc: () => {
-									return _selectFieldCounter == _selectFieldFinish;
-								},
-								callbackFunc: () => {
-									console.log("select field rendered");
-								}
+				(
+					/**
+					 * Module function to modify Institution report
+					 * @function augModifyInstitution_Report
+					 */
+					async function augModifyInstitution_Report() {
+						timerObject = {
+							testFunc: () => {
+								return _selectFieldCounter == _selectFieldFinish;
+							},
+							callbackFunc: () => {
+								console.log("select field rendered");
 							}
+						}
 
-							await augAwait(100, 10, timerObject, "augModifyInstitution_Report() - 601");
+						await augAwait(100, 10, timerObject, "augModifyInstitution_Report() - 601");
 
-							let institutionCountry;
-							for (let each of document.querySelectorAll(".aug-select-field")) {
-								if (each.querySelector("label").innerHTML.toLowerCase() == "applied institution country") {
-									institutionCountry = each;
+						let institutionCountry;
+						for (let each of document.querySelectorAll(".aug-select-field")) {
+							if (each.querySelector("label").innerHTML.toLowerCase() == "applied institution country") {
+								institutionCountry = each;
+								break;
+							}
+						}
+
+						let appliedInstitution;
+						for (let each of document.querySelectorAll(".aug-select-field")) {
+							if (each.querySelector("label").innerHTML.toLowerCase() == "applied institution") {
+								appliedInstitution = each;
+								break;
+							}
+						}
+
+						let campus;
+						for (let each of document.querySelectorAll(".aug-select-field")) {
+							if (each.querySelector("label").innerHTML.toLowerCase() == "campus") {
+								campus = each;
+								break;
+							}
+						}
+
+						if (!institutionCountry || !appliedInstitution || !campus) {
+							throw new Error("Errors in augModifyInstitution_Report, elements not available");
+						}
+
+						let chosenCountry;
+						institutionCountry.querySelector(".aug-dropdown-container").addEventListener("click", (e) => {
+							chosenCountry = e.target.innerHTML;
+							console.log({ chosenCountry });
+							augSetAppliedInstitutionCountry(chosenCountry);
+						});
+
+
+						function augSetAppliedInstitutionCountry(chosenCountry) {
+							console.log("augSetAppliedInstitutionCountry");
+							let dropdownContainer = appliedInstitution.querySelector(".aug-dropdown-container");
+							let textField = appliedInstitution.querySelector("input");
+							let shortName = augcGetCountryShortName[chosenCountry];
+							let temp = [];
+							let appliedInstitutionOriginal;
+
+							for (let each of document.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum")) {
+								if (each.querySelector("label").innerHTML == "Applied Institution \"is equal to\"") {
+									appliedInstitutionOriginal = each;
 									break;
 								}
 							}
 
-							let appliedInstitution;
-							for (let each of document.querySelectorAll(".aug-select-field")) {
-								if (each.querySelector("label").innerHTML.toLowerCase() == "applied institution") {
-									appliedInstitution = each;
-									break;
-								}
+							for (let each of appliedInstitutionOriginal.querySelectorAll("option").values()) {
+								temp.push(each);
 							}
+							let dataList = temp.map((each) => ({ "value": each.value, "text": each.text }))
+								.filter(each => each.text.includes(`${shortName}--`));
 
-							let campus;
-							for (let each of document.querySelectorAll(".aug-select-field")) {
-								if (each.querySelector("label").innerHTML.toLowerCase() == "campus") {
-									campus = each;
-									break;
-								}
-							}
-
-							if (!institutionCountry || !appliedInstitution || !campus) {
-								throw new Error("Errors in augModifyInstitution_Report, elements not available");
-							}
-
-							let chosenCountry;
-							institutionCountry.querySelector(".aug-dropdown-container").addEventListener("click", (e) => {
-								chosenCountry = e.target.innerHTML;
-								console.log({ chosenCountry });
-								augSetAppliedInstitutionCountry(chosenCountry);
+							appliedInstitution.querySelectorAll("a").forEach((option) => {
+								option.remove(); // <== clear options.
 							});
 
+							dataList.forEach(item => {
+								console.log("Build options");
+								let itemSelect = dropdownContainer.appendChild(BX.create("a", { "attrs": { "class": "aug-item-select", "href": "#" }, "style": { "display": "block" }, "text": item.text }));
 
-							function augSetAppliedInstitutionCountry(chosenCountry) {
-								console.log("augSetAppliedInstitutionCountry");
-								let dropdownContainer = appliedInstitution.querySelector(".aug-dropdown-container");
-								let textField = appliedInstitution.querySelector("input");
-								let shortName = augcGetCountryShortName[chosenCountry];
-								let temp = [];
-								let appliedInstitutionOriginal;
-
-								for (let each of document.querySelectorAll(".filter-field.filter-field-crm.chfilter-field-enum")) {
-									if (each.querySelector("label").innerHTML == "Applied Institution \"is equal to\"") {
-										appliedInstitutionOriginal = each;
-										break;
-									}
+								let itemSelectHandler = function (e) {
+									this.value = item.text;
+									appliedInstitutionOriginal.querySelector("select").value = item.value;
+									dropdownContainer.style.visibility = "hidden";
+									e.preventDefault();
 								}
+								itemSelect.addEventListener("click", itemSelectHandler.bind(textField));
+							});
 
-								for (let each of appliedInstitutionOriginal.querySelectorAll("option").values()) {
-									temp.push(each);
-								}
-								let dataList = temp.map((each) => ({ "value": each.value, "text": each.text }))
-									.filter(each => each.text.includes(`${shortName}--`));
+						}
 
-								appliedInstitution.querySelectorAll("a").forEach((option) => {
-									option.remove(); // <== clear options.
-								});
-
-								dataList.forEach(item => {
-									console.log("Build options");
-									let itemSelect = dropdownContainer.appendChild(BX.create("a", { "attrs": { "class": "aug-item-select", "href": "#" }, "style": { "display": "block" }, "text": item.text }));
-
-									let itemSelectHandler = function (e) {
-										this.value = item.text;
-										appliedInstitutionOriginal.querySelector("select").value = item.value;
-										dropdownContainer.style.visibility = "hidden";
-										e.preventDefault();
-									}
-									itemSelect.addEventListener("click", itemSelectHandler.bind(textField));
-								});
-
-							}
-
-						})();
-
-
-				} catch (error) {
-					throw new Error(error.message);
-				}
+					})().catch(e => {
+						console.log(`ERROR: ${e}`);
+					})
 
 
 				try {
@@ -669,7 +665,7 @@ BX.ready(
 									function getOptionFilterList() {
 										let reportName = document.querySelector("#pagetitle").innerText;
 										if (!Object.keys(augcOptionalFilter_Report).includes(reportName)) {
-											console.error("report name not found");
+											console.log("Warning: Report name not found in aug_config.js");
 											return;
 										}
 										let optionList = [];
@@ -699,7 +695,9 @@ BX.ready(
 											filter.classList.add("aug-optional-filter");
 										}
 									})
-								})();
+								})().catch(e => {
+									console.log(`ERROR: ${e}`);
+								});
 
 
 							(
