@@ -1,6 +1,6 @@
 /*********************************************************************
- *                    aug_css.css version 0.1.0817                   *
- *                         Updated 17/08/2021                        *
+ *                    aug_css.css version 0.1.0820                   *
+ *                         Updated 20/08/2021                        *
  *********************************************************************/
 
 /* --------------- Lead & Deal page ---------------- */
@@ -849,6 +849,10 @@ div.aug-intake-one-mode div:nth-child(2) {
 	appearance: none;
 	-moz-appearance: none; /* Firefox */
 	-webkit-appearance: none; /* Safari and Chrome */
+}
+
+div.filter-field input.webform-field-textbox {
+	width: inherit !important;
 }
 
 /* --------------- End section ------------------- */
